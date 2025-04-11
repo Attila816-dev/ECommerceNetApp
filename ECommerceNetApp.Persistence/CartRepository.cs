@@ -11,14 +11,14 @@ namespace ECommerceNetApp.Persistence
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public Task<Cart> GetCartAsync(string cartId)
+        public async Task<Cart> GetCartAsync(string cartId)
         {
             var collection = _dbContext.GetCollection<Cart>();
-            var cart = collection.FindById(cartId);
-            return Task.FromResult(cart);
+            var cart = await collection.FindByIdAsync(cartId);
+            return cart;
         }
 
-        public Task SaveCartAsync(Cart cart)
+        public async Task SaveCartAsync(Cart cart)
         {
             if (string.IsNullOrEmpty(cart.Id))
             {
@@ -28,16 +28,13 @@ namespace ECommerceNetApp.Persistence
             cart.UpdatedAt = DateTime.UtcNow;
             var collection = _dbContext.GetCollection<Cart>();
 
-            collection.Upsert(cart);
-
-            return Task.CompletedTask;
+            await collection.UpsertAsync(cart);
         }
 
-        public Task DeleteCartAsync(string cartId)
+        public async Task DeleteCartAsync(string cartId)
         {
             var collection = _dbContext.GetCollection<Cart>();
-            collection.Delete(cartId);
-            return Task.CompletedTask;
+            await collection.DeleteAsync(cartId);
         }
     }
 }

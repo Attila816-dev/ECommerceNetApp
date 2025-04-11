@@ -11,12 +11,12 @@ namespace ECommerceNetApp.Persistence
             _dbContext = dbContext;
         }
 
-        public Task SeedSampleDataAsync()
+        public async Task SeedSampleDataAsync()
         {
             var cartCollection = _dbContext.GetCollection<Cart>();
 
             // Only seed if collection is empty
-            if (cartCollection.Count() == 0)
+            if ((await cartCollection.CountAsync()) == 0)
             {
                 // Create a sample cart
                 var sampleCart = new Cart 
@@ -49,10 +49,8 @@ namespace ECommerceNetApp.Persistence
                 });
 
                 // Save to database
-                cartCollection.Insert(sampleCart);
+                await cartCollection.InsertAsync(sampleCart);
             }
-
-            return Task.CompletedTask;
         }
     }
 }

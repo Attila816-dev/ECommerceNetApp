@@ -1,29 +1,29 @@
-﻿using LiteDB;
+﻿using LiteDB.Async;
 
 namespace ECommerceNetApp.Persistence
 {
     public class CartDbContext
     {
-        private readonly LiteDatabase _database;
+        private readonly LiteDatabaseAsync _database;
 
         public CartDbContext(string connectionString)
         {
-            _database = new LiteDatabase(connectionString);
+            _database = new LiteDatabaseAsync(connectionString);
         }
 
-        public ILiteCollection<T> GetCollection<T>() where T : class
+        public ILiteCollectionAsync<T> GetCollection<T>() where T : class
         {
             return _database.GetCollection<T>(typeof(T).Name);
         }
 
-        public bool CollectionExists(string name)
+        public async Task<bool> CollectionExistsAsync<T>() where T : class
         {
-            return _database.CollectionExists(name);
+            return await _database.CollectionExistsAsync(typeof(T).Name);
         }
 
-        public void CreateCollection(string name)
+        public void CreateCollection<T>() where T : class
         {
-            _database.GetCollection(name);
+            _database.GetCollection(typeof(T).Name);
         }
     }
 }
