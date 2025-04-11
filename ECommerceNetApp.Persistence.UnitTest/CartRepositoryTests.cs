@@ -8,13 +8,15 @@ namespace ECommerceNetApp.Persistence.UnitTest
     {
         private readonly CartDbContext _dbContext;
         private readonly CartRepository _repository;
-        private readonly LiteDatabaseAsync _liteDatabase;
         private bool disposedValue;
 
         public CartRepositoryTests()
         {
-            _liteDatabase = new LiteDatabaseAsync(new MemoryStream());
-            _dbContext = new CartDbContext(_liteDatabase);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            var liteDatabase = new LiteDatabaseAsync(new MemoryStream());
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+            _dbContext = new CartDbContext(liteDatabase);
             _repository = new CartRepository(_dbContext);
         }
 
@@ -126,7 +128,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         {
             // Act & Assert
             var exception = Assert.Throws<ArgumentNullException>(() => new CartRepository(null));
-            exception.ParamName.Should().Be("CartDbContext");
+            exception.ParamName.Should().Be("cartDbContext");
         }
 
         public void Dispose()
@@ -144,7 +146,6 @@ namespace ECommerceNetApp.Persistence.UnitTest
                 {
                     // TODO: dispose managed state (managed objects)
                     _dbContext.Dispose();
-                    _liteDatabase.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer

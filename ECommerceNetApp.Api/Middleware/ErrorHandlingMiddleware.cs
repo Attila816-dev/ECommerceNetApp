@@ -25,6 +25,10 @@ namespace ECommerceNetApp.Api.Middleware
             {
                 await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message).ConfigureAwait(false);
             }
+            catch (KeyNotFoundException ex)
+            {
+                await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message).ConfigureAwait(false);
+            }
             catch (InvalidOperationException ex)
             {
                 await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, ex.Message).ConfigureAwait(false);
@@ -38,16 +42,8 @@ namespace ECommerceNetApp.Api.Middleware
 
         private static Task HandleExceptionAsync(HttpContext context, HttpStatusCode statusCode, string message)
         {
-            context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)statusCode;
-
-            var response = new
-            {
-                StatusCode = context.Response.StatusCode,
-                Message = message,
-            };
-
-            return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            return context.Response.WriteAsJsonAsync(message);
         }
     }
 }
