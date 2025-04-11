@@ -11,6 +11,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.Persistence
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.Api", "ECommerceNetApp.Api\ECommerceNetApp.Api.csproj", "{0C1A1034-1332-4D72-1033-DA00CD4D5DC0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.Service.UnitTest", "ECommerceNetApp.Service.UnitTest\ECommerceNetApp.Service.UnitTest.csproj", "{F67BD357-72EE-4304-870D-95A618B86120}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.Persistence.UnitTest", "ECommerceNetApp.Persistence.UnitTest\ECommerceNetApp.Persistence.UnitTest.csproj", "{E721E502-A126-4207-87D2-C6A515DF0050}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,9 +39,21 @@ Global
 		{0C1A1034-1332-4D72-1033-DA00CD4D5DC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C1A1034-1332-4D72-1033-DA00CD4D5DC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C1A1034-1332-4D72-1033-DA00CD4D5DC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F67BD357-72EE-4304-870D-95A618B86120}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F67BD357-72EE-4304-870D-95A618B86120}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F67BD357-72EE-4304-870D-95A618B86120}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F67BD357-72EE-4304-870D-95A618B86120}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E721E502-A126-4207-87D2-C6A515DF0050}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E721E502-A126-4207-87D2-C6A515DF0050}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E721E502-A126-4207-87D2-C6A515DF0050}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E721E502-A126-4207-87D2-C6A515DF0050}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F67BD357-72EE-4304-870D-95A618B86120} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{E721E502-A126-4207-87D2-C6A515DF0050} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C305253A-5128-477F-B519-AD425166033B}

@@ -1,3 +1,4 @@
+using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Persistence;
 using ECommerceNetApp.Service;
 
@@ -8,9 +9,18 @@ builder.Services.AddECommerceRepositories(builder.Configuration);
 builder.Services.AddECommerceServices();
 
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "ECommerceNetApp API",
+        Version = "v1",
+        Description = "API for ECommerceNetApp",
+    });
+});
 
 var app = builder.Build();
 
@@ -26,13 +36,17 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
+    app.UseSwagger(c =>
+    {
+        c.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi2_0;
+    });
     app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
+
+app.UseErrorHandlingMiddleware();
 
 app.MapControllers();
 

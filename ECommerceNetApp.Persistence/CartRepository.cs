@@ -4,38 +4,37 @@ namespace ECommerceNetApp.Persistence
 {
     public class CartRepository : ICartRepository
     {
-        private readonly CartDbContext _dbContext;
+        private readonly CartDbContext _cartDbContext;
 
-        public CartRepository(CartDbContext dbContext)
+        public CartRepository(CartDbContext? cartDbContext)
         {
-            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _cartDbContext = cartDbContext ?? throw new ArgumentNullException(nameof(cartDbContext));
         }
 
-        public async Task<Cart> GetCartAsync(string cartId)
+        public async Task<Cart?> GetCartAsync(string cartId)
         {
-            var collection = _dbContext.GetCollection<Cart>();
-            var cart = await collection.FindByIdAsync(cartId);
+            var collection = _cartDbContext.GetCollection<Cart>();
+            var cart = await collection.FindByIdAsync(cartId).ConfigureAwait(false);
             return cart;
         }
 
         public async Task SaveCartAsync(Cart cart)
         {
-            if (string.IsNullOrEmpty(cart.Id))
+            if (string.IsNullOrEmpty(cart?.Id))
             {
                 throw new ArgumentException("Cart Id cannot be empty", nameof(cart));
             }
 
             cart.UpdatedAt = DateTime.UtcNow;
-            var collection = _dbContext.GetCollection<Cart>();
+            var collection = _cartDbContext.GetCollection<Cart>();
 
-            await collection.UpsertAsync(cart);
+            await collection.UpsertAsync(cart).ConfigureAwait(false);
         }
 
         public async Task DeleteCartAsync(string cartId)
         {
-            var collection = _dbContext.GetCollection<Cart>();
-            await collection.DeleteAsync(cartId);
+            var collection = _cartDbContext.GetCollection<Cart>();
+            await collection.DeleteAsync(cartId).ConfigureAwait(false);
         }
     }
 }
-

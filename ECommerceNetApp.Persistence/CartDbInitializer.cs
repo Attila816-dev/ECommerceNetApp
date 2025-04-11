@@ -14,13 +14,13 @@ namespace ECommerceNetApp.Persistence
         public async Task InitializeDatabaseAsync()
         {
             // Create Cart collection if it doesn't exist
-            if (!await _dbContext.CollectionExistsAsync<Cart>())
+            if (!await _dbContext.CollectionExistsAsync<Cart>().ConfigureAwait(false))
             {
                 _dbContext.CreateCollection<Cart>();
 
                 // You can add indexes here if needed
                 var cartCollection = _dbContext.GetCollection<Cart>();
-                await cartCollection.EnsureIndexAsync(x => x.Id);
+                await cartCollection.EnsureIndexAsync(x => x.Id).ConfigureAwait(false);
             }
         }
     }

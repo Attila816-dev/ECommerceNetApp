@@ -19,7 +19,7 @@ namespace ECommerceNetApp.Service
                 throw new ArgumentException("Cart ID cannot be empty.", nameof(cartId));
             }
 
-            var cart = await _cartRepository.GetCartAsync(cartId);
+            var cart = await _cartRepository.GetCartAsync(cartId).ConfigureAwait(false);
 
             if (cart == null)
             {
@@ -30,32 +30,32 @@ namespace ECommerceNetApp.Service
             return cart.Items.Select(MapToDto).ToList();
         }
 
-        public async Task AddItemToCartAsync(string cartId, CartItemDto itemDto)
+        public async Task AddItemToCartAsync(string cartId, CartItemDto item)
         {
             if (string.IsNullOrEmpty(cartId))
             {
                 throw new ArgumentException("Cart ID cannot be empty.", nameof(cartId));
             }
 
-            ValidateCartItem(itemDto);
+            ValidateCartItem(item);
 
-            var cart = await GetOrCreateCartAsync(cartId);
+            var cart = await GetOrCreateCartAsync(cartId).ConfigureAwait(false);
 
             // Check if item already exists
-            var existingItem = cart.Items.FirstOrDefault(i => i.Id == itemDto.Id);
+            var existingItem = cart.Items.FirstOrDefault(i => i.Id == item.Id);
 
             if (existingItem != null)
             {
                 // Update existing item's quantity
-                existingItem.Quantity += itemDto.Quantity;
+                existingItem.Quantity += item.Quantity;
             }
             else
             {
                 // Add new item
-                cart.Items.Add(MapToDomain(itemDto));
+                cart.Items.Add(MapToDomain(item));
             }
 
-            await _cartRepository.SaveCartAsync(cart);
+            await _cartRepository.SaveCartAsync(cart).ConfigureAwait(false);
         }
 
         public async Task RemoveItemFromCartAsync(string cartId, int itemId)
@@ -65,7 +65,7 @@ namespace ECommerceNetApp.Service
                 throw new ArgumentException("Cart ID cannot be empty.", nameof(cartId));
             }
 
-            var cart = await _cartRepository.GetCartAsync(cartId);
+            var cart = await _cartRepository.GetCartAsync(cartId).ConfigureAwait(false);
 
             if (cart == null)
             {
@@ -80,7 +80,7 @@ namespace ECommerceNetApp.Service
             }
 
             cart.Items.Remove(itemToRemove);
-            await _cartRepository.SaveCartAsync(cart);
+            await _cartRepository.SaveCartAsync(cart).ConfigureAwait(false);
         }
 
         public async Task UpdateItemQuantityAsync(string cartId, int itemId, int quantity)
@@ -95,7 +95,7 @@ namespace ECommerceNetApp.Service
                 throw new ArgumentException("Quantity must be greater than zero.", nameof(quantity));
             }
 
-            var cart = await _cartRepository.GetCartAsync(cartId);
+            var cart = await _cartRepository.GetCartAsync(cartId).ConfigureAwait(false);
 
             if (cart == null)
             {
@@ -110,39 +110,27 @@ namespace ECommerceNetApp.Service
             }
 
             item.Quantity = quantity;
-            await _cartRepository.SaveCartAsync(cart);
-        }
-
-        private async Task<Cart> GetOrCreateCartAsync(string cartId)
-        {
-            var cart = await _cartRepository.GetCartAsync(cartId);
-
-            if (cart == null)
-            {
-                cart = new Cart
-                {
-                    Id = cartId,
-                    Items = new List<CartItem>()
-                };
-            }
-
-            return cart;
+            await _cartRepository.SaveCartAsync(cart).ConfigureAwait(false);
         }
 
         public async Task<decimal> GetCartTotalAsync(string cartId)
         {
             if (string.IsNullOrEmpty(cartId))
+            {
                 throw new ArgumentException("Cart ID cannot be empty.", nameof(cartId));
+            }
 
-            var cart = await _cartRepository.GetCartAsync(cartId);
+            var cart = await _cartRepository.GetCartAsync(cartId).ConfigureAwait(false);
 
             if (cart == null)
+            {
                 return 0; // Empty cart has zero total
+            }
 
-            return cart.Items.Aggregate((decimal)0, (total, item) => total + (item.Price * item.Quantity));
+            return cart.Items.Aggregate(0M, (total, item) => total + (item.Price * item.Quantity));
         }
 
-        private CartItemDto MapToDto(CartItem item)
+        private static CartItemDto MapToDto(CartItem item)
         {
             return new CartItemDto
             {
@@ -151,11 +139,11 @@ namespace ECommerceNetApp.Service
                 ImageUrl = item.ImageUrl,
                 ImageAltText = item.ImageAltText,
                 Price = item.Price,
-                Quantity = item.Quantity
+                Quantity = item.Quantity,
             };
         }
 
-        private CartItem MapToDomain(CartItemDto dto)
+        private static CartItem MapToDomain(CartItemDto dto)
         {
             return new CartItem
             {
@@ -164,16 +152,13 @@ namespace ECommerceNetApp.Service
                 ImageUrl = dto.ImageUrl,
                 ImageAltText = dto.ImageAltText,
                 Price = dto.Price,
-                Quantity = dto.Quantity
+                Quantity = dto.Quantity,
             };
         }
 
-        private void ValidateCartItem(CartItemDto item)
+        private static void ValidateCartItem(CartItemDto item)
         {
-            if (item == null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
+            ArgumentNullException.ThrowIfNull(item);
 
             if (item.Id <= 0)
             {
@@ -194,6 +179,21 @@ namespace ECommerceNetApp.Service
             {
                 throw new ArgumentException("Item quantity must be greater than zero.", nameof(item));
             }
+        }
+
+        private async Task<Cart> GetOrCreateCartAsync(string cartId)
+        {
+            var cart = await _cartRepository.GetCartAsync(cartId).ConfigureAwait(false);
+
+            if (cart == null)
+            {
+                cart = new Cart
+                {
+                    Id = cartId,
+                };
+            }
+
+            return cart;
         }
     }
 }

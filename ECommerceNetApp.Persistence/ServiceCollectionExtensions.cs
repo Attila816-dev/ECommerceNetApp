@@ -9,8 +9,16 @@ namespace ECommerceNetApp.Persistence
 
         public static IServiceCollection AddECommerceRepositories(this IServiceCollection services, IConfiguration configuration)
         {
-            var cartDbConnectionString = configuration.GetConnectionString(CartDbConnectionStringName) ?? throw new ArgumentNullException(CartDbConnectionStringName);
-            services.AddSingleton(new CartDbContext(cartDbConnectionString));
+            ArgumentNullException.ThrowIfNull(configuration);
+
+            var cartDbConnectionString = configuration.GetConnectionString(CartDbConnectionStringName);
+            ArgumentNullException.ThrowIfNull(cartDbConnectionString);
+
+            services.AddSingleton(provider =>
+            {
+                return new CartDbContext(cartDbConnectionString);
+            });
+
             services.AddScoped<ICartRepository, CartRepository>();
             services.AddScoped<CartDbInitializer>();
             services.AddScoped<CartDbSampleDataSeeder>();

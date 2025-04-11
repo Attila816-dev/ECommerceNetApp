@@ -16,15 +16,14 @@ namespace ECommerceNetApp.Persistence
             var cartCollection = _dbContext.GetCollection<Cart>();
 
             // Only seed if collection is empty
-            if ((await cartCollection.CountAsync()) == 0)
+            if ((await cartCollection.CountAsync().ConfigureAwait(false)) == 0)
             {
                 // Create a sample cart
-                var sampleCart = new Cart 
-                { 
+                var sampleCart = new Cart
+                {
                     Id = "sample-cart-1",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    Items = new List<CartItem>()
                 };
 
                 // Add sample items
@@ -49,7 +48,7 @@ namespace ECommerceNetApp.Persistence
                 });
 
                 // Save to database
-                await cartCollection.InsertAsync(sampleCart);
+                await cartCollection.InsertAsync(sampleCart).ConfigureAwait(false);
             }
         }
     }

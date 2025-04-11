@@ -17,71 +17,36 @@ namespace ECommerceNetApp.Api.Controllers
         [HttpGet("{cartId}/items")]
         public async Task<ActionResult<List<CartItemDto>>> GetCartItems(string cartId)
         {
-            try
-            {
-                var items = await _cartService.GetCartItemsAsync(cartId);
-                return Ok(items);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var items = await _cartService.GetCartItemsAsync(cartId).ConfigureAwait(false);
+            return Ok(items);
         }
 
         [HttpPost("{cartId}/items")]
         public async Task<ActionResult> AddItemToCart(string cartId, CartItemDto item)
         {
-            try
-            {
-                await _cartService.AddItemToCartAsync(cartId, item);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            await _cartService.AddItemToCartAsync(cartId, item).ConfigureAwait(false);
+            return Ok();
         }
 
         [HttpDelete("{cartId}/items/{itemId}")]
         public async Task<ActionResult> RemoveItemFromCart(string cartId, int itemId)
         {
-            try
-            {
-                await _cartService.RemoveItemFromCartAsync(cartId, itemId);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            await _cartService.RemoveItemFromCartAsync(cartId, itemId).ConfigureAwait(false);
+            return Ok();
         }
 
         [HttpPut("{cartId}/items/{itemId}")]
         public async Task<ActionResult> UpdateItemQuantity(string cartId, int itemId, [FromBody] int quantity)
         {
-            try
-            {
-                await _cartService.UpdateItemQuantityAsync(cartId, itemId, quantity);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            await _cartService.UpdateItemQuantityAsync(cartId, itemId, quantity).ConfigureAwait(false);
+            return Ok();
         }
 
         [HttpGet("{cartId}/total")]
         public async Task<ActionResult<decimal>> GetCartTotal(string cartId)
         {
-            try
-            {
-                var total = await _cartService.GetCartTotalAsync(cartId);
-                return Ok(total);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var total = await _cartService.GetCartTotalAsync(cartId).ConfigureAwait(false);
+            return Ok(total);
         }
     }
 }
