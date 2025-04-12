@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using ECommerceNetApp.Persistence.Implementation;
+using ECommerceNetApp.Persistence.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ECommerceNetApp.Persistence
+namespace ECommerceNetApp.Persistence.Extensions
 {
     public static class ServiceCollectionExtensions
     {

@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using ECommerceNetApp.Api.Extensions;
-using ECommerceNetApp.Persistence;
+using ECommerceNetApp.Persistence.Extensions;
+using ECommerceNetApp.Persistence.Implementation;
 using ECommerceNetApp.Service;
 
 var builder = WebApplication.CreateBuilder(args);

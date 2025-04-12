@@ -1,4 +1,5 @@
-using ECommerceNetApp.Domain;
+using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Implementation;
 using FluentAssertions;
 using LiteDB.Async;
 
@@ -25,7 +26,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         {
             // Arrange
             var cartId = "test-cart-123";
-            var expectedCart = new Cart { Id = cartId };
+            var expectedCart = new Cart(cartId);
 
             var cartCollection = _dbContext.GetCollection<Cart>();
             await cartCollection.InsertAsync(expectedCart);
@@ -57,39 +58,22 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task SaveCartAsync_ValidCart_SavesSuccessfully()
         {
             // Arrange
-            var cart = new Cart { Id = "cart-123" };
-            var initialUpdateTime = cart.UpdatedAt;
+            var cart = new Cart("cart-123");
 
             var cartCollection = _dbContext.GetCollection<Cart>();
-            await cartCollection.InsertAsync(cart);
 
             // Act
             await _repository.SaveCartAsync(cart);
 
             // Assert
-            cart.UpdatedAt.Should().BeAfter(initialUpdateTime);
+            var insertedCart = await cartCollection.FindByIdAsync(cart.Id);
+            insertedCart.Should().NotBeNull();
         }
 
         [Fact]
-        public async Task SaveCartAsync_EmptyCartId_ThrowsArgumentException()
+        public void CreateCartWithEmptyCartId_ThrowsArgumentException()
         {
-            // Arrange
-            var cart = new Cart { Id = string.Empty };
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentException>(() => _repository.SaveCartAsync(cart));
-            exception.Message.Should().Contain("Cart Id cannot be empty");
-        }
-
-        [Fact]
-        public async Task SaveCartAsync_NullCartId_ThrowsArgumentException()
-        {
-            // Arrange
-            var cart = new Cart { Id = null };
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentException>(() => _repository.SaveCartAsync(cart));
-            exception.Message.Should().Contain("Cart Id cannot be empty");
+            Assert.Throws<ArgumentException>(() => new Cart(string.Empty));
         }
 
         [Fact]
@@ -97,7 +81,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         {
             // Arrange
             var cartId = "cart-to-delete";
-            var expectedCart = new Cart { Id = cartId };
+            var expectedCart = new Cart(cartId);
 
             var cartCollection = _dbContext.GetCollection<Cart>();
             await cartCollection.InsertAsync(expectedCart);

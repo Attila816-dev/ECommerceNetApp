@@ -1,6 +1,7 @@
-﻿using ECommerceNetApp.Domain;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces;
 
-namespace ECommerceNetApp.Persistence
+namespace ECommerceNetApp.Persistence.Implementation
 {
     public class CartRepository : ICartRepository
     {
@@ -25,7 +26,6 @@ namespace ECommerceNetApp.Persistence
                 throw new ArgumentException("Cart Id cannot be empty", nameof(cart));
             }
 
-            cart.UpdatedAt = DateTime.UtcNow;
             var collection = _cartDbContext.GetCollection<Cart>();
 
             await collection.UpsertAsync(cart).ConfigureAwait(false);

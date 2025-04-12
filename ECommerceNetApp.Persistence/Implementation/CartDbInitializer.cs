@@ -1,6 +1,7 @@
 ﻿using ECommerceNetApp.Domain;
+using ECommerceNetApp.Domain.Entities;
 
-namespace ECommerceNetApp.Persistence
+namespace ECommerceNetApp.Persistence.Implementation
 {
     public class CartDbInitializer
     {

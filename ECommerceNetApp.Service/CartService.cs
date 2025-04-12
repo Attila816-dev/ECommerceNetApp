@@ -1,5 +1,8 @@
 ﻿using ECommerceNetApp.Domain;
+using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence;
+using ECommerceNetApp.Persistence.Interfaces;
 
 namespace ECommerceNetApp.Service
 {
@@ -46,12 +49,12 @@ namespace ECommerceNetApp.Service
             if (existingItem != null)
             {
                 // Update existing item's quantity
-                existingItem.Quantity += item.Quantity;
+                existingItem.UpdateQuantity(existingItem.Quantity + item.Quantity);
             }
             else
             {
                 // Add new item
-                cart.Items.Add(MapToDomain(item));
+                cart.AddItem(MapToDomain(item));
             }
 
             await _cartRepository.SaveCartAsync(cart).ConfigureAwait(false);
@@ -71,14 +74,7 @@ namespace ECommerceNetApp.Service
                 throw new KeyNotFoundException($"Cart with ID {cartId} not found.");
             }
 
-            var itemToRemove = cart.Items.FirstOrDefault(i => i.Id == itemId);
-
-            if (itemToRemove == null)
-            {
-                throw new KeyNotFoundException($"Item with ID {itemId} not found in cart.");
-            }
-
-            cart.Items.Remove(itemToRemove);
+            cart.RemoveItem(itemId);
             await _cartRepository.SaveCartAsync(cart).ConfigureAwait(false);
         }
 
@@ -108,7 +104,7 @@ namespace ECommerceNetApp.Service
                 throw new KeyNotFoundException($"Item with ID {itemId} not found in cart.");
             }
 
-            item.Quantity = quantity;
+            item.UpdateQuantity(quantity);
             await _cartRepository.SaveCartAsync(cart).ConfigureAwait(false);
         }
 
@@ -126,7 +122,8 @@ namespace ECommerceNetApp.Service
                 return 0; // Empty cart has zero total
             }
 
-            return cart.Items.Aggregate(0M, (total, item) => total + (item.Price * item.Quantity));
+            var total = cart.CalculateTotal();
+            return total.Amount;
         }
 
         private static CartItemDto MapToDto(CartItem item)
@@ -135,24 +132,25 @@ namespace ECommerceNetApp.Service
             {
                 Id = item.Id,
                 Name = item.Name,
-                ImageUrl = item.ImageUrl,
-                ImageAltText = item.ImageAltText,
-                Price = item.Price,
+                ImageUrl = item.Image?.Url,
+                ImageAltText = item.Image?.AltText,
+                Price = item.Price?.Amount,
                 Quantity = item.Quantity,
             };
         }
 
         private static CartItem MapToDomain(CartItemDto dto)
         {
-            return new CartItem
+            ArgumentNullException.ThrowIfNull(dto);
+            ArgumentNullException.ThrowIfNull(dto.Price);
+
+            ImageInfo? cartItemImageInfo = null;
+            if (!string.IsNullOrEmpty(dto.ImageUrl) || !string.IsNullOrEmpty(dto.ImageAltText))
             {
-                Id = dto.Id,
-                Name = dto.Name,
-                ImageUrl = dto.ImageUrl,
-                ImageAltText = dto.ImageAltText,
-                Price = dto.Price,
-                Quantity = dto.Quantity,
-            };
+                cartItemImageInfo = new ImageInfo(dto.ImageUrl!, dto.ImageAltText!);
+            }
+
+            return new CartItem(dto.Id, dto.Name, new Money(dto.Price.Value), dto.Quantity, cartItemImageInfo);
         }
 
         private static void ValidateCartItem(CartItemDto item)
@@ -186,10 +184,7 @@ namespace ECommerceNetApp.Service
 
             if (cart == null)
             {
-                cart = new Cart
-                {
-                    Id = cartId,
-                };
+                cart = new Cart(cartId);
             }
 
             return cart;

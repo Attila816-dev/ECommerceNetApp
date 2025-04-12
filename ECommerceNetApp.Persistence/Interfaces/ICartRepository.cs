@@ -1,6 +1,6 @@
-﻿using ECommerceNetApp.Domain;
+﻿using ECommerceNetApp.Domain.Entities;
 
-namespace ECommerceNetApp.Persistence
+namespace ECommerceNetApp.Persistence.Interfaces
 {
     public interface ICartRepository
     {

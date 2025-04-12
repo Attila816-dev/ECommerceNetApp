@@ -1,5 +1,8 @@
 using ECommerceNetApp.Domain;
+using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence;
+using ECommerceNetApp.Persistence.Interfaces;
 using FluentAssertions;
 using Moq;
 
@@ -36,12 +39,9 @@ namespace ECommerceNetApp.Service.UnitTest
             // Arrange
             string testCartId = "test-cart-123";
 
-            var cart = new Cart
-            {
-                Id = testCartId,
-            };
+            var cart = new Cart(testCartId);
 
-            cart.Items.Add(new CartItem { Id = 1, Name = "Test Item", Price = 10.99m, Quantity = 2 });
+            cart.AddItem(new CartItem(1, "Test Item", new Money(10.99m), 2));
 
             _mockRepository.Setup(r => r.GetCartAsync(testCartId))
                 .ReturnsAsync(cart);
@@ -62,10 +62,7 @@ namespace ECommerceNetApp.Service.UnitTest
             // Arrange
             string testCartId = "test-cart-123";
 
-            var cart = new Cart
-            {
-                Id = testCartId,
-            };
+            var cart = new Cart(testCartId);
 
             _mockRepository.Setup(r => r.GetCartAsync(testCartId))
                 .ReturnsAsync(cart);
@@ -85,7 +82,7 @@ namespace ECommerceNetApp.Service.UnitTest
             _mockRepository.Verify(
                 r => r.SaveCartAsync(It.Is<Cart>(c =>
                     c.Items.Count == 1 &&
-                    c.Items[0].Name == "New Item")),
+                    c.Items.First().Name == "New Item")),
                 Times.Once);
         }
 
@@ -94,12 +91,9 @@ namespace ECommerceNetApp.Service.UnitTest
         {
             // Arrange
             string testCartId = "test-cart-123";
-            var cart = new Cart
-            {
-                Id = testCartId,
-            };
+            var cart = new Cart(testCartId);
 
-            cart.Items.Add(new CartItem { Id = 1, Name = "Existing Item", Price = 15.99m, Quantity = 1 });
+            cart.AddItem(new CartItem(1, "Existing Item", new Money(15.99m), 1));
 
             _mockRepository.Setup(r => r.GetCartAsync(testCartId))
                 .ReturnsAsync(cart);
@@ -119,7 +113,7 @@ namespace ECommerceNetApp.Service.UnitTest
             _mockRepository.Verify(
                 r => r.SaveCartAsync(It.Is<Cart>(c =>
                     c.Items.Count == 1 &&
-                    c.Items[0].Quantity == 3)),
+                    c.Items.First().Quantity == 3)),
                 Times.Once);
         }
 
@@ -129,13 +123,10 @@ namespace ECommerceNetApp.Service.UnitTest
             // Arrange
             string testCartId = "test-cart-123";
 
-            var cart = new Cart
-            {
-                Id = testCartId,
-            };
+            var cart = new Cart(testCartId);
 
-            cart.Items.Add(new CartItem { Id = 1, Name = "Item 1", Price = 10.99m, Quantity = 1 });
-            cart.Items.Add(new CartItem { Id = 2, Name = "Item 2", Price = 20.99m, Quantity = 2 });
+            cart.AddItem(new CartItem(1, "Item 1", new Money(10.99m), 1));
+            cart.AddItem(new CartItem(2, "Item 2", new Money(20.99m), 2));
 
             _mockRepository.Setup(r => r.GetCartAsync(testCartId))
                 .ReturnsAsync(cart);
@@ -147,7 +138,7 @@ namespace ECommerceNetApp.Service.UnitTest
             _mockRepository.Verify(
                 r => r.SaveCartAsync(It.Is<Cart>(c =>
                     c.Items.Count == 1 &&
-                    c.Items[0].Id == 2)),
+                    c.Items.First().Id == 2)),
                 Times.Once);
         }
 
@@ -156,12 +147,9 @@ namespace ECommerceNetApp.Service.UnitTest
         {
             // Arrange
             string testCartId = "test-cart-123";
-            var cart = new Cart
-            {
-                Id = testCartId,
-            };
+            var cart = new Cart(testCartId);
 
-            cart.Items.Add(new CartItem { Id = 1, Name = "Test Item", Price = 10.99m, Quantity = 1 });
+            cart.AddItem(new CartItem(1, "Test Item", new Money(10.99m), 1));
 
             _mockRepository.Setup(r => r.GetCartAsync(testCartId))
                 .ReturnsAsync(cart);
@@ -173,7 +161,7 @@ namespace ECommerceNetApp.Service.UnitTest
             _mockRepository.Verify(
                 r => r.SaveCartAsync(It.Is<Cart>(c =>
                     c.Items.Count == 1 &&
-                    c.Items[0].Quantity == 5)),
+                    c.Items.First().Quantity == 5)),
                 Times.Once);
         }
 
@@ -200,13 +188,10 @@ namespace ECommerceNetApp.Service.UnitTest
         {
             // Arrange
             string testCartId = "test-cart-123";
-            var cart = new Cart
-            {
-                Id = testCartId,
-            };
+            var cart = new Cart(testCartId);
 
-            cart.Items.Add(new CartItem { Id = 1, Name = "Item 1", Price = 10.99m, Quantity = 1 });
-            cart.Items.Add(new CartItem { Id = 2, Name = "Item 2", Price = 20.99m, Quantity = 2 });
+            cart.AddItem(new CartItem(1, "Item 1", new Money(10.99m), 1));
+            cart.AddItem(new CartItem(2, "Item 2", new Money(20.99m), 2));
 
             _mockRepository.Setup(r => r.GetCartAsync(testCartId))
                 .ReturnsAsync(cart);
