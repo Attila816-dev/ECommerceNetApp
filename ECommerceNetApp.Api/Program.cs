@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Persistence;
 using ECommerceNetApp.Service;
@@ -51,3 +52,11 @@ app.UseErrorHandlingMiddleware();
 app.MapControllers();
 
 app.Run();
+
+/// <summary>
+/// This is used in integration test.
+/// </summary>
+[SuppressMessage("Design", "CA1052:Type 'Program' is a static holder type but is neither static nor NotInheritable", Justification = "Required for partial class usage in integration tests.")]
+public partial class Program
+{
+}

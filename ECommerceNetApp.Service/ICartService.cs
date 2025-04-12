@@ -2,7 +2,7 @@
 {
     public interface ICartService
     {
-        Task<List<CartItemDto>> GetCartItemsAsync(string cartId);
+        Task<List<CartItemDto>?> GetCartItemsAsync(string cartId);
 
         Task AddItemToCartAsync(string cartId, CartItemDto item);
 

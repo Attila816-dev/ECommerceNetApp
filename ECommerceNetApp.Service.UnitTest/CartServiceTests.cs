@@ -17,7 +17,7 @@ namespace ECommerceNetApp.Service.UnitTest
         }
 
         [Fact]
-        public async Task GetCartItems_EmptyCart_ReturnsEmptyList()
+        public async Task GetCartItems_EmptyCart_ReturnsNull()
         {
             // Arrange
             string testCartId = "test-cart-123";
@@ -27,8 +27,7 @@ namespace ECommerceNetApp.Service.UnitTest
             var result = await _cartService.GetCartItemsAsync(testCartId);
 
             // Assert
-            result.Should().NotBeNull();
-            result.Should().BeEmpty();
+            result.Should().BeNull();
         }
 
         [Fact]

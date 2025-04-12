@@ -12,7 +12,7 @@ namespace ECommerceNetApp.Service
             _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
         }
 
-        public async Task<List<CartItemDto>> GetCartItemsAsync(string cartId)
+        public async Task<List<CartItemDto>?> GetCartItemsAsync(string cartId)
         {
             if (string.IsNullOrEmpty(cartId))
             {
@@ -23,8 +23,7 @@ namespace ECommerceNetApp.Service
 
             if (cart == null)
             {
-                // Return empty list for non-existent cart
-                return new List<CartItemDto>();
+                return null;
             }
 
             return cart.Items.Select(MapToDto).ToList();

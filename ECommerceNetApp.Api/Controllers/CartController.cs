@@ -17,8 +17,13 @@ namespace ECommerceNetApp.Api.Controllers
         [HttpGet("{cartId}/items")]
         public async Task<ActionResult<List<CartItemDto>>> GetCartItems(string cartId)
         {
-            var items = await _cartService.GetCartItemsAsync(cartId).ConfigureAwait(false);
-            return Ok(items);
+            var cartItems = await _cartService.GetCartItemsAsync(cartId).ConfigureAwait(false);
+            if (cartItems == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(cartItems);
         }
 
         [HttpPost("{cartId}/items")]
