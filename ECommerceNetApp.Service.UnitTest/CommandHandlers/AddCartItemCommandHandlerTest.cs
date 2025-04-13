@@ -34,10 +34,8 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
             // Arrange
             string testCartId = "test-cart-123";
 
-            var cart = new Cart(testCartId);
-
-            _mockRepository.Setup(r => r.GetByIdAsync(testCartId, CancellationToken.None))
-                .ReturnsAsync(cart);
+            var cart = CreateTestCart(testCartId);
+            SetupMockRepository(cart);
 
             var itemDto = new CartItemDto
             {
@@ -64,10 +62,8 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
             // Arrange
             string testCartId = "test-cart-123";
 
-            var cart = new Cart(testCartId);
-
-            _mockRepository.Setup(r => r.GetByIdAsync(testCartId, CancellationToken.None))
-                .ReturnsAsync(cart);
+            var cart = CreateTestCart(testCartId);
+            SetupMockRepository(cart);
 
             var itemDto = new CartItemDto
             {
@@ -89,12 +85,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
         {
             // Arrange
             string testCartId = "test-cart-123";
-            var cart = new Cart(testCartId);
+            var cart = CreateTestCart(testCartId);
 
             cart.AddItem(new CartItem(1, "Existing Item", new Money(15.99m), 1));
-
-            _mockRepository.Setup(r => r.GetByIdAsync(testCartId, CancellationToken.None))
-                .ReturnsAsync(cart);
+            SetupMockRepository(cart);
 
             var itemDto = new CartItemDto
             {
@@ -173,6 +167,14 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
                 .Should().ThrowAsync<ValidationException>();
 
             validationMessage.WithMessage("*Item price must be greater than zero.*");
+        }
+
+        private static Cart CreateTestCart(string cartId)
+            => new Cart(cartId);
+
+        private void SetupMockRepository(Cart cart)
+        {
+            _mockRepository.Setup(r => r.GetByIdAsync(cart.Id, CancellationToken.None)).ReturnsAsync(cart);
         }
     }
 }

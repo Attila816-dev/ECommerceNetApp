@@ -149,6 +149,96 @@ namespace ECommerceNetApp.Persistence.UnitTest
             exception.ParamName.Should().Be("dbContext");
         }
 
+        [Fact]
+        public async Task AddItem_WithHighQuantity_SuccessfullyAddsItem()
+        {
+            // Arrange
+            var cart = new Cart("cart-high-values");
+            var quantity = int.MaxValue;
+            var price = Money.From(10);
+
+            // Act
+            cart.AddItem(new CartItem(1, "High Quantity Item", price, quantity));
+            await _repository.SaveAsync(cart, CancellationToken.None);
+            var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(retrievedCart);
+            Assert.Single(retrievedCart.Items);
+
+            var item = retrievedCart.Items.First();
+            Assert.Equal("High Quantity Item", item.Name);
+            Assert.Equal(price.Amount, item.Price!.Amount);
+            Assert.Equal(quantity, item.Quantity);
+        }
+
+        [Fact]
+        public async Task AddItem_WithHighPrice_SuccessfullyAddsItem()
+        {
+            // Arrange
+            var cart = new Cart("cart-high-values");
+            var quantity = 2;
+            var price = Money.From(int.MaxValue);
+
+            // Act
+            cart.AddItem(new CartItem(1, "High Quantity Item", price, quantity));
+            await _repository.SaveAsync(cart, CancellationToken.None);
+            var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(retrievedCart);
+            Assert.Single(retrievedCart.Items);
+
+            var item = retrievedCart.Items.First();
+            Assert.Equal("High Quantity Item", item.Name);
+            Assert.Equal(price.Amount, item.Price!.Amount);
+            Assert.Equal(quantity, item.Quantity);
+        }
+
+        [Fact]
+        public async Task AddItem_SpecialCharactersInName_Success()
+        {
+            // Arrange
+            var cart = new Cart("cart-special-characters");
+            var specialName = "Item@#%&*()!";
+
+            // Act
+            cart.AddItem(new CartItem(1, specialName, Money.From(19.99m), 1));
+            await _repository.SaveAsync(cart, CancellationToken.None);
+            var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(retrievedCart);
+            Assert.Single(retrievedCart.Items);
+
+            var item = retrievedCart.Items.First();
+            Assert.Equal(specialName, item.Name);
+            Assert.Equal(19.99m, item.Price!.Amount);
+            Assert.Equal(1, item.Quantity);
+        }
+
+        [Fact]
+        public async Task AddItem_ToNonexistentCart_AddedSuccessfully()
+        {
+            // Arrange
+            var nonexistentCartId = "nonexistent-cart";
+            var cart = new Cart(nonexistentCartId);
+
+            // Act
+            cart.AddItem(new CartItem(1, "Test Item", Money.From(10.99m), 1));
+            await _repository.SaveAsync(cart, CancellationToken.None);
+
+            // Assert
+            var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
+            Assert.NotNull(retrievedCart);
+            Assert.Single(retrievedCart.Items);
+
+            var item = retrievedCart.Items.First();
+            Assert.Equal("Test Item", item.Name);
+            Assert.Equal(10.99m, item.Price!.Amount);
+            Assert.Equal(1, item.Quantity);
+        }
+
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

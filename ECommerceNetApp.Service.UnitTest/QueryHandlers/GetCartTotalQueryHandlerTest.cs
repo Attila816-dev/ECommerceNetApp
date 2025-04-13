@@ -15,7 +15,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
 
         public GetCartTotalQueryHandlerTest()
         {
-            // Initialize the command handler with necessary dependencies
+            // Initialize the command handler with necessary dependencies.
             _mockRepository = new Mock<ICartRepository>();
             _queryHandler = new GetCartTotalQueryHandler(_mockRepository.Object);
         }

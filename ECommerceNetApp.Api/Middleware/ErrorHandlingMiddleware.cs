@@ -22,15 +22,11 @@ namespace ECommerceNetApp.Api.Middleware
             {
                 await _next(context).ConfigureAwait(false);
             }
-            catch (ArgumentException ex)
+            catch (CartItemNotFoundException ex)
             {
-                await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message).ConfigureAwait(false);
+                await HandleExceptionAsync(context, HttpStatusCode.NotFound, ex.Message).ConfigureAwait(false);
             }
-            catch (DomainException ex)
-            {
-                await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message).ConfigureAwait(false);
-            }
-            catch (ValidationException ex)
+            catch (Exception ex) when (ex is ArgumentException or DomainException or ValidationException)
             {
                 await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message).ConfigureAwait(false);
             }
@@ -48,7 +44,7 @@ namespace ECommerceNetApp.Api.Middleware
         private static Task HandleExceptionAsync(HttpContext context, HttpStatusCode statusCode, string message)
         {
             context.Response.StatusCode = (int)statusCode;
-            return context.Response.WriteAsJsonAsync(message);
+            return context.Response.WriteAsJsonAsync(new { error = message });
         }
     }
 }
