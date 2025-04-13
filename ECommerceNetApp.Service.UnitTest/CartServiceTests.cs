@@ -4,8 +4,11 @@ using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation;
+using ECommerceNetApp.Service.Mapping;
 using ECommerceNetApp.Service.Queries;
+using ECommerceNetApp.Service.Validators;
 using FluentAssertions;
+using FluentValidation;
 using Moq;
 
 namespace ECommerceNetApp.Service.UnitTest
@@ -14,11 +17,15 @@ namespace ECommerceNetApp.Service.UnitTest
     {
         private readonly Mock<ICartRepository> _mockRepository;
         private readonly CartService _cartService;
+        private readonly CartItemMapper _cartItemMapper;
+        private readonly CartItemValidator _cartItemValidator;
 
         public CartServiceTests()
         {
+            _cartItemMapper = new CartItemMapper();
+            _cartItemValidator = new CartItemValidator();
             _mockRepository = new Mock<ICartRepository>();
-            _cartService = new CartService(_mockRepository.Object);
+            _cartService = new CartService(_mockRepository.Object, _cartItemMapper, _cartItemValidator);
         }
 
         [Fact]
@@ -184,7 +191,7 @@ namespace ECommerceNetApp.Service.UnitTest
 
             // Act & Assert
             await _cartService.Invoking(s => s.AddItemToCartAsync(new AddCartItemCommand(testCartId, itemDto)))
-                .Should().ThrowAsync<ArgumentException>();
+                .Should().ThrowAsync<ValidationException>();
         }
 
         [Fact]

@@ -1,11 +1,11 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Exceptions;
-using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
 using ECommerceNetApp.Service.Queries;
+using FluentValidation;
 using LiteDB;
 
 namespace ECommerceNetApp.Service.Implementation
@@ -13,10 +13,14 @@ namespace ECommerceNetApp.Service.Implementation
     public class CartService : ICartService
     {
         private readonly ICartRepository _cartRepository;
+        private readonly ICartItemMapper _cartItemMapper;
+        private readonly IValidator<CartItemDto> _cartItemValidator;
 
-        public CartService(ICartRepository cartRepository)
+        public CartService(ICartRepository cartRepository, ICartItemMapper cartItemMapper, IValidator<CartItemDto> cartItemValidator)
         {
             _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
+            _cartItemMapper = cartItemMapper ?? throw new ArgumentNullException(nameof(cartItemMapper));
+            _cartItemValidator = cartItemValidator ?? throw new ArgumentNullException(nameof(cartItemValidator));
         }
 
         public async Task<List<CartItemDto>?> GetCartItemsAsync(GetCartItemsQuery query)
@@ -34,7 +38,7 @@ namespace ECommerceNetApp.Service.Implementation
                 return null;
             }
 
-            return cart.Items.Select(MapToDto).ToList();
+            return cart.Items.Select(_cartItemMapper.MapToDto).ToList();
         }
 
         public async Task AddItemToCartAsync(AddCartItemCommand command)
@@ -42,20 +46,22 @@ namespace ECommerceNetApp.Service.Implementation
             ArgumentNullException.ThrowIfNull(command);
             ArgumentException.ThrowIfNullOrEmpty(command.CartId, nameof(command.CartId));
             ArgumentNullException.ThrowIfNull(command.Item);
-            ValidateCartItem(command.Item);
 
-            var cart = await GetOrCreateCartAsync(command.CartId).ConfigureAwait(false);
+            var validationResult = await _cartItemValidator.ValidateAsync(command.Item).ConfigureAwait(false);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
 
-            // Create domain entity from DTO
-            var cartItem = new CartItem(
-                command.Item.Id,
-                command.Item.Name,
-                new Money(command.Item.Price, command.Item.Currency),
-                command.Item.Quantity,
-                string.IsNullOrEmpty(command.Item.ImageUrl) ? null : new ImageInfo(command.Item.ImageUrl, command.Item.ImageAltText));
+            var cart = await _cartRepository.GetByIdAsync(command.CartId).ConfigureAwait(false);
+
+            if (cart == null)
+            {
+                cart = new Cart(command.CartId);
+            }
 
             // Use domain logic to add item
-            cart.AddItem(cartItem);
+            cart.AddItem(_cartItemMapper.MapToEntity(command));
 
             await _cartRepository.SaveAsync(cart).ConfigureAwait(false);
         }
@@ -111,57 +117,6 @@ namespace ECommerceNetApp.Service.Implementation
 
             var cartTotal = cart.CalculateTotal();
             return cartTotal.Amount;
-        }
-
-        private static CartItemDto MapToDto(CartItem item)
-        {
-            return new CartItemDto
-            {
-                Id = item.Id,
-                Name = item.Name,
-                ImageUrl = item.Image?.Url,
-                ImageAltText = item.Image?.AltText,
-                Price = item.Price?.Amount ?? 0,
-                Currency = item.Price?.Currency,
-                Quantity = item.Quantity,
-            };
-        }
-
-        private static void ValidateCartItem(CartItemDto item)
-        {
-            ArgumentNullException.ThrowIfNull(item);
-
-            if (item.Id <= 0)
-            {
-                throw new ArgumentException("Item ID must be a positive number.", nameof(item));
-            }
-
-            if (string.IsNullOrEmpty(item.Name))
-            {
-                throw new ArgumentException("Item name is required.", nameof(item));
-            }
-
-            if (item.Price <= 0)
-            {
-                throw new ArgumentException("Item price must be greater than zero.", nameof(item));
-            }
-
-            if (item.Quantity <= 0)
-            {
-                throw new ArgumentException("Item quantity must be greater than zero.", nameof(item));
-            }
-        }
-
-        private async Task<Cart> GetOrCreateCartAsync(string cartId)
-        {
-            var cart = await _cartRepository.GetByIdAsync(cartId).ConfigureAwait(false);
-
-            if (cart == null)
-            {
-                cart = new Cart(cartId);
-            }
-
-            return cart;
         }
     }
 }

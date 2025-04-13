@@ -1,7 +1,6 @@
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation;
-using ECommerceNetApp.Persistence.Interfaces;
 using FluentAssertions;
 using LiteDB.Async;
 

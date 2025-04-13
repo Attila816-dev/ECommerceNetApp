@@ -3,11 +3,14 @@ using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Persistence.Extensions;
 using ECommerceNetApp.Persistence.Implementation;
 using ECommerceNetApp.Service.Extensions;
+using ECommerceNetApp.Service.Validators;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddECommerceRepositories(builder.Configuration);
+builder.Services.AddValidatorsFromAssemblyContaining<CartItemValidator>();
 builder.Services.AddECommerceServices();
 
 builder.Services.AddControllers();

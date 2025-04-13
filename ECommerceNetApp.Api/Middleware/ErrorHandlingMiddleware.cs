@@ -1,4 +1,6 @@
 using System.Net;
+using ECommerceNetApp.Domain.Exceptions;
+using FluentValidation;
 
 namespace ECommerceNetApp.Api.Middleware
 {
@@ -24,7 +26,11 @@ namespace ECommerceNetApp.Api.Middleware
             {
                 await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message).ConfigureAwait(false);
             }
-            catch (KeyNotFoundException ex)
+            catch (DomainException ex)
+            {
+                await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message).ConfigureAwait(false);
+            }
+            catch (ValidationException ex)
             {
                 await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message).ConfigureAwait(false);
             }
