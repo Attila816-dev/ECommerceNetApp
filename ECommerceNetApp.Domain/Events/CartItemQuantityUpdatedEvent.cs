@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ECommerceNetApp.Domain.ValueObjects;
-
-namespace ECommerceNetApp.Domain.Events
+﻿namespace ECommerceNetApp.Domain.Events
 {
     public class CartItemQuantityUpdatedEvent : DomainEvent
     {

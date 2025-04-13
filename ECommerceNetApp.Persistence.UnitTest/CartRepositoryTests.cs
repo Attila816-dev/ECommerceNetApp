@@ -1,5 +1,7 @@
 using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation;
+using ECommerceNetApp.Persistence.Interfaces;
 using FluentAssertions;
 using LiteDB.Async;
 
@@ -14,7 +16,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public CartRepositoryTests()
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            var liteDatabase = new LiteDatabaseAsync(new MemoryStream());
+            var liteDatabase = new LiteDatabaseAsync(new MemoryStream(), CartDbContext.CreateMapper());
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
             _dbContext = new CartDbContext(liteDatabase);
@@ -32,7 +34,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             await cartCollection.InsertAsync(expectedCart);
 
             // Act
-            var result = await _repository.GetCartAsync(cartId);
+            var result = await _repository.GetByIdAsync(cartId);
 
             // Assert
             result.Should().NotBeNull();
@@ -48,7 +50,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             var cartCollection = _dbContext.GetCollection<Cart>();
 
             // Act
-            var result = await _repository.GetCartAsync(cartId);
+            var result = await _repository.GetByIdAsync(cartId);
 
             // Assert
             result.Should().BeNull();
@@ -63,7 +65,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             var cartCollection = _dbContext.GetCollection<Cart>();
 
             // Act
-            await _repository.SaveCartAsync(cart);
+            await _repository.SaveAsync(cart);
 
             // Assert
             var insertedCart = await cartCollection.FindByIdAsync(cart.Id);
@@ -71,9 +73,42 @@ namespace ECommerceNetApp.Persistence.UnitTest
         }
 
         [Fact]
-        public void CreateCartWithEmptyCartId_ThrowsArgumentException()
+        public async Task SaveAndGetCart_Success()
         {
-            Assert.Throws<ArgumentException>(() => new Cart(string.Empty));
+            // Arrange
+            var cart = new Cart("integration-test-cart");
+            cart.AddItem(new CartItem(1, "Test Item", Money.From(10.99m), 2));
+
+            // Act
+            await _repository.SaveAsync(cart);
+            var retrievedCart = await _repository.GetByIdAsync(cart.Id);
+
+            // Assert
+            Assert.NotNull(retrievedCart);
+            Assert.Equal(cart.Id, retrievedCart.Id);
+            Assert.Single(retrievedCart.Items);
+
+            var item = retrievedCart.Items.First();
+            Assert.Equal("Test Item", item.Name);
+            Assert.Equal(10.99m, item.Price!.Amount);
+            Assert.Equal(2, item.Quantity);
+        }
+
+        [Fact]
+        public async Task DeleteCart_Success()
+        {
+            // Arrange
+            var cart = new Cart("cart-to-delete");
+            cart.AddItem(new CartItem(1, "Item to delete", Money.From(15.99m), 1));
+
+            await _repository.SaveAsync(cart);
+
+            // Act
+            await _repository.DeleteAsync(cart.Id);
+            var retrievedCart = await _repository.GetByIdAsync(cart.Id);
+
+            // Assert
+            Assert.Null(retrievedCart);
         }
 
         [Fact]
@@ -87,7 +122,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             await cartCollection.InsertAsync(expectedCart);
 
             // Act
-            await _repository.DeleteCartAsync(cartId);
+            await _repository.DeleteAsync(cartId);
 
             // Assert
             (await cartCollection.CountAsync()).Should().Be(0);
@@ -101,7 +136,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             var cartCollection = _dbContext.GetCollection<Cart>();
 
             // Act
-            await _repository.DeleteCartAsync(cartId);
+            await _repository.DeleteAsync(cartId);
 
             // Assert
             (await cartCollection.CountAsync()).Should().Be(0);
@@ -112,7 +147,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         {
             // Act & Assert
             var exception = Assert.Throws<ArgumentNullException>(() => new CartRepository(null));
-            exception.ParamName.Should().Be("cartDbContext");
+            exception.ParamName.Should().Be("dbContext");
         }
 
         public void Dispose()

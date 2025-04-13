@@ -4,7 +4,7 @@
     {
         private const string DefaultCurrency = "EUR";
 
-        public Money(decimal amount, string currency = DefaultCurrency)
+        public Money(decimal amount, string? currency = DefaultCurrency)
         {
             if (amount < 0)
             {

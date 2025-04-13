@@ -1,10 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
-using ECommerceNetApp.Domain;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Implementation;
-using ECommerceNetApp.Service;
+using ECommerceNetApp.Service.DTO;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -78,6 +77,7 @@ namespace ECommerceNetApp.IntegrationTests
                 Quantity = 2,
                 ImageUrl = "test-image.jpg",
                 ImageAltText = "Test Product Image",
+                Currency = "EUR",
             };
 
             using var content = new StringContent(
@@ -110,6 +110,7 @@ namespace ECommerceNetApp.IntegrationTests
                 Id = 1,
                 Name = "Test Product",
                 Price = 19.99m,
+                Currency = "EUR",
                 Quantity = 1,
                 ImageUrl = "test-image.jpg",
             };
@@ -150,6 +151,7 @@ namespace ECommerceNetApp.IntegrationTests
                 Id = 1,
                 Name = "Test Product",
                 Price = 19.99m,
+                Currency = "EUR",
                 Quantity = 1,
             };
 
@@ -182,6 +184,7 @@ namespace ECommerceNetApp.IntegrationTests
                 Id = 1,
                 Name = "Test Product",
                 Price = 19.99m,
+                Currency = "EUR",
                 Quantity = 2,
             };
 

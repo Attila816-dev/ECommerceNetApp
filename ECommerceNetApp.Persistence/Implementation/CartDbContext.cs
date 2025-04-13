@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using ECommerceNetApp.Domain.Entities;
+﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
 using LiteDB;
 using LiteDB.Async;
@@ -14,6 +13,41 @@ namespace ECommerceNetApp.Persistence.Implementation
         public CartDbContext(string connectionString)
         {
             // Register custom mappings
+            BsonMapper mapper = CreateMapper();
+            _database = new LiteDatabaseAsync(connectionString, mapper);
+        }
+
+        internal CartDbContext(LiteDatabaseAsync liteDatabase)
+        {
+            _database = liteDatabase;
+        }
+
+        public ILiteCollectionAsync<T> GetCollection<T>()
+            where T : class
+        {
+            return _database.GetCollection<T>(typeof(T).Name);
+        }
+
+        public async Task<bool> CollectionExistsAsync<T>()
+            where T : class
+        {
+            return await _database.CollectionExistsAsync(typeof(T).Name).ConfigureAwait(false);
+        }
+
+        public void CreateCollection<T>()
+            where T : class
+        {
+            _database.GetCollection(typeof(T).Name);
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        internal static BsonMapper CreateMapper()
+        {
             var mapper = new BsonMapper();
 
             mapper.RegisterType(
@@ -82,37 +116,7 @@ namespace ECommerceNetApp.Persistence.Implementation
 
                     return cart;
                 });
-
-            _database = new LiteDatabaseAsync(connectionString, mapper);
-        }
-
-        internal CartDbContext(LiteDatabaseAsync liteDatabase)
-        {
-            _database = liteDatabase;
-        }
-
-        public ILiteCollectionAsync<T> GetCollection<T>()
-            where T : class
-        {
-            return _database.GetCollection<T>(typeof(T).Name);
-        }
-
-        public async Task<bool> CollectionExistsAsync<T>()
-            where T : class
-        {
-            return await _database.CollectionExistsAsync(typeof(T).Name).ConfigureAwait(false);
-        }
-
-        public void CreateCollection<T>()
-            where T : class
-        {
-            _database.GetCollection(typeof(T).Name);
-        }
-
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            return mapper;
         }
 
         protected virtual void Dispose(bool disposing)

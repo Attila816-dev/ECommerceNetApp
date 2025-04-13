@@ -4,10 +4,10 @@ namespace ECommerceNetApp.Persistence.Interfaces
 {
     public interface ICartRepository
     {
-        Task<Cart?> GetCartAsync(string cartId);
+        Task<Cart?> GetByIdAsync(string cartId);
 
-        Task SaveCartAsync(Cart cart);
+        Task SaveAsync(Cart cart);
 
-        Task DeleteCartAsync(string cartId);
+        Task DeleteAsync(string cartId);
     }
 }

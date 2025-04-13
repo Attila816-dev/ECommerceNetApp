@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using ECommerceNetApp.Service.Implementation;
+using ECommerceNetApp.Service.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace ECommerceNetApp.Service
+namespace ECommerceNetApp.Service.Extensions
 {
     public static class ServiceCollectionExtensions
     {

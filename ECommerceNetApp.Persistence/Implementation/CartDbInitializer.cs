@@ -1,5 +1,4 @@
-﻿using ECommerceNetApp.Domain;
-using ECommerceNetApp.Domain.Entities;
+﻿using ECommerceNetApp.Domain.Entities;
 
 namespace ECommerceNetApp.Persistence.Implementation
 {

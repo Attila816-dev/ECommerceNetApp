@@ -3,7 +3,7 @@
     public class ImageInfo : IEquatable<ImageInfo>
     {
 #pragma warning disable CA1054 // URI-like parameters should not be strings
-        public ImageInfo(string url, string altText)
+        public ImageInfo(string url, string? altText)
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(url);

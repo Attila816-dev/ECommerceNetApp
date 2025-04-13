@@ -1,8 +1,10 @@
-using ECommerceNetApp.Domain;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
-using ECommerceNetApp.Persistence;
 using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Service.Commands;
+using ECommerceNetApp.Service.DTO;
+using ECommerceNetApp.Service.Implementation;
+using ECommerceNetApp.Service.Queries;
 using FluentAssertions;
 using Moq;
 
@@ -24,10 +26,10 @@ namespace ECommerceNetApp.Service.UnitTest
         {
             // Arrange
             string testCartId = "test-cart-123";
-            _mockRepository.Setup(r => r.GetCartAsync(It.Is<string>(c => c == testCartId))).ReturnsAsync((Cart?)null);
+            _mockRepository.Setup(r => r.GetByIdAsync(It.Is<string>(c => c == testCartId))).ReturnsAsync((Cart?)null);
 
             // Act
-            var result = await _cartService.GetCartItemsAsync(testCartId);
+            var result = await _cartService.GetCartItemsAsync(new GetCartItemsQuery(testCartId));
 
             // Assert
             result.Should().BeNull();
@@ -43,11 +45,10 @@ namespace ECommerceNetApp.Service.UnitTest
 
             cart.AddItem(new CartItem(1, "Test Item", new Money(10.99m), 2));
 
-            _mockRepository.Setup(r => r.GetCartAsync(testCartId))
-                .ReturnsAsync(cart);
+            _mockRepository.Setup(r => r.GetByIdAsync(testCartId)).ReturnsAsync(cart);
 
             // Act
-            var result = await _cartService.GetCartItemsAsync(testCartId);
+            var result = await _cartService.GetCartItemsAsync(new GetCartItemsQuery(testCartId));
 
             // Assert
             result.Should().NotBeNull();
@@ -64,7 +65,7 @@ namespace ECommerceNetApp.Service.UnitTest
 
             var cart = new Cart(testCartId);
 
-            _mockRepository.Setup(r => r.GetCartAsync(testCartId))
+            _mockRepository.Setup(r => r.GetByIdAsync(testCartId))
                 .ReturnsAsync(cart);
 
             var itemDto = new CartItemDto
@@ -73,14 +74,15 @@ namespace ECommerceNetApp.Service.UnitTest
                 Name = "New Item",
                 Price = 15.99m,
                 Quantity = 1,
+                Currency = "EUR",
             };
 
             // Act
-            await _cartService.AddItemToCartAsync(testCartId, itemDto);
+            await _cartService.AddItemToCartAsync(new AddCartItemCommand(testCartId, itemDto));
 
             // Assert
             _mockRepository.Verify(
-                r => r.SaveCartAsync(It.Is<Cart>(c =>
+                r => r.SaveAsync(It.Is<Cart>(c =>
                     c.Items.Count == 1 &&
                     c.Items.First().Name == "New Item")),
                 Times.Once);
@@ -95,7 +97,7 @@ namespace ECommerceNetApp.Service.UnitTest
 
             cart.AddItem(new CartItem(1, "Existing Item", new Money(15.99m), 1));
 
-            _mockRepository.Setup(r => r.GetCartAsync(testCartId))
+            _mockRepository.Setup(r => r.GetByIdAsync(testCartId))
                 .ReturnsAsync(cart);
 
             var itemDto = new CartItemDto
@@ -104,14 +106,15 @@ namespace ECommerceNetApp.Service.UnitTest
                 Name = "Existing Item",
                 Price = 15.99m,
                 Quantity = 2,
+                Currency = "EUR",
             };
 
             // Act
-            await _cartService.AddItemToCartAsync(testCartId, itemDto);
+            await _cartService.AddItemToCartAsync(new AddCartItemCommand(testCartId, itemDto));
 
             // Assert
             _mockRepository.Verify(
-                r => r.SaveCartAsync(It.Is<Cart>(c =>
+                r => r.SaveAsync(It.Is<Cart>(c =>
                     c.Items.Count == 1 &&
                     c.Items.First().Quantity == 3)),
                 Times.Once);
@@ -128,15 +131,15 @@ namespace ECommerceNetApp.Service.UnitTest
             cart.AddItem(new CartItem(1, "Item 1", new Money(10.99m), 1));
             cart.AddItem(new CartItem(2, "Item 2", new Money(20.99m), 2));
 
-            _mockRepository.Setup(r => r.GetCartAsync(testCartId))
+            _mockRepository.Setup(r => r.GetByIdAsync(testCartId))
                 .ReturnsAsync(cart);
 
             // Act
-            await _cartService.RemoveItemFromCartAsync(testCartId, 1);
+            await _cartService.RemoveItemFromCartAsync(new RemoveCartItemCommand(testCartId, 1));
 
             // Assert
             _mockRepository.Verify(
-                r => r.SaveCartAsync(It.Is<Cart>(c =>
+                r => r.SaveAsync(It.Is<Cart>(c =>
                     c.Items.Count == 1 &&
                     c.Items.First().Id == 2)),
                 Times.Once);
@@ -151,15 +154,15 @@ namespace ECommerceNetApp.Service.UnitTest
 
             cart.AddItem(new CartItem(1, "Test Item", new Money(10.99m), 1));
 
-            _mockRepository.Setup(r => r.GetCartAsync(testCartId))
+            _mockRepository.Setup(r => r.GetByIdAsync(testCartId))
                 .ReturnsAsync(cart);
 
             // Act
-            await _cartService.UpdateItemQuantityAsync(testCartId, 1, 5);
+            await _cartService.UpdateItemQuantityAsync(new UpdateCartItemQuantityCommand(testCartId, 1, 5));
 
             // Assert
             _mockRepository.Verify(
-                r => r.SaveCartAsync(It.Is<Cart>(c =>
+                r => r.SaveAsync(It.Is<Cart>(c =>
                     c.Items.Count == 1 &&
                     c.Items.First().Quantity == 5)),
                 Times.Once);
@@ -176,10 +179,11 @@ namespace ECommerceNetApp.Service.UnitTest
                 Name = "Test Item",
                 Price = 10.99m,
                 Quantity = 1,
+                Currency = "EUR",
             };
 
             // Act & Assert
-            await _cartService.Invoking(s => s.AddItemToCartAsync(testCartId, itemDto))
+            await _cartService.Invoking(s => s.AddItemToCartAsync(new AddCartItemCommand(testCartId, itemDto)))
                 .Should().ThrowAsync<ArgumentException>();
         }
 
@@ -193,11 +197,11 @@ namespace ECommerceNetApp.Service.UnitTest
             cart.AddItem(new CartItem(1, "Item 1", new Money(10.99m), 1));
             cart.AddItem(new CartItem(2, "Item 2", new Money(20.99m), 2));
 
-            _mockRepository.Setup(r => r.GetCartAsync(testCartId))
+            _mockRepository.Setup(r => r.GetByIdAsync(testCartId))
                 .ReturnsAsync(cart);
 
             // Act
-            var cartTotal = await _cartService.GetCartTotalAsync(testCartId);
+            var cartTotal = await _cartService.GetCartTotalAsync(new GetCartTotalQuery(testCartId));
 
             // Assert
             cartTotal.Should().Be(52.97m); // 10.99 + (20.99 * 2)
