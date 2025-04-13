@@ -1,7 +1,7 @@
 using ECommerceNetApp.Service.DTO;
 using FluentValidation;
 
-namespace ECommerceNetApp.Service.Validators
+namespace ECommerceNetApp.Service.Implementation.Validators
 {
     public class CartItemValidator : AbstractValidator<CartItemDto>
     {
@@ -26,6 +26,10 @@ namespace ECommerceNetApp.Service.Validators
             RuleFor(item => item.Quantity)
                 .GreaterThan(0)
                 .WithMessage("Item quantity must be greater than zero.");
+
+            RuleFor(item => item.Currency)
+                .NotEmpty()
+                .WithMessage("Item currency cannot be empty.");
         }
     }
 }

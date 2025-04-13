@@ -1,4 +1,6 @@
-﻿namespace ECommerceNetApp.Service.Queries
+﻿using MediatR;
+
+namespace ECommerceNetApp.Service.Queries
 {
-    public record GetCartTotalQuery(string CartId);
+    public record GetCartTotalQuery(string CartId) : IRequest<decimal>;
 }

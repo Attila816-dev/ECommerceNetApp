@@ -12,14 +12,14 @@ namespace ECommerceNetApp.Persistence.Implementation
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<Cart?> GetByIdAsync(string cartId)
+        public async Task<Cart?> GetByIdAsync(string cartId, CancellationToken cancellationToken)
         {
             var collection = _dbContext.GetCollection<Cart>();
             var cart = await collection.FindByIdAsync(cartId).ConfigureAwait(false);
             return cart;
         }
 
-        public async Task SaveAsync(Cart cart)
+        public async Task SaveAsync(Cart cart, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(cart, nameof(cart));
             ArgumentException.ThrowIfNullOrEmpty(cart.Id, nameof(cart.Id));
@@ -36,7 +36,7 @@ namespace ECommerceNetApp.Persistence.Implementation
             // In a real application, we would publish these events to an event bus
         }
 
-        public async Task DeleteAsync(string cartId)
+        public async Task DeleteAsync(string cartId, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
 

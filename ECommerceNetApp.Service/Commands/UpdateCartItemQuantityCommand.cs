@@ -1,4 +1,6 @@
-﻿namespace ECommerceNetApp.Service.Commands
+﻿using MediatR;
+
+namespace ECommerceNetApp.Service.Commands
 {
-    public record UpdateCartItemQuantityCommand(string CartId, int ItemId, int Quantity);
+    public record UpdateCartItemQuantityCommand(string CartId, int ItemId, int Quantity) : IRequest;
 }

@@ -3,7 +3,7 @@ using ECommerceNetApp.Service.Commands;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
 
-namespace ECommerceNetApp.Service.Mapping
+namespace ECommerceNetApp.Service.Implementation.Mappers
 {
     public class CartItemMapper : ICartItemMapper
     {
