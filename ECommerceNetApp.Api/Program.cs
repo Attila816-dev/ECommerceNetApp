@@ -1,20 +1,30 @@
 using System.Diagnostics.CodeAnalysis;
+using ECommerceNetApp.Api;
 using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Persistence.Extensions;
 using ECommerceNetApp.Persistence.Implementation;
 using ECommerceNetApp.Service.Commands;
 using ECommerceNetApp.Service.Extensions;
+using ECommerceNetApp.Service.Implementation.Behaviors;
 using ECommerceNetApp.Service.Implementation.Validators;
 using FluentValidation;
+using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddMediatR(config => { config.RegisterServicesFromAssembly(typeof(AddCartItemCommand).Assembly); });
+builder.Services.AddMediatR(config =>
+{
+    config.RegisterServicesFromAssembly(typeof(AddCartItemCommand).Assembly);
+});
+builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+
 builder.Services.AddECommerceRepositories(builder.Configuration);
 builder.Services.AddValidatorsFromAssemblyContaining<CartItemValidator>();
 builder.Services.AddECommerceServices();
 
+builder.Services.AddHealthChecks()
+    .AddCheck<CartDbHealthCheck>("cartdb_health_check");
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -30,6 +40,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.MapHealthChecks("/health");
 
 using (var scope = app.Services.CreateScope())
 {
