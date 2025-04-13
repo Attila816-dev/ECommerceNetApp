@@ -26,10 +26,6 @@ namespace ECommerceNetApp.Service.Implementation.Validators
             RuleFor(item => item.Quantity)
                 .GreaterThan(0)
                 .WithMessage("Item quantity must be greater than zero.");
-
-            RuleFor(item => item.Currency)
-                .NotEmpty()
-                .WithMessage("Item currency cannot be empty.");
         }
     }
 }

@@ -77,7 +77,6 @@ namespace ECommerceNetApp.IntegrationTests
                 Quantity = 2,
                 ImageUrl = "test-image.jpg",
                 ImageAltText = "Test Product Image",
-                Currency = "EUR",
             };
 
             using var content = new StringContent(
@@ -110,7 +109,6 @@ namespace ECommerceNetApp.IntegrationTests
                 Id = 1,
                 Name = "Test Product",
                 Price = 19.99m,
-                Currency = "EUR",
                 Quantity = 1,
                 ImageUrl = "test-image.jpg",
             };
@@ -151,7 +149,6 @@ namespace ECommerceNetApp.IntegrationTests
                 Id = 1,
                 Name = "Test Product",
                 Price = 19.99m,
-                Currency = "EUR",
                 Quantity = 1,
             };
 
@@ -184,7 +181,6 @@ namespace ECommerceNetApp.IntegrationTests
                 Id = 1,
                 Name = "Test Product",
                 Price = 19.99m,
-                Currency = "EUR",
                 Quantity = 2,
             };
 

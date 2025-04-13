@@ -44,7 +44,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
                 Id = 1,
                 Name = "New Item",
                 Price = 15.99m,
-                Currency = "EUR",
                 Quantity = 1,
             };
 
@@ -60,7 +59,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
         }
 
         [Fact]
-        public async Task CallAddCartItemWithoutCurrency_ThrowsValidationException()
+        public async Task CallAddCartItemWithoutName_ThrowsValidationException()
         {
             // Arrange
             string testCartId = "test-cart-123";
@@ -73,7 +72,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
             var itemDto = new CartItemDto
             {
                 Id = 1,
-                Name = "New Item",
                 Price = 15.99m,
                 Quantity = 1,
             };
@@ -83,7 +81,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
                 .Invoking(s => s.Handle(new AddCartItemCommand(testCartId, itemDto), CancellationToken.None))
                 .Should().ThrowAsync<ValidationException>();
 
-            validationException.WithMessage("*Item currency cannot be empty.*");
+            validationException.WithMessage("*Item name is required.*");
         }
 
         [Fact]
@@ -103,7 +101,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
                 Id = 1,
                 Name = "Existing Item",
                 Price = 15.99m,
-                Currency = "EUR",
                 Quantity = 2,
             };
 
@@ -128,7 +125,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
                 Id = 0, // Invalid ID
                 Name = "Test Item",
                 Price = 10.99m,
-                Currency = "EUR",
                 Quantity = 1,
             };
 
@@ -149,7 +145,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
                 Id = 2, // Invalid ID
                 Name = "Test Item",
                 Price = 10.99m,
-                Currency = "EUR",
                 Quantity = -1,
             };
 
@@ -170,7 +165,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
                 Id = 2, // Invalid ID
                 Name = "Test Item",
                 Price = -10.99m,
-                Currency = "EUR",
                 Quantity = 1,
             };
 
