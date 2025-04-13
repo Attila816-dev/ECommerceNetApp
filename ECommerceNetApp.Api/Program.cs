@@ -9,8 +9,14 @@ using ECommerceNetApp.Service.Implementation.Behaviors;
 using ECommerceNetApp.Service.Implementation.Validators;
 using FluentValidation;
 using MediatR;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext());
 
 // Add services to the container.
 builder.Services.AddMediatR(config =>
@@ -62,6 +68,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseSerilogRequestLogging(options =>
+{
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+        diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"]);
+    };
+
+    // Customize the message template
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+});
+
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
@@ -69,7 +87,21 @@ app.UseErrorHandlingMiddleware();
 
 app.MapControllers();
 
-app.Run();
+#pragma warning disable CA1031 // Do not catch general exception types
+try
+{
+    Log.Information("Starting web host");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Host terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
+#pragma warning restore CA1031 // Do not catch general exception types
 
 /// <summary>
 /// This is used in integration test.
