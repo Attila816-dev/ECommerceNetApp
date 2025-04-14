@@ -28,6 +28,9 @@ namespace ECommerceNetApp.IntegrationTests
                     // For example, replace the real DB context with a test one:
                     services.Remove(services.Single(d => d.ServiceType == typeof(CartDbContext)));
                     services.AddSingleton(new CartDbContext("Filename=:memory:;Mode=Memory;Cache=Shared"));
+
+                    services.Configure<CartDbOptions>(o => o.SeedSampleData = false);
+                    services.Configure<ProductCatalogDbOptions>(o => o.SeedSampleData = false);
                 });
             });
 

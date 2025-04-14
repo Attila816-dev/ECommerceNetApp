@@ -46,8 +46,10 @@ namespace ECommerceNetApp.Service
                 throw new KeyNotFoundException($"Category with ID {categoryDto.Id} not found.");
             }
 
-            var category = MapToDomain(categoryDto);
-            await _categoryRepository.UpdateAsync(category).ConfigureAwait(false);
+            existingCategory.Name = categoryDto.Name;
+            existingCategory.ImageUrl = categoryDto.ImageUrl;
+            existingCategory.ParentCategoryId = categoryDto.ParentCategoryId;
+            await _categoryRepository.UpdateAsync(existingCategory).ConfigureAwait(false);
         }
 
         public async Task DeleteCategoryAsync(int id)
