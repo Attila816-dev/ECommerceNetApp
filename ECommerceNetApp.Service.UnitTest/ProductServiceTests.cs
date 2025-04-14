@@ -1,5 +1,7 @@
-﻿using ECommerceNetApp.Domain;
+﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Service.DTO;
+using ECommerceNetApp.Service.Implementation;
 using Moq;
 using Shouldly;
 

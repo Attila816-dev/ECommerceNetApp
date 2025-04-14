@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
-using ECommerceNetApp.Domain;
 using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Implementation;
 using ECommerceNetApp.Service.DTO;
 using Microsoft.AspNetCore.Mvc.Testing;

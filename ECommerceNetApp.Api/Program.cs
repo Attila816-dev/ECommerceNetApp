@@ -1,8 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using ECommerceNetApp.Api;
 using ECommerceNetApp.Api.Extensions;
-using ECommerceNetApp.Domain;
-using ECommerceNetApp.Persistence;
+using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
 using ECommerceNetApp.Persistence.Implementation;
 using ECommerceNetApp.Service.Commands;

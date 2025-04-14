@@ -1,4 +1,4 @@
-﻿namespace ECommerceNetApp.Service
+﻿namespace ECommerceNetApp.Service.DTO
 {
     public class CategoryDto
     {

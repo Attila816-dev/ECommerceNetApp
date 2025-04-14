@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Domain;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Implementation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;

@@ -1,8 +1,9 @@
-﻿using ECommerceNetApp.Domain;
+﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
 
-namespace ECommerceNetApp.Service
+namespace ECommerceNetApp.Service.Implementation
 {
     public class CategoryService : ICategoryService
     {

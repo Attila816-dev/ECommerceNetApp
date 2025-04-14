@@ -1,8 +1,8 @@
 ﻿using System.Net.Http.Json;
-using ECommerceNetApp.Domain;
-using ECommerceNetApp.Persistence;
+using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Implementation;
-using ECommerceNetApp.Service;
+using ECommerceNetApp.Service.DTO;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;

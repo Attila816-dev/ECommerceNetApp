@@ -1,4 +1,4 @@
-﻿namespace ECommerceNetApp.Domain
+﻿namespace ECommerceNetApp.Domain.Entities
 {
     public class Product
     {

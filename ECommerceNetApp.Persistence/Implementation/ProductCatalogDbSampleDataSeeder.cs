@@ -1,8 +1,9 @@
-﻿using ECommerceNetApp.Domain;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-namespace ECommerceNetApp.Persistence
+namespace ECommerceNetApp.Persistence.Implementation
 {
     public class ProductCatalogDbSampleDataSeeder
     {

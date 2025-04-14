@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace ECommerceNetApp.Persistence
+namespace ECommerceNetApp.Persistence.Implementation
 {
     internal class ProductCatalogDbContextFactory : IDesignTimeDbContextFactory<ProductCatalogDbContext>
     {

@@ -1,4 +1,6 @@
-﻿namespace ECommerceNetApp.Service.Interfaces
+﻿using ECommerceNetApp.Service.DTO;
+
+namespace ECommerceNetApp.Service.Interfaces
 {
     public interface ICategoryService
     {

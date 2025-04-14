@@ -1,5 +1,5 @@
-﻿using ECommerceNetApp.Domain;
-using ECommerceNetApp.Domain.Entities;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Domain.ValueObjects;
 using Microsoft.Extensions.Options;
 
