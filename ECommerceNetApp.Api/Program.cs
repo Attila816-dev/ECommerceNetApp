@@ -1,9 +1,24 @@
 using System.Diagnostics.CodeAnalysis;
 using ECommerceNetApp.Api.Extensions;
+using ECommerceNetApp.Domain;
 using ECommerceNetApp.Persistence;
 using ECommerceNetApp.Service;
 
+Action<ILogger, Exception> logSeedDatabaseErrorAction =
+    LoggerMessage.Define(
+        LogLevel.Error,
+        new EventId(0, nameof(InitializeAndSeedDatabasesAsync)),
+        "An error occurred while migrating or seeding the database.");
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Bind CartDbOptions
+builder.Services.Configure<CartDbOptions>(
+    builder.Configuration.GetSection(nameof(CartDbOptions)));
+
+// Bind ProductCatalogDbOptions
+builder.Services.Configure<ProductCatalogDbOptions>(
+    builder.Configuration.GetSection(nameof(ProductCatalogDbOptions)));
 
 // Add services to the container.
 builder.Services.AddECommerceRepositories(builder.Configuration);
@@ -25,14 +40,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var initializer = scope.ServiceProvider.GetRequiredService<CartDbInitializer>();
-    initializer.InitializeDatabaseAsync().Wait();
-
-    var seeder = scope.ServiceProvider.GetRequiredService<CartDbSampleDataSeeder>();
-    seeder.SeedSampleDataAsync().Wait();
-}
+await InitializeAndSeedDatabasesAsync(app).ConfigureAwait(false);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -51,7 +59,32 @@ app.UseErrorHandlingMiddleware();
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync().ConfigureAwait(false);
+
+async Task InitializeAndSeedDatabasesAsync(WebApplication app, CancellationToken cancellationToken = default)
+{
+    using (var scope = app.Services.CreateScope())
+    {
+#pragma warning disable CA1031 // Do not catch general exception types
+        try
+        {
+            var initializer = scope.ServiceProvider.GetRequiredService<CartDbInitializer>();
+            await initializer.InitializeDatabaseAsync(cancellationToken).ConfigureAwait(false);
+
+            var cartDbSeeder = scope.ServiceProvider.GetRequiredService<CartDbSampleDataSeeder>();
+            await cartDbSeeder.SeedSampleDataAsync(cancellationToken).ConfigureAwait(false);
+
+            var productCatalogDbSeeder = scope.ServiceProvider.GetRequiredService<ProductCatalogDbSampleDataSeeder>();
+            await productCatalogDbSeeder.SeedSampleDataAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            logSeedDatabaseErrorAction.Invoke(logger, ex);
+        }
+#pragma warning restore CA1031 // Do not catch general exception types
+    }
+}
 
 /// <summary>
 /// This is used in integration test.

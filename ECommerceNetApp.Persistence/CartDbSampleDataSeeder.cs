@@ -1,18 +1,26 @@
 ﻿using ECommerceNetApp.Domain;
+using Microsoft.Extensions.Options;
 
 namespace ECommerceNetApp.Persistence
 {
     public class CartDbSampleDataSeeder
     {
         private readonly CartDbContext _dbContext;
+        private readonly CartDbOptions _cartDbOptions;
 
-        public CartDbSampleDataSeeder(CartDbContext dbContext)
+        public CartDbSampleDataSeeder(CartDbContext dbContext, IOptions<CartDbOptions> cartDbOptions)
         {
-            _dbContext = dbContext;
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _cartDbOptions = cartDbOptions?.Value ?? throw new ArgumentNullException(nameof(cartDbOptions));
         }
 
-        public async Task SeedSampleDataAsync()
+        public async Task SeedSampleDataAsync(CancellationToken cancellationToken = default)
         {
+            if (!_cartDbOptions.SeedSampleData)
+            {
+                return; // Skip seeding if disabled
+            }
+
             var cartCollection = _dbContext.GetCollection<Cart>();
 
             // Only seed if collection is empty

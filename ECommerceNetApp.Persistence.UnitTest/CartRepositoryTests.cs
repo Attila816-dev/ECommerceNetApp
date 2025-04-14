@@ -1,6 +1,6 @@
 using ECommerceNetApp.Domain;
-using FluentAssertions;
 using LiteDB.Async;
+using Shouldly;
 
 namespace ECommerceNetApp.Persistence.UnitTest
 {
@@ -34,8 +34,8 @@ namespace ECommerceNetApp.Persistence.UnitTest
             var result = await _repository.GetCartAsync(cartId);
 
             // Assert
-            result.Should().NotBeNull();
-            result!.Id.Should().Be(cartId);
+            result.ShouldNotBeNull();
+            result!.Id.ShouldBe(cartId);
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             var result = await _repository.GetCartAsync(cartId);
 
             // Assert
-            result.Should().BeNull();
+            result.ShouldBeNull();
         }
 
         [Fact]
@@ -67,7 +67,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             await _repository.SaveCartAsync(cart);
 
             // Assert
-            cart.UpdatedAt.Should().BeAfter(initialUpdateTime);
+            cart.UpdatedAt.ShouldBeGreaterThan(initialUpdateTime);
         }
 
         [Fact]
@@ -78,7 +78,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<ArgumentException>(() => _repository.SaveCartAsync(cart));
-            exception.Message.Should().Contain("Cart Id cannot be empty");
+            exception.Message.ShouldContain("Cart Id cannot be empty");
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<ArgumentException>(() => _repository.SaveCartAsync(cart));
-            exception.Message.Should().Contain("Cart Id cannot be empty");
+            exception.Message.ShouldContain("Cart Id cannot be empty");
         }
 
         [Fact]
@@ -106,7 +106,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             await _repository.DeleteCartAsync(cartId);
 
             // Assert
-            (await cartCollection.CountAsync()).Should().Be(0);
+            (await cartCollection.CountAsync()).ShouldBe(0);
         }
 
         [Fact]
@@ -120,7 +120,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             await _repository.DeleteCartAsync(cartId);
 
             // Assert
-            (await cartCollection.CountAsync()).Should().Be(0);
+            (await cartCollection.CountAsync()).ShouldBe(0);
         }
 
         [Fact]
@@ -128,7 +128,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         {
             // Act & Assert
             var exception = Assert.Throws<ArgumentNullException>(() => new CartRepository(null));
-            exception.ParamName.Should().Be("cartDbContext");
+            exception.ParamName.ShouldBe("cartDbContext");
         }
 
         public void Dispose()

@@ -33,6 +33,7 @@ namespace ECommerceNetApp.Persistence
 
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<ProductCatalogDbSampleDataSeeder>();
 
             return services;
         }

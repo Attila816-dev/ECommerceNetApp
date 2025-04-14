@@ -11,7 +11,7 @@ namespace ECommerceNetApp.Persistence
             _dbContext = dbContext;
         }
 
-        public async Task InitializeDatabaseAsync()
+        public async Task InitializeDatabaseAsync(CancellationToken cancellationToken)
         {
             // Create Cart collection if it doesn't exist
             if (!await _dbContext.CollectionExistsAsync<Cart>().ConfigureAwait(false))

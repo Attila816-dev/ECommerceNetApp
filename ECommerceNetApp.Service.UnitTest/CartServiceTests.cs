@@ -1,7 +1,7 @@
 using ECommerceNetApp.Domain;
 using ECommerceNetApp.Persistence.Interfaces;
-using FluentAssertions;
 using Moq;
+using Shouldly;
 
 namespace ECommerceNetApp.Service.UnitTest
 {
@@ -27,7 +27,7 @@ namespace ECommerceNetApp.Service.UnitTest
             var result = await _cartService.GetCartItemsAsync(testCartId);
 
             // Assert
-            result.Should().BeNull();
+            result.ShouldBeNull();
         }
 
         [Fact]
@@ -50,10 +50,10 @@ namespace ECommerceNetApp.Service.UnitTest
             var result = await _cartService.GetCartItemsAsync(testCartId);
 
             // Assert
-            result.Should().NotBeNull();
-            result.Should().HaveCount(1);
-            result.First().Name.Should().Be("Test Item");
-            result.First().Quantity.Should().Be(2);
+            result.ShouldNotBeNull();
+            result.Count.ShouldBe(1);
+            result.First().Name.ShouldBe("Test Item");
+            result.First().Quantity.ShouldBe(2);
         }
 
         [Fact]
@@ -191,8 +191,8 @@ namespace ECommerceNetApp.Service.UnitTest
             };
 
             // Act & Assert
-            await _cartService.Invoking(s => s.AddItemToCartAsync(testCartId, itemDto))
-                .Should().ThrowAsync<ArgumentException>();
+            await Should.ThrowAsync<ArgumentException>(
+                () => _cartService.AddItemToCartAsync(testCartId, itemDto));
         }
 
         [Fact]
@@ -215,7 +215,7 @@ namespace ECommerceNetApp.Service.UnitTest
             var cartTotal = await _cartService.GetCartTotalAsync(testCartId);
 
             // Assert
-            cartTotal.Should().Be(52.97m); // 10.99 + (20.99 * 2)
+            cartTotal.ShouldBe(52.97m); // 10.99 + (20.99 * 2)
         }
     }
 }
