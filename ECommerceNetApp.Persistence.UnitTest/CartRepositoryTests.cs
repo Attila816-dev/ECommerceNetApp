@@ -1,8 +1,8 @@
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation;
-using FluentAssertions;
 using LiteDB.Async;
+using Shouldly;
 
 namespace ECommerceNetApp.Persistence.UnitTest
 {
@@ -36,8 +36,8 @@ namespace ECommerceNetApp.Persistence.UnitTest
             var result = await _repository.GetByIdAsync(cartId, CancellationToken.None);
 
             // Assert
-            result.Should().NotBeNull();
-            result!.Id.Should().Be(cartId);
+            result.ShouldNotBeNull();
+            result!.Id.ShouldBe(cartId);
         }
 
         [Fact]
@@ -52,7 +52,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             var result = await _repository.GetByIdAsync(cartId, CancellationToken.None);
 
             // Assert
-            result.Should().BeNull();
+            result.ShouldBeNull();
         }
 
         [Fact]
@@ -68,7 +68,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
 
             // Assert
             var insertedCart = await cartCollection.FindByIdAsync(cart.Id);
-            insertedCart.Should().NotBeNull();
+            insertedCart.ShouldNotBeNull();
         }
 
         [Fact]
@@ -124,7 +124,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             await _repository.DeleteAsync(cartId, CancellationToken.None);
 
             // Assert
-            (await cartCollection.CountAsync()).Should().Be(0);
+            (await cartCollection.CountAsync()).ShouldBe(0);
         }
 
         [Fact]
@@ -138,7 +138,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             await _repository.DeleteAsync(cartId, CancellationToken.None);
 
             // Assert
-            (await cartCollection.CountAsync()).Should().Be(0);
+            (await cartCollection.CountAsync()).ShouldBe(0);
         }
 
         [Fact]
@@ -146,7 +146,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         {
             // Act & Assert
             var exception = Assert.Throws<ArgumentNullException>(() => new CartRepository(null));
-            exception.ParamName.Should().Be("dbContext");
+            exception.ParamName.ShouldBe("dbContext");
         }
 
         [Fact]

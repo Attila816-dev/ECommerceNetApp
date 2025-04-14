@@ -3,8 +3,8 @@ using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Implementation.QueryHandlers;
 using ECommerceNetApp.Service.Queries;
-using FluentAssertions;
 using Moq;
+using Shouldly;
 
 namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
 {
@@ -37,7 +37,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
             var cartTotal = await _queryHandler.Handle(new GetCartTotalQuery(testCartId), CancellationToken.None);
 
             // Assert
-            cartTotal.Should().Be(52.97m); // 10.99 + (20.99 * 2)
+            cartTotal.ShouldBe(52.97m); // 10.99 + (20.99 * 2)
         }
     }
 }

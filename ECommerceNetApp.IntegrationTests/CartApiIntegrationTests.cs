@@ -1,13 +1,14 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
+using ECommerceNetApp.Domain;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Implementation;
 using ECommerceNetApp.Service.DTO;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Shouldly;
 
 namespace ECommerceNetApp.IntegrationTests
 {
@@ -28,6 +29,9 @@ namespace ECommerceNetApp.IntegrationTests
                     // For example, replace the real DB context with a test one:
                     services.Remove(services.Single(d => d.ServiceType == typeof(CartDbContext)));
                     services.AddSingleton(new CartDbContext("Filename=:memory:;Mode=Memory;Cache=Shared"));
+
+                    services.Configure<CartDbOptions>(o => o.SeedSampleData = false);
+                    services.Configure<ProductCatalogDbOptions>(o => o.SeedSampleData = false);
                 });
             });
 
@@ -50,7 +54,7 @@ namespace ECommerceNetApp.IntegrationTests
             response.EnsureSuccessStatusCode();
             var cartItems = await response.Content.ReadFromJsonAsync<List<CartItemDto>>();
 
-            cartItems.Should().NotBeNull();
+            cartItems.ShouldNotBeNull();
         }
 
         [Fact]
@@ -61,7 +65,7 @@ namespace ECommerceNetApp.IntegrationTests
             var response = await _client.GetAsync($"/api/carts/{cartId}/items");
 
             // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         }
 
         [Fact]
@@ -92,11 +96,11 @@ namespace ECommerceNetApp.IntegrationTests
             var itemsResponse = await _client.GetAsync($"/api/carts/{cartId}/items");
             var items = await itemsResponse.Content.ReadFromJsonAsync<List<CartItemDto>>();
 
-            items.Should().NotBeNull();
-            items!.Should().HaveCount(1);
-            items[0].Name.Should().Be("Test Product");
-            items[0].Price.Should().Be(19.99m);
-            items[0].Quantity.Should().Be(2);
+            items.ShouldNotBeNull();
+            items.Count.ShouldBe(1);
+            items[0].Name.ShouldBe("Test Product");
+            items[0].Price.ShouldBe(19.99m);
+            items[0].Quantity.ShouldBe(2);
         }
 
         [Fact]
@@ -134,9 +138,9 @@ namespace ECommerceNetApp.IntegrationTests
             var itemsResponse = await _client.GetAsync($"/api/carts/{cartId}/items");
             var items = await itemsResponse.Content.ReadFromJsonAsync<List<CartItemDto>>();
 
-            items.Should().NotBeNull();
-            items!.Should().HaveCount(1);
-            items[0].Quantity.Should().Be(updateQuantity);
+            items.ShouldNotBeNull();
+            items.Count.ShouldBe(1);
+            items[0].Quantity.ShouldBe(updateQuantity);
         }
 
         [Fact]
@@ -167,8 +171,8 @@ namespace ECommerceNetApp.IntegrationTests
             var itemsResponse = await _client.GetAsync($"/api/carts/{cartId}/items");
             var items = await itemsResponse.Content.ReadFromJsonAsync<List<CartItemDto>>();
 
-            items.Should().NotBeNull();
-            items!.Should().BeEmpty();
+            items.ShouldNotBeNull();
+            items!.ShouldBeEmpty();
         }
 
         [Fact]
@@ -198,7 +202,7 @@ namespace ECommerceNetApp.IntegrationTests
             totalResponse.EnsureSuccessStatusCode();
             var total = await totalResponse.Content.ReadFromJsonAsync<decimal>();
 
-            total.Should().Be(39.98m);
+            total.ShouldBe(39.98m);
         }
     }
 }

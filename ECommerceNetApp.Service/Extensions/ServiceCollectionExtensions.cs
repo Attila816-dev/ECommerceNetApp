@@ -8,6 +8,8 @@ namespace ECommerceNetApp.Service.Extensions
     {
         public static IServiceCollection AddECommerceServices(this IServiceCollection services)
         {
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICartItemMapper, CartItemMapper>();
             return services;
         }

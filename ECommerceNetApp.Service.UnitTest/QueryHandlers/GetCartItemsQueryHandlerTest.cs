@@ -4,8 +4,8 @@ using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Implementation.Mappers;
 using ECommerceNetApp.Service.Implementation.QueryHandlers;
 using ECommerceNetApp.Service.Queries;
-using FluentAssertions;
 using Moq;
+using Shouldly;
 
 namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
 {
@@ -36,7 +36,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
             var result = await _queryHandler.Handle(new GetCartItemsQuery(testCartId), CancellationToken.None);
 
             // Assert
-            result.Should().BeNull();
+            result.ShouldBeNull();
         }
 
         [Fact]
@@ -57,10 +57,10 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
             var result = await _queryHandler.Handle(new GetCartItemsQuery(testCartId), CancellationToken.None);
 
             // Assert
-            result.Should().NotBeNull();
-            result.Should().HaveCount(1);
-            result.First().Name.Should().Be("Test Item");
-            result.First().Quantity.Should().Be(2);
+            result.ShouldNotBeNull();
+            result.Count.ShouldBe(1);
+            result.First().Name.ShouldBe("Test Item");
+            result.First().Quantity.ShouldBe(2);
         }
     }
 }
