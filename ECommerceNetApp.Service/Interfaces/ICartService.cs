@@ -1,4 +1,4 @@
-﻿namespace ECommerceNetApp.Service
+﻿namespace ECommerceNetApp.Service.Interfaces
 {
     public interface ICartService
     {

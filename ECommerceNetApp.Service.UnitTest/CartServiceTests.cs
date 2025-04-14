@@ -1,5 +1,5 @@
 using ECommerceNetApp.Domain;
-using ECommerceNetApp.Persistence;
+using ECommerceNetApp.Persistence.Interfaces;
 using FluentAssertions;
 using Moq;
 

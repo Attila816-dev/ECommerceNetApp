@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Domain;
+using ECommerceNetApp.Persistence.Interfaces;
 
 namespace ECommerceNetApp.Persistence
 {

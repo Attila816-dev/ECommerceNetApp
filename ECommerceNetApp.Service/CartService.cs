@@ -1,5 +1,6 @@
 ﻿using ECommerceNetApp.Domain;
-using ECommerceNetApp.Persistence;
+using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Service.Interfaces;
 
 namespace ECommerceNetApp.Service
 {

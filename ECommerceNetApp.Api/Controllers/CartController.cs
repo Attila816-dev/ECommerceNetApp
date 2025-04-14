@@ -1,4 +1,5 @@
 using ECommerceNetApp.Service;
+using ECommerceNetApp.Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceNetApp.Api.Controllers
