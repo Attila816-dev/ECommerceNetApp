@@ -6,8 +6,9 @@ using ECommerceNetApp.Service.Implementation.QueryHandlers.Cart;
 using ECommerceNetApp.Service.Queries.Cart;
 using Moq;
 using Shouldly;
+using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
-namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
+namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
 {
     public class GetCartItemsQueryHandlerTest
     {
@@ -30,7 +31,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
             string testCartId = "test-cart-123";
             _mockRepository
                 .Setup(r => r.GetByIdAsync(It.Is<string>(c => c == testCartId), CancellationToken.None))
-                .ReturnsAsync((Cart?)null);
+                .ReturnsAsync((CartEntity?)null);
 
             // Act
             var result = await _queryHandler.Handle(new GetCartItemsQuery(testCartId), CancellationToken.None);
@@ -45,7 +46,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
             // Arrange
             string testCartId = "test-cart-123";
 
-            var cart = new Cart(testCartId);
+            var cart = new CartEntity(testCartId);
 
             cart.AddItem(new CartItem(1, "Test Item", new Money(10.99m), 2));
 

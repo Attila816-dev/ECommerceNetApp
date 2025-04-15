@@ -9,8 +9,9 @@ using ECommerceNetApp.Service.Implementation.Validators.Cart;
 using FluentValidation;
 using Moq;
 using Shouldly;
+using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
-namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
+namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
 {
     public class AddCartItemCommandHandlerTest
     {
@@ -51,7 +52,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
             // Assert
             _mockRepository.Verify(
                 r => r.SaveAsync(
-                    It.Is<Cart>(c => c.Items.Count == 1 && c.Items.First().Name == "New Item"),
+                    It.Is<CartEntity>(c => c.Items.Count == 1 && c.Items.First().Name == "New Item"),
                     CancellationToken.None),
                 Times.Once);
         }
@@ -105,7 +106,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
             // Assert
             _mockRepository.Verify(
                 r => r.SaveAsync(
-                    It.Is<Cart>(c => c.Items.Count == 1 && c.Items.First().Quantity == 3),
+                    It.Is<CartEntity>(c => c.Items.Count == 1 && c.Items.First().Quantity == 3),
                     CancellationToken.None),
                 Times.Once);
         }
@@ -170,10 +171,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
             validationException.Message.ShouldContain("Item price must be greater than zero.");
         }
 
-        private static Cart CreateTestCart(string cartId)
-            => new Cart(cartId);
+        private static CartEntity CreateTestCart(string cartId)
+            => new CartEntity(cartId);
 
-        private void SetupMockRepository(Cart cart)
+        private void SetupMockRepository(CartEntity cart)
         {
             _mockRepository.Setup(r => r.GetByIdAsync(cart.Id, CancellationToken.None)).ReturnsAsync(cart);
         }

@@ -2,7 +2,7 @@
 using ECommerceNetApp.Persistence.Implementation.Cart;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace ECommerceNetApp.Api
+namespace ECommerceNetApp.Api.HealthCheck
 {
     public class CartDbHealthCheck(CartDbContext dbContext) : IHealthCheck
     {

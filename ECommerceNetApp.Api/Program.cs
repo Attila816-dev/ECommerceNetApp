@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using ECommerceNetApp.Api;
 using ECommerceNetApp.Api.Extensions;
+using ECommerceNetApp.Api.HealthCheck;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
 using ECommerceNetApp.Persistence.Implementation.Cart;
@@ -46,7 +46,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<CartItemValidator>();
 builder.Services.AddECommerceServices();
 
 builder.Services.AddHealthChecks()
-    .AddCheck<CartDbHealthCheck>("cartdb_health_check");
+    .AddCheck<CartDbHealthCheck>("CartDb_health_check")
+    .AddCheck<ProductCatalogDbHealthCheck>("ProductCatalogDb_health_check");
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

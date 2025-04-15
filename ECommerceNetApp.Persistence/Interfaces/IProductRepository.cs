@@ -12,7 +12,7 @@ namespace ECommerceNetApp.Persistence.Interfaces
 
         Task<bool> ExistsAsync(int id, CancellationToken cancellationToken);
 
-        Task<Product> AddAsync(Product product, CancellationToken cancellationToken);
+        Task AddAsync(Product product, CancellationToken cancellationToken);
 
         Task UpdateAsync(Product product, CancellationToken cancellationToken);
 

@@ -89,16 +89,12 @@ namespace ECommerceNetApp.Persistence.UnitTest
             var newProduct = new Product("Tablet", "Compact tablet", null, _electronicsCategory, 299.99m, 15);
 
             // Act
-            var result = await _productRepository.AddAsync(newProduct, CancellationToken.None);
+            await _productRepository.AddAsync(newProduct, CancellationToken.None);
 
-            // Assert
-            result.Id.ShouldNotBe(0);
-            result.Name.ShouldBe("Tablet");
-
-            // Verify it was added to the database
-            var productInDb = await _dbContext.Products.FindAsync(result.Id);
+            // Assert - Verify it was added to the database
+            var productInDb = await _dbContext.Products.FirstAsync(p => p.Name == newProduct.Name);
             productInDb.ShouldNotBeNull();
-            productInDb.Name.ShouldBe("Tablet");
+            productInDb.Description.ShouldBe(newProduct.Description);
             productInDb.Price.ShouldBe(299.99m);
         }
 

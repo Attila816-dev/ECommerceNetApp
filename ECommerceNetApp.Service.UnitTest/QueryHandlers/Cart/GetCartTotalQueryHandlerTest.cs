@@ -5,8 +5,9 @@ using ECommerceNetApp.Service.Implementation.QueryHandlers.Cart;
 using ECommerceNetApp.Service.Queries.Cart;
 using Moq;
 using Shouldly;
+using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
-namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
+namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
 {
     public class GetCartTotalQueryHandlerTest
     {
@@ -25,7 +26,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
         {
             // Arrange
             string testCartId = "test-cart-123";
-            var cart = new Cart(testCartId);
+            var cart = new CartEntity(testCartId);
 
             cart.AddItem(new CartItem(1, "Item 1", new Money(10.99m), 1));
             cart.AddItem(new CartItem(2, "Item 2", new Money(20.99m), 2));
@@ -46,7 +47,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
             // Arrange
             string testCartId = "test-cart-123";
             _mockRepository.Setup(r => r.GetByIdAsync(testCartId, CancellationToken.None))
-                .ReturnsAsync((Cart?)null);
+                .ReturnsAsync((CartEntity?)null);
 
             // Act
             var cartTotal = await _queryHandler.Handle(new GetCartTotalQuery(testCartId), CancellationToken.None);

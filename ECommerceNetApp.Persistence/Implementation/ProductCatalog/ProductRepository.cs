@@ -43,11 +43,10 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             return await _dbContext.Products.AnyAsync(c => c.Id == id, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<Product> AddAsync(Product product, CancellationToken cancellationToken)
+        public async Task AddAsync(Product product, CancellationToken cancellationToken)
         {
             await _dbContext.Products.AddAsync(product, cancellationToken).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            return product;
         }
 
         public async Task UpdateAsync(Product product, CancellationToken cancellationToken)

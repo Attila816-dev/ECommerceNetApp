@@ -4,8 +4,9 @@ using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Cart;
 using Moq;
+using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
-namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
+namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
 {
     public class RemoveCartItemCommandHandlerTest
     {
@@ -25,7 +26,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
             // Arrange
             string testCartId = "test-cart-123";
 
-            var cart = new Cart(testCartId);
+            var cart = new CartEntity(testCartId);
 
             cart.AddItem(new CartItem(1, "Item 1", new Money(10.99m), 1));
             cart.AddItem(new CartItem(2, "Item 2", new Money(20.99m), 2));
@@ -39,7 +40,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
             // Assert
             _mockRepository.Verify(
                 r => r.SaveAsync(
-                    It.Is<Cart>(c => c.Items.Count == 1 && c.Items.Count == 1 && c.Items.First().Id == 2),
+                    It.Is<CartEntity>(c => c.Items.Count == 1 && c.Items.Count == 1 && c.Items.First().Id == 2),
                     CancellationToken.None),
                 Times.Once);
         }
