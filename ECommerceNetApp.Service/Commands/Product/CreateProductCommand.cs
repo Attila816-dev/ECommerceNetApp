@@ -11,5 +11,5 @@ namespace ECommerceNetApp.Service.Commands.Product
         int CategoryId,
         decimal Price,
         int Amount)
-        : IRequest;
+        : IRequest<int>;
 }

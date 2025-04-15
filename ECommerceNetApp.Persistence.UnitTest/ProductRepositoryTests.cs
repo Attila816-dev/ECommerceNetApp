@@ -40,7 +40,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task GetAllProductsAsync_ShouldReturnAllProducts()
         {
             // Act
-            var result = await _productRepository.GetAllAsync();
+            var result = await _productRepository.GetAllAsync(CancellationToken.None);
 
             // Assert
             result.Count().ShouldBe(3);
@@ -50,8 +50,8 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task GetProductsByCategoryIdAsync_ShouldReturnProductsInCategory()
         {
             // Act
-            var electronicsProducts = await _productRepository.GetProductsByCategoryIdAsync(_electronicsCategory.Id);
-            var booksProducts = await _productRepository.GetProductsByCategoryIdAsync(_booksCategory.Id);
+            var electronicsProducts = await _productRepository.GetProductsByCategoryIdAsync(_electronicsCategory.Id, CancellationToken.None);
+            var booksProducts = await _productRepository.GetProductsByCategoryIdAsync(_booksCategory.Id, CancellationToken.None);
 
             // Assert
             electronicsProducts.Count().ShouldBe(2);
@@ -64,7 +64,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task GetProductByIdAsync_WithValidId_ShouldReturnProduct()
         {
             // Act
-            var result = await _productRepository.GetByIdAsync(_laptopProduct!.Id);
+            var result = await _productRepository.GetByIdAsync(_laptopProduct!.Id, CancellationToken.None);
 
             // Assert
             result.ShouldNotBeNull();
@@ -76,7 +76,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task GetProductByIdAsync_WithInvalidId_ShouldReturnNull()
         {
             // Act
-            var result = await _productRepository.GetByIdAsync(999);
+            var result = await _productRepository.GetByIdAsync(999, CancellationToken.None);
 
             // Assert
             result.ShouldBeNull();
@@ -89,7 +89,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             var newProduct = new Product("Tablet", "Compact tablet", null, _electronicsCategory, 299.99m, 15);
 
             // Act
-            var result = await _productRepository.AddAsync(newProduct);
+            var result = await _productRepository.AddAsync(newProduct, CancellationToken.None);
 
             // Assert
             result.Id.ShouldNotBe(0);
@@ -112,7 +112,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             product.UpdatePrice(1099.99m);
 
             // Act
-            await _productRepository.UpdateAsync(product);
+            await _productRepository.UpdateAsync(product, CancellationToken.None);
 
             // Assert
             var updatedProduct = await _dbContext.Products.FindAsync(1);
@@ -125,14 +125,14 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task DeleteProductAsync_ShouldRemoveProduct()
         {
             // Act
-            await _productRepository.DeleteAsync(1);
+            await _productRepository.DeleteAsync(1, CancellationToken.None);
 
             // Assert
             var deletedProduct = await _dbContext.Products.FindAsync(_laptopProduct!.Id);
             deletedProduct.ShouldBeNull();
 
             // Verify we now have one less product
-            var remainingProducts = await _productRepository.GetAllAsync();
+            var remainingProducts = await _productRepository.GetAllAsync(CancellationToken.None);
             remainingProducts.Count().ShouldBe(2);
         }
 
@@ -140,8 +140,8 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task GetProductsIncludingCategory_ShouldIncludeCategoryData()
         {
             // Act
-            var products = await _productRepository.GetAllAsync();
-            var product = await _productRepository.GetByIdAsync(_laptopProduct!.Id);
+            var products = await _productRepository.GetAllAsync(CancellationToken.None);
+            var product = await _productRepository.GetByIdAsync(_laptopProduct!.Id, CancellationToken.None);
 
             // Assert
             // Check that Category navigation property is loaded

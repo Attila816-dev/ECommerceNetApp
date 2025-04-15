@@ -18,9 +18,9 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpGet("{cartId}/items")]
-        public async Task<ActionResult<List<CartItemDto>>> GetCartItems(string cartId)
+        public async Task<ActionResult<List<CartItemDto>>> GetCartItems(string cartId, CancellationToken cancellationToken)
         {
-            var cartItems = await _mediator.Send(new GetCartItemsQuery(cartId)).ConfigureAwait(false);
+            var cartItems = await _mediator.Send(new GetCartItemsQuery(cartId), cancellationToken).ConfigureAwait(false);
             if (cartItems == null)
             {
                 return NotFound();
@@ -30,9 +30,9 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpPost("{cartId}/items")]
-        public async Task<ActionResult> AddItemToCart(string cartId, CartItemDto item)
+        public async Task<ActionResult> AddItemToCart(string cartId, CartItemDto item, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new AddCartItemCommand(cartId, item)).ConfigureAwait(false);
+            await _mediator.Send(new AddCartItemCommand(cartId, item), cancellationToken).ConfigureAwait(false);
             return Ok();
         }
 

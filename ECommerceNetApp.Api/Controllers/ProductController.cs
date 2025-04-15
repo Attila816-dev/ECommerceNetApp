@@ -2,6 +2,7 @@
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
 using ECommerceNetApp.Service.Queries.Product;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceNetApp.Api.Controllers
@@ -10,31 +11,31 @@ namespace ECommerceNetApp.Api.Controllers
     [Route("api/products")]
     public class ProductController : ControllerBase
     {
-        private readonly IProductService _productService;
+        private readonly IMediator _mediator;
 
-        public ProductController(IProductService productService)
+        public ProductController(IMediator mediator)
         {
-            _productService = productService ?? throw new ArgumentNullException(nameof(productService));
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProducts()
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProducts(CancellationToken cancellationToken)
         {
-            var products = await _productService.GetAllProductsAsync(new GetAllProductsQuery()).ConfigureAwait(false);
+            var products = await _mediator.Send(new GetAllProductsQuery(), cancellationToken).ConfigureAwait(false);
             return Ok(products);
         }
 
         [HttpGet("category/{categoryId}")]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductsByCategory(int categoryId)
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductsByCategory(int categoryId, CancellationToken cancellationToken)
         {
-            var products = await _productService.GetProductsByCategoryIdAsync(new GetProductsByCategoryQuery(categoryId)).ConfigureAwait(false);
+            var products = await _mediator.Send(new GetProductsByCategoryQuery(categoryId), cancellationToken).ConfigureAwait(false);
             return Ok(products);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProductDto>> GetProductById(int id)
+        public async Task<ActionResult<ProductDto>> GetProductById(int id, CancellationToken cancellationToken)
         {
-            var product = await _productService.GetProductByIdAsync(new GetProductByIdQuery(id)).ConfigureAwait(false);
+            var product = await _mediator.Send(new GetProductByIdQuery(id), cancellationToken).ConfigureAwait(false);
 
             if (product == null)
             {
@@ -45,7 +46,7 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProductDto>> CreateProduct(ProductDto productDto)
+        public async Task<ActionResult<ProductDto>> CreateProduct(ProductDto productDto, CancellationToken cancellationToken)
         {
             try
             {
@@ -57,8 +58,8 @@ namespace ECommerceNetApp.Api.Controllers
                     productDto.CategoryId,
                     productDto.Price,
                     productDto.Amount);
-                var result = await _productService.AddProductAsync(command).ConfigureAwait(false);
-                return CreatedAtAction(nameof(GetProductById), new { id = result.Id }, result);
+                var result = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+                return Ok();
             }
             catch (ArgumentException ex)
             {
@@ -67,7 +68,7 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateProduct(int id, ProductDto productDto)
+        public async Task<ActionResult> UpdateProduct(int id, ProductDto productDto, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(productDto);
             if (id != productDto.Id)
@@ -85,7 +86,7 @@ namespace ECommerceNetApp.Api.Controllers
                     productDto.CategoryId,
                     productDto.Price,
                     productDto.Amount);
-                await _productService.UpdateProductAsync(command).ConfigureAwait(false);
+                await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
             }
             catch (KeyNotFoundException)
             {
@@ -100,12 +101,11 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteProduct(int id)
+        public async Task<ActionResult> DeleteProduct(int id, CancellationToken cancellationToken)
         {
             try
             {
-                var command = new DeleteProductCommand(id);
-                await _productService.DeleteProductAsync(command).ConfigureAwait(false);
+                await _mediator.Send(new DeleteProductCommand(id), cancellationToken).ConfigureAwait(false);
             }
             catch (KeyNotFoundException)
             {

@@ -13,56 +13,56 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<IEnumerable<Product>> GetAllAsync()
+        public async Task<IEnumerable<Product>> GetAllAsync(CancellationToken cancellationToken)
         {
             return await _dbContext.Products
                 .Include(p => p.Category)
-                .ToListAsync()
+                .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<Product>> GetProductsByCategoryIdAsync(int categoryId)
+        public async Task<IEnumerable<Product>> GetProductsByCategoryIdAsync(int categoryId, CancellationToken cancellationToken)
         {
             return await _dbContext.Products
                 .Where(p => p.CategoryId == categoryId)
                 .Include(p => p.Category)
-                .ToListAsync()
+                .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
 
-        public async Task<Product?> GetByIdAsync(int id)
+        public async Task<Product?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
             return await _dbContext.Products
                 .Include(p => p.Category)
-                .FirstOrDefaultAsync(p => p.Id == id)
+                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
                 .ConfigureAwait(false);
         }
 
-        public async Task<bool> ExistsAsync(int id)
+        public async Task<bool> ExistsAsync(int id, CancellationToken cancellationToken)
         {
-            return await _dbContext.Products.AnyAsync(c => c.Id == id).ConfigureAwait(false);
+            return await _dbContext.Products.AnyAsync(c => c.Id == id, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<Product> AddAsync(Product product)
+        public async Task<Product> AddAsync(Product product, CancellationToken cancellationToken)
         {
-            await _dbContext.Products.AddAsync(product).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            await _dbContext.Products.AddAsync(product, cancellationToken).ConfigureAwait(false);
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return product;
         }
 
-        public async Task UpdateAsync(Product product)
+        public async Task UpdateAsync(Product product, CancellationToken cancellationToken)
         {
             _dbContext.Products.Update(product);
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, CancellationToken cancellationToken)
         {
-            var product = await _dbContext.Products.FindAsync(id).ConfigureAwait(false);
+            var product = await _dbContext.Products.FindAsync([id], cancellationToken: cancellationToken).ConfigureAwait(false);
             if (product != null)
             {
                 _dbContext.Products.Remove(product);
-                await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+                await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }

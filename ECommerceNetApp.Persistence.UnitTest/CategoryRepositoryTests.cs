@@ -35,7 +35,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task GetAllAsync_ShouldReturnAllCategories()
         {
             // Act
-            var result = await _categoryRepository.GetAllAsync();
+            var result = await _categoryRepository.GetAllAsync(CancellationToken.None);
 
             // Assert
             result.Count().ShouldBe(2);
@@ -45,7 +45,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task GetByIdAsync_WithValidId_ShouldReturnCategory()
         {
             // Act
-            var result = await _categoryRepository.GetByIdAsync(1);
+            var result = await _categoryRepository.GetByIdAsync(1, CancellationToken.None);
 
             // Assert
             result.ShouldNotBeNull();
@@ -59,16 +59,11 @@ namespace ECommerceNetApp.Persistence.UnitTest
             var newCategory = new Category("Toys");
 
             // Act
-            var result = await _categoryRepository.AddAsync(newCategory);
+            await _categoryRepository.AddAsync(newCategory, CancellationToken.None);
 
-            // Assert
-            result.Id.ShouldNotBe(0);
-            result.Name.ShouldBe("Toys");
-
-            // Verify it was added to the database.
-            var categoryInDb = await _dbContext.Categories.FindAsync(result.Id);
-            categoryInDb.ShouldNotBeNull();
-            categoryInDb!.Name.ShouldBe("Toys");
+            // Assert - Verify it was added to the database.
+            var categoryInDb = await _dbContext.Categories.FirstAsync(c => c.Name.Equals("Toys", StringComparison.Ordinal), CancellationToken.None);
+            categoryInDb.Id.ShouldNotBe(0);
         }
 
         public void Dispose()

@@ -5,7 +5,7 @@ using ECommerceNetApp.Service.Queries.Cart;
 using LiteDB;
 using MediatR;
 
-namespace ECommerceNetApp.Service.Implementation.QueryHandlers
+namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
 {
     public class GetCartItemsQueryHandler(
         ICartRepository cartRepository,

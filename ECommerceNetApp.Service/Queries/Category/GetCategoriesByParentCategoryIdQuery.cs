@@ -3,6 +3,6 @@ using MediatR;
 
 namespace ECommerceNetApp.Service.Queries.Category
 {
-    public record GetCategoriesQuery(int? ParentCategoryId)
+    public record GetCategoriesByParentCategoryIdQuery(int? ParentCategoryId)
         : IRequest<IEnumerable<CategoryDto>>;
 }

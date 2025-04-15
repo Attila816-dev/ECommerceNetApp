@@ -2,7 +2,7 @@
 using ECommerceNetApp.Service.Queries.Cart;
 using MediatR;
 
-namespace ECommerceNetApp.Service.Implementation.QueryHandlers
+namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
 {
     public class GetCartTotalQueryHandler(ICartRepository cartRepository)
         : IRequestHandler<GetCartTotalQuery, decimal?>

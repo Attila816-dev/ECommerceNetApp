@@ -3,5 +3,5 @@ using MediatR;
 
 namespace ECommerceNetApp.Service.Queries.Category
 {
-    public record GetCategoryByIdQuery(int Id) : IRequest<CategoryDetailDto>;
+    public record GetCategoryByIdQuery(int Id) : IRequest<CategoryDetailDto?>;
 }

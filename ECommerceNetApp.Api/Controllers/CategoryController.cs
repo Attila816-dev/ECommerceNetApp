@@ -1,5 +1,11 @@
-﻿using ECommerceNetApp.Service.DTO;
+﻿using System.Threading;
+using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Service.Commands.Category;
+using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
+using ECommerceNetApp.Service.Queries.Cart;
+using ECommerceNetApp.Service.Queries.Category;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceNetApp.Api.Controllers
@@ -8,25 +14,24 @@ namespace ECommerceNetApp.Api.Controllers
     [Route("api/categories")]
     public class CategoryController : ControllerBase
     {
-        private readonly ICategoryService _categoryService;
+        private readonly IMediator _mediator;
 
-        public CategoryController(ICategoryService categoryService)
+        public CategoryController(IMediator mediator)
         {
-            _categoryService = categoryService ?? throw new ArgumentNullException(nameof(categoryService));
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAllCategories()
         {
-            var categories = await _categoryService.GetAllCategoriesAsync().ConfigureAwait(false);
+            var categories = await _mediator.Send(new GetAllCategoriesQuery()).ConfigureAwait(false);
             return Ok(categories);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<CategoryDto>> GetCategoryById(int id)
+        public async Task<ActionResult<CategoryDto>> GetCategoryById(int id, CancellationToken cancellationToken)
         {
-            var category = await _categoryService.GetCategoryByIdAsync(id).ConfigureAwait(false);
-
+            var category = await _mediator.Send(new GetCategoryByIdQuery(id), cancellationToken).ConfigureAwait(false);
             if (category == null)
             {
                 return NotFound();
@@ -36,14 +41,16 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<CategoryDto>> CreateCategory(CategoryDto categoryDto)
+        public async Task<ActionResult<CategoryDto>> CreateCategory(CategoryDto categoryDto, CancellationToken cancellationToken)
         {
-            var result = await _categoryService.AddCategoryAsync(categoryDto).ConfigureAwait(false);
-            return CreatedAtAction(nameof(GetCategoryById), new { id = result.Id }, result);
+            ArgumentNullException.ThrowIfNull(categoryDto);
+            var command = new CreateCategoryCommand(categoryDto.Name, categoryDto.ImageUrl, categoryDto.ParentCategoryId);
+            await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            return Ok();
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateCategory(int id, CategoryDto categoryDto)
+        public async Task<ActionResult> UpdateCategory(int id, CategoryDto categoryDto, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(categoryDto);
             if (id != categoryDto.Id)
@@ -51,24 +58,18 @@ namespace ECommerceNetApp.Api.Controllers
                 return BadRequest();
             }
 
-            try
-            {
-                await _categoryService.UpdateCategoryAsync(categoryDto).ConfigureAwait(false);
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-
-            return NoContent();
+            ArgumentNullException.ThrowIfNull(categoryDto);
+            var command = new UpdateCategoryCommand(categoryDto.Id, categoryDto.Name, categoryDto.ImageUrl, categoryDto.ParentCategoryId);
+            await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            return Ok();
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteCategory(int id)
+        public async Task<ActionResult> DeleteCategory(int id, CancellationToken cancellationToken)
         {
             try
             {
-                await _categoryService.DeleteCategoryAsync(id).ConfigureAwait(false);
+                await _mediator.Send(new DeleteCategoryCommand(id), cancellationToken).ConfigureAwait(false);
             }
             catch (KeyNotFoundException)
             {

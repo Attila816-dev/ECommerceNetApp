@@ -4,18 +4,18 @@ namespace ECommerceNetApp.Persistence.Interfaces
 {
     public interface ICategoryRepository
     {
-        Task<IEnumerable<Category>> GetAllAsync();
+        Task<IEnumerable<Category>> GetAllAsync(CancellationToken cancellationToken);
 
-        Task<IEnumerable<Category>> GetByParentCategoryIdAsync(int? parentCategoryId);
+        Task<IEnumerable<Category>> GetByParentCategoryIdAsync(int? parentCategoryId, CancellationToken cancellationToken);
 
-        Task<Category?> GetByIdAsync(int id);
+        Task<Category?> GetByIdAsync(int id, CancellationToken cancellationToken);
 
-        Task<Category> AddAsync(Category category);
+        Task AddAsync(Category category, CancellationToken cancellationToken);
 
-        Task<bool> ExistsAsync(int id);
+        Task<bool> ExistsAsync(int id, CancellationToken cancellationToken);
 
-        Task UpdateAsync(Category category);
+        Task UpdateAsync(Category category, CancellationToken cancellationToken);
 
-        Task DeleteAsync(int id);
+        Task DeleteAsync(int id, CancellationToken cancellationToken);
     }
 }

@@ -5,7 +5,7 @@ using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Cart;
 using ECommerceNetApp.Service.Implementation.Mappers;
-using ECommerceNetApp.Service.Implementation.Validators;
+using ECommerceNetApp.Service.Implementation.Validators.Cart;
 using FluentValidation;
 using Moq;
 using Shouldly;

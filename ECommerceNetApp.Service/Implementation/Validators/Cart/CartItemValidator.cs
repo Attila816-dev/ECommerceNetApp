@@ -1,7 +1,7 @@
 using ECommerceNetApp.Service.DTO;
 using FluentValidation;
 
-namespace ECommerceNetApp.Service.Implementation.Validators
+namespace ECommerceNetApp.Service.Implementation.Validators.Cart
 {
     public class CartItemValidator : AbstractValidator<CartItemDto>
     {

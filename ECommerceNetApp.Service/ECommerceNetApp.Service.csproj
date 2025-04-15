@@ -17,4 +17,9 @@
     <ProjectReference Include="..\ECommerceNetApp.Persistence\ECommerceNetApp.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Implementation\Validators\Category\" />
+    <Folder Include="Implementation\Validators\Product\" />
+  </ItemGroup>
+
 </Project>

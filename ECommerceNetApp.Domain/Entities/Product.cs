@@ -2,7 +2,7 @@
 {
     public class Product
     {
-        private const int MaxProductNameLength = 256;
+        public const int MaxProductNameLength = 256;
 
         public Product(
             string name,
@@ -67,13 +67,13 @@
 
             if (name.Length > MaxProductNameLength)
             {
-                throw new ArgumentException("Product name cannot exceed 50 characters", nameof(name));
+                throw new ArgumentException($"Product name cannot exceed {MaxProductNameLength} characters", nameof(name));
             }
 
             Name = name;
         }
 
-        public void UpdateDescription(string description)
+        public void UpdateDescription(string? description)
         {
             Description = description;
         }

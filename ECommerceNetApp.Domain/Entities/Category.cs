@@ -2,7 +2,7 @@
 {
     public class Category
     {
-        private const int MaxCategoryNameLength = 100;
+        public const int MaxCategoryNameLength = 100;
 
 #pragma warning disable CA1054 // URI-like parameters should not be strings
         public Category(string name, string? imageUrl = null, Category? parentCategory = null)
@@ -50,7 +50,7 @@
 
             if (name.Length > MaxCategoryNameLength)
             {
-                throw new ArgumentException("Category name cannot exceed 50 characters", nameof(name));
+                throw new ArgumentException($"Category name cannot exceed {MaxCategoryNameLength} characters", nameof(name));
             }
 
             Name = name;
