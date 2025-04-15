@@ -1,9 +1,9 @@
-﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.Options;
+﻿using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Domain.ValueObjects;
 using Microsoft.Extensions.Options;
+using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
-namespace ECommerceNetApp.Persistence.Implementation
+namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
     public class CartDbSampleDataSeeder
     {
@@ -23,13 +23,13 @@ namespace ECommerceNetApp.Persistence.Implementation
                 return; // Skip seeding if disabled
             }
 
-            var cartCollection = _dbContext.GetCollection<Cart>();
+            var cartCollection = _dbContext.GetCollection<CartEntity>();
 
             // Only seed if collection is empty
             if (await cartCollection.CountAsync().ConfigureAwait(false) == 0)
             {
                 // Create a sample cart
-                var sampleCart = new Cart("sample-cart-1");
+                var sampleCart = new CartEntity("sample-cart-1");
 
                 // Add sample items
                 var cartImageInfo1 = new ImageInfo("https://example.com/product1.jpg", "Sample Product 1 Image");

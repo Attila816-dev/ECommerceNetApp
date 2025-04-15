@@ -3,7 +3,7 @@ using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
-using ECommerceNetApp.Service.Implementation.CommandHandlers;
+using ECommerceNetApp.Service.Implementation.CommandHandlers.Cart;
 using ECommerceNetApp.Service.Implementation.Mappers;
 using ECommerceNetApp.Service.Implementation.Validators;
 using FluentValidation;

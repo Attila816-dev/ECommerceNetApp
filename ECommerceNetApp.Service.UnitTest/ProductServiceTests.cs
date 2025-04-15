@@ -6,6 +6,7 @@ using ECommerceNetApp.Service.Implementation;
 using ECommerceNetApp.Service.Queries.Product;
 using Moq;
 using Shouldly;
+using CategoryEntity = ECommerceNetApp.Domain.Entities.Category;
 
 namespace ECommerceNetApp.Service.UnitTest
 {
@@ -26,10 +27,11 @@ namespace ECommerceNetApp.Service.UnitTest
         public async Task GetAllProductsAsync_ShouldReturnAllProducts()
         {
             // Arrange
+            var category = new CategoryEntity(1, "Electronics");
             var products = new List<Product>
             {
-                new Product { Id = 1, Name = "Laptop", Price = 999.99m, Amount = 10, CategoryId = 1 },
-                new Product { Id = 2, Name = "Smartphone", Price = 499.99m, Amount = 20, CategoryId = 1 },
+                new Product(1, "Laptop", null, null, category, 999.99m, 10),
+                new Product(2, "Smartphone", null, null, category, 499.99m, 20),
             };
 
             _mockProductRepository.Setup(repo => repo.GetAllAsync())
@@ -48,10 +50,11 @@ namespace ECommerceNetApp.Service.UnitTest
         public async Task GetProductsByCategoryIdAsync_ShouldReturnProductsInCategory()
         {
             // Arrange
+            var category = new CategoryEntity(1, "Electronics");
             var products = new List<Product>
             {
-                new Product { Id = 1, Name = "Laptop", Price = 999.99m, Amount = 10, CategoryId = 1 },
-                new Product { Id = 2, Name = "Smartphone", Price = 499.99m, Amount = 20, CategoryId = 1 },
+                new Product(1, "Laptop", null, null, category, 999.99m, 10),
+                new Product(2, "Smartphone", null, null, category, 499.99m, 20),
             };
 
             _mockProductRepository.Setup(repo => repo.GetProductsByCategoryIdAsync(1))
@@ -69,7 +72,8 @@ namespace ECommerceNetApp.Service.UnitTest
         public async Task GetProductByIdAsync_WithValidId_ShouldReturnProduct()
         {
             // Arrange
-            var product = new Product { Id = 1, Name = "Laptop", Price = 999.99m, Amount = 10, CategoryId = 1 };
+            var category = new CategoryEntity(1, "Electronics");
+            var product = new Product(1, "Laptop", null, null, category, 999.99m, 10);
 
             _mockProductRepository.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(product);
@@ -96,17 +100,11 @@ namespace ECommerceNetApp.Service.UnitTest
                 CategoryId = 1,
             };
 
-            var product = new Product
-            {
-                Id = 1,
-                Name = "Laptop",
-                Price = 999.99m,
-                Amount = 10,
-                CategoryId = 1,
-            };
+            var category = new CategoryEntity(1, "Electronics");
+            var product = new Product(1, "Laptop", null, null, category, 999.99m, 10);
 
-            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(new Category { Id = 1, Name = "Electronics" });
+            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(category.Id))
+                .ReturnsAsync(category);
 
             _mockProductRepository.Setup(repo => repo.AddAsync(It.IsAny<Product>()))
                 .ReturnsAsync(product);
@@ -143,7 +141,7 @@ namespace ECommerceNetApp.Service.UnitTest
             };
 
             _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(999))
-                .ReturnsAsync((Category?)null);
+                .ReturnsAsync((CategoryEntity?)null);
 
             // Act & Assert
             var command = new CreateProductCommand(
@@ -173,7 +171,7 @@ namespace ECommerceNetApp.Service.UnitTest
             };
 
             _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(new Category { Id = 1, Name = "Electronics" });
+                .ReturnsAsync(new CategoryEntity(1, "Electronics"));
 
             _mockProductRepository.Setup(repo => repo.GetByIdAsync(999))
                 .ReturnsAsync((Product?)null);
@@ -204,11 +202,12 @@ namespace ECommerceNetApp.Service.UnitTest
                 CategoryId = 1,
             };
 
-            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(new Category { Id = 1, Name = "Electronics" });
+            var category = new CategoryEntity(1, "Electronics");
+
+            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(category);
 
             _mockProductRepository.Setup(repo => repo.GetByIdAsync(1))
-                .ReturnsAsync(new Product { Id = 1 });
+                .ReturnsAsync(new Product(1, "Laptop", null, null, category, 10.0m, 10));
 
             // Act & Assert
             var command = new UpdateProductCommand(
@@ -229,7 +228,8 @@ namespace ECommerceNetApp.Service.UnitTest
         public async Task DeleteProductAsync_WithExistingProduct_ShouldCallDeleteOnRepository()
         {
             // Arrange
-            var product = new Product { Id = 1, Name = "Laptop" };
+            var category = new CategoryEntity(1, "Electronics");
+            var product = new Product(1, "Laptop", null, null, category, 10.0m, 10);
 
             _mockProductRepository.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(product);

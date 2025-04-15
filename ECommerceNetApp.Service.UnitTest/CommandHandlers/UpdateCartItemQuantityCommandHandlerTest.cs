@@ -2,7 +2,7 @@
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Cart;
-using ECommerceNetApp.Service.Implementation.CommandHandlers;
+using ECommerceNetApp.Service.Implementation.CommandHandlers.Cart;
 using Moq;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers

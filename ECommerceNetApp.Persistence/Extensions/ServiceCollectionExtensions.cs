@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Persistence.Implementation;
+﻿using ECommerceNetApp.Persistence.Implementation.Cart;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Persistence.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

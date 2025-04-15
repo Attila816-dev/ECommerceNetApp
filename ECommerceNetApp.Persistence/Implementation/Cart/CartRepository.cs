@@ -1,7 +1,7 @@
-﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Persistence.Interfaces;
+using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
-namespace ECommerceNetApp.Persistence.Implementation
+namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
     public class CartRepository : ICartRepository
     {
@@ -12,19 +12,19 @@ namespace ECommerceNetApp.Persistence.Implementation
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<Cart?> GetByIdAsync(string cartId, CancellationToken cancellationToken)
+        public async Task<CartEntity?> GetByIdAsync(string cartId, CancellationToken cancellationToken)
         {
-            var collection = _dbContext.GetCollection<Cart>();
+            var collection = _dbContext.GetCollection<CartEntity>();
             var cart = await collection.FindByIdAsync(cartId).ConfigureAwait(false);
             return cart;
         }
 
-        public async Task SaveAsync(Cart cart, CancellationToken cancellationToken)
+        public async Task SaveAsync(CartEntity cart, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(cart, nameof(cart));
             ArgumentException.ThrowIfNullOrEmpty(cart.Id, nameof(cart.Id));
 
-            var collection = _dbContext.GetCollection<Cart>();
+            var collection = _dbContext.GetCollection<CartEntity>();
 
             // Clear domain events before saving to avoid serialization issues
             var domainEvents = cart.DomainEvents;
@@ -40,7 +40,7 @@ namespace ECommerceNetApp.Persistence.Implementation
         {
             ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
 
-            var collection = _dbContext.GetCollection<Cart>();
+            var collection = _dbContext.GetCollection<CartEntity>();
             await collection.DeleteAsync(cartId).ConfigureAwait(false);
         }
     }

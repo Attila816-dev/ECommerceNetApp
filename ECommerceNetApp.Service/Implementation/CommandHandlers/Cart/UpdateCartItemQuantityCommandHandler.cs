@@ -3,7 +3,7 @@ using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Cart;
 using MediatR;
 
-namespace ECommerceNetApp.Service.Implementation.CommandHandlers
+namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
     public class UpdateCartItemQuantityCommandHandler(ICartRepository cartRepository)
         : IRequestHandler<UpdateCartItemQuantityCommand>

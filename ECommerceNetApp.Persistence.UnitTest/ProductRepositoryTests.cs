@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Implementation;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
@@ -11,6 +11,11 @@ namespace ECommerceNetApp.Persistence.UnitTest
         private readonly ProductCatalogDbContext _dbContext;
         private readonly ProductRepository _productRepository;
         private bool disposedValue;
+        private Category _electronicsCategory = new Category("Electronics", null, null);
+        private Category _booksCategory = new Category("Books", null, null);
+        private Product? _laptopProduct;
+        private Product? _smartPhoneProduct;
+        private Product? _bookProduct;
 
         public ProductRepositoryTests()
         {
@@ -45,8 +50,8 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task GetProductsByCategoryIdAsync_ShouldReturnProductsInCategory()
         {
             // Act
-            var electronicsProducts = await _productRepository.GetProductsByCategoryIdAsync(1);
-            var booksProducts = await _productRepository.GetProductsByCategoryIdAsync(2);
+            var electronicsProducts = await _productRepository.GetProductsByCategoryIdAsync(_electronicsCategory.Id);
+            var booksProducts = await _productRepository.GetProductsByCategoryIdAsync(_booksCategory.Id);
 
             // Assert
             electronicsProducts.Count().ShouldBe(2);
@@ -59,7 +64,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task GetProductByIdAsync_WithValidId_ShouldReturnProduct()
         {
             // Act
-            var result = await _productRepository.GetByIdAsync(1);
+            var result = await _productRepository.GetByIdAsync(_laptopProduct!.Id);
 
             // Assert
             result.ShouldNotBeNull();
@@ -81,14 +86,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task AddProductAsync_ShouldAddNewProduct()
         {
             // Arrange
-            var newProduct = new Product
-            {
-                Name = "Tablet",
-                Description = "Compact tablet",
-                Price = 299.99m,
-                Amount = 15,
-                CategoryId = 1,
-            };
+            var newProduct = new Product("Tablet", "Compact tablet", null, _electronicsCategory, 299.99m, 15);
 
             // Act
             var result = await _productRepository.AddAsync(newProduct);
@@ -108,10 +106,10 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task UpdateProductAsync_ShouldUpdateExistingProduct()
         {
             // Arrange
-            var product = await _dbContext.Products.FindAsync(1);
+            var product = await _dbContext.Products.FindAsync(_laptopProduct!.Id);
             product.ShouldNotBeNull();
-            product.Name = "Updated Laptop";
-            product.Price = 1099.99m;
+            product.UpdateName("Updated Laptop");
+            product.UpdatePrice(1099.99m);
 
             // Act
             await _productRepository.UpdateAsync(product);
@@ -130,7 +128,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             await _productRepository.DeleteAsync(1);
 
             // Assert
-            var deletedProduct = await _dbContext.Products.FindAsync(1);
+            var deletedProduct = await _dbContext.Products.FindAsync(_laptopProduct!.Id);
             deletedProduct.ShouldBeNull();
 
             // Verify we now have one less product
@@ -143,7 +141,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         {
             // Act
             var products = await _productRepository.GetAllAsync();
-            var product = await _productRepository.GetByIdAsync(1);
+            var product = await _productRepository.GetByIdAsync(_laptopProduct!.Id);
 
             // Assert
             // Check that Category navigation property is loaded
@@ -179,43 +177,19 @@ namespace ECommerceNetApp.Persistence.UnitTest
         private void SeedTestData()
         {
             // Add categories
-            var electronicsCategory = new Category { Id = 1, Name = "Electronics" };
-            var booksCategory = new Category { Id = 2, Name = "Books" };
-
-            _dbContext.Categories.Add(electronicsCategory);
-            _dbContext.Categories.Add(booksCategory);
+            _dbContext.Categories.Add(_electronicsCategory);
+            _dbContext.Categories.Add(_booksCategory);
             _dbContext.SaveChanges();
 
             // Add products
-            _dbContext.Products.Add(new Product
-            {
-                Id = 1,
-                Name = "Laptop",
-                Description = "Powerful laptop",
-                Price = 999.99m,
-                Amount = 10,
-                CategoryId = 1,
-            });
+            _laptopProduct = new Product("Laptop", "Powerful laptop", null, _electronicsCategory, 999.99m, 10);
+            _smartPhoneProduct = new Product("Smartphone", "Latest model", null, _electronicsCategory, 499.99m, 20);
 
-            _dbContext.Products.Add(new Product
-            {
-                Id = 2,
-                Name = "Smartphone",
-                Description = "Latest model",
-                Price = 499.99m,
-                Amount = 20,
-                CategoryId = 1,
-            });
+            _dbContext.Products.Add(_laptopProduct);
+            _dbContext.Products.Add(_smartPhoneProduct);
 
-            _dbContext.Products.Add(new Product
-            {
-                Id = 3,
-                Name = "Programming Book",
-                Description = "Learn to code",
-                Price = 39.99m,
-                Amount = 50,
-                CategoryId = 2,
-            });
+            _bookProduct = new Product("Programming Book", "Learn to code", null, _booksCategory, 39.99m, 50);
+            _dbContext.Products.Add(_bookProduct);
 
             _dbContext.SaveChanges();
         }

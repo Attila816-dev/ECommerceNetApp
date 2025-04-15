@@ -1,6 +1,6 @@
-﻿using ECommerceNetApp.Domain.Entities;
+﻿using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
-namespace ECommerceNetApp.Persistence.Implementation
+namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
     public class CartDbInitializer
     {
@@ -14,12 +14,12 @@ namespace ECommerceNetApp.Persistence.Implementation
         public async Task InitializeDatabaseAsync(CancellationToken cancellationToken)
         {
             // Create Cart collection if it doesn't exist
-            if (!await _dbContext.CollectionExistsAsync<Cart>().ConfigureAwait(false))
+            if (!await _dbContext.CollectionExistsAsync<CartEntity>().ConfigureAwait(false))
             {
-                _dbContext.CreateCollection<Cart>();
+                _dbContext.CreateCollection<CartEntity>();
 
                 // You can add indexes here if needed
-                var cartCollection = _dbContext.GetCollection<Cart>();
+                var cartCollection = _dbContext.GetCollection<CartEntity>();
                 await cartCollection.EnsureIndexAsync(x => x.Id).ConfigureAwait(false);
             }
         }

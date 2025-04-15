@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Implementation;
+using ECommerceNetApp.Persistence.Implementation.Cart;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace ECommerceNetApp.Api

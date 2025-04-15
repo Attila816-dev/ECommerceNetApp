@@ -1,7 +1,8 @@
 ﻿using System.Net.Http.Json;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
-using ECommerceNetApp.Persistence.Implementation;
+using ECommerceNetApp.Persistence.Implementation.Cart;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.DTO;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -53,8 +54,8 @@ namespace ECommerceNetApp.IntegrationTests
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
             await dbContext.Categories.AddRangeAsync(
-                new Category { Name = "Electronics" },
-                new Category { Name = "Books" });
+                new Category("Electronics"),
+                new Category("Books"));
             await dbContext.SaveChangesAsync();
 
             // Act
@@ -97,7 +98,7 @@ namespace ECommerceNetApp.IntegrationTests
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
-            var category = new Category { Name = "Old Category" };
+            var category = new Category("Old Category");
             await dbContext.Categories.AddAsync(category);
             await dbContext.SaveChangesAsync();
             dbContext.Entry(category).State = EntityState.Detached;
@@ -126,7 +127,7 @@ namespace ECommerceNetApp.IntegrationTests
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
-            var category = new Category { Name = "Category to Delete" };
+            var category = new Category("Category to Delete");
             await dbContext.Categories.AddAsync(category);
             await dbContext.SaveChangesAsync();
 

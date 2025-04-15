@@ -2,7 +2,7 @@
 using ECommerceNetApp.Persistence.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerceNetApp.Persistence.Implementation
+namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 {
     public class ProductRepository : IProductRepository
     {

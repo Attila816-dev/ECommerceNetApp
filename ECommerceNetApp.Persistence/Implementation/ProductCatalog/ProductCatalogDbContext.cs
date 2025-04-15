@@ -1,7 +1,7 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerceNetApp.Persistence.Implementation
+namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 {
     public class ProductCatalogDbContext : DbContext
     {

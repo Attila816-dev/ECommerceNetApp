@@ -30,7 +30,19 @@ namespace ECommerceNetApp.Service.Implementation
         {
             ValidateCategory(categoryDto);
 
-            var category = MapToDomain(categoryDto);
+            Category? parentCategory = null;
+
+            if (categoryDto.ParentCategoryId != null)
+            {
+                parentCategory = await _categoryRepository.GetByIdAsync(categoryDto.Id).ConfigureAwait(false);
+
+                if (parentCategory == null)
+                {
+                    throw new KeyNotFoundException($"Parent Category with ID {categoryDto.ParentCategoryId} not found.");
+                }
+            }
+
+            var category = MapToDomain(categoryDto, parentCategory);
             var result = await _categoryRepository.AddAsync(category).ConfigureAwait(false);
 
             return MapToDto(result);
@@ -47,9 +59,28 @@ namespace ECommerceNetApp.Service.Implementation
                 throw new KeyNotFoundException($"Category with ID {categoryDto.Id} not found.");
             }
 
-            existingCategory.Name = categoryDto.Name;
-            existingCategory.ImageUrl = categoryDto.ImageUrl;
-            existingCategory.ParentCategoryId = categoryDto.ParentCategoryId;
+            existingCategory.UpdateName(categoryDto.Name);
+            existingCategory.UpdateImage(categoryDto.ImageUrl);
+
+            if (existingCategory.ParentCategoryId != categoryDto.ParentCategoryId)
+            {
+                if (categoryDto.ParentCategoryId == null)
+                {
+                    existingCategory.UpdateParentCategory(null);
+                }
+                else
+                {
+                    var parentCategory = await _categoryRepository.GetByIdAsync(categoryDto.ParentCategoryId.Value).ConfigureAwait(false);
+
+                    if (parentCategory == null)
+                    {
+                        throw new KeyNotFoundException($"ParentCategory with ID {categoryDto.ParentCategoryId} not found.");
+                    }
+
+                    existingCategory.UpdateParentCategory(parentCategory);
+                }
+            }
+
             await _categoryRepository.UpdateAsync(existingCategory).ConfigureAwait(false);
         }
 
@@ -77,15 +108,9 @@ namespace ECommerceNetApp.Service.Implementation
             };
         }
 
-        private static Category MapToDomain(CategoryDto dto)
+        private static Category MapToDomain(CategoryDto dto, Category? parentCategory)
         {
-            return new Category
-            {
-                Id = dto.Id,
-                Name = dto.Name,
-                ImageUrl = dto.ImageUrl,
-                ParentCategoryId = dto.ParentCategoryId,
-            };
+            return new Category(dto.Name, dto.ImageUrl, parentCategory);
         }
 
         private static void ValidateCategory(CategoryDto category)

@@ -43,7 +43,13 @@ namespace ECommerceNetApp.Service.Implementation
             ArgumentNullException.ThrowIfNull(command);
             await ValidateProductAsync(command).ConfigureAwait(false);
 
-            var product = MapToDomain(command);
+            var category = await _categoryRepository.GetByIdAsync(command.CategoryId).ConfigureAwait(false);
+            if (category == null)
+            {
+                throw new ArgumentException($"Category with ID {command.CategoryId} not found.");
+            }
+
+            var product = MapToDomain(command, category);
             var result = await _productRepository.AddAsync(product).ConfigureAwait(false);
 
             return MapToDto(result);
@@ -54,6 +60,12 @@ namespace ECommerceNetApp.Service.Implementation
             ArgumentNullException.ThrowIfNull(command);
             await ValidateProductAsync(command).ConfigureAwait(false);
 
+            var category = await _categoryRepository.GetByIdAsync(command.CategoryId).ConfigureAwait(false);
+            if (category == null)
+            {
+                throw new ArgumentException($"Category with ID {command.CategoryId} not found.");
+            }
+
             var existingProduct = await _productRepository.GetByIdAsync(command.Id).ConfigureAwait(false);
 
             if (existingProduct == null)
@@ -61,7 +73,7 @@ namespace ECommerceNetApp.Service.Implementation
                 throw new KeyNotFoundException($"Product with ID {command.Id} not found.");
             }
 
-            var product = MapToDomain(command);
+            var product = MapToDomain(command, category);
             await _productRepository.UpdateAsync(product).ConfigureAwait(false);
         }
 
@@ -93,31 +105,31 @@ namespace ECommerceNetApp.Service.Implementation
             };
         }
 
-        private static Product MapToDomain(CreateProductCommand dto)
+        private static Product MapToDomain(CreateProductCommand dto, Category category)
         {
-            return new Product
-            {
-                Name = dto.Name,
-                Description = dto.Description,
-                ImageUrl = dto.ImageUrl,
-                CategoryId = dto.CategoryId,
-                Price = dto.Price,
-                Amount = dto.Amount,
-            };
+            ArgumentNullException.ThrowIfNull(dto);
+            ArgumentNullException.ThrowIfNull(category);
+            return new Product(
+                dto.Name,
+                dto.Description,
+                dto.ImageUrl,
+                category,
+                dto.Price,
+                dto.Amount);
         }
 
-        private static Product MapToDomain(UpdateProductCommand dto)
+        private static Product MapToDomain(UpdateProductCommand dto, Category category)
         {
-            return new Product
-            {
-                Id = dto.Id,
-                Name = dto.Name,
-                Description = dto.Description,
-                ImageUrl = dto.ImageUrl,
-                CategoryId = dto.CategoryId,
-                Price = dto.Price,
-                Amount = dto.Amount,
-            };
+            ArgumentNullException.ThrowIfNull(dto);
+            ArgumentNullException.ThrowIfNull(category);
+            return new Product(
+                dto.Id,
+                dto.Name,
+                dto.Description,
+                dto.ImageUrl,
+                category,
+                dto.Price,
+                dto.Amount);
         }
 
         private async Task ValidateProductAsync(CreateProductCommand command)

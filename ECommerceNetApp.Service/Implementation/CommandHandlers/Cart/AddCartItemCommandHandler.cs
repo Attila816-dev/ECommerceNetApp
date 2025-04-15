@@ -1,12 +1,12 @@
-﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
 using FluentValidation;
 using MediatR;
+using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
-namespace ECommerceNetApp.Service.Implementation.CommandHandlers
+namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
     public class AddCartItemCommandHandler(
         ICartRepository cartRepository,
@@ -33,7 +33,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers
 
             if (cart == null)
             {
-                cart = new Cart(request.CartId);
+                cart = new CartEntity(request.CartId);
             }
 
             // Use domain logic to add item

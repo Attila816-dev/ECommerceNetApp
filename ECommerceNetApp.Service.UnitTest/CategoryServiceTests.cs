@@ -23,8 +23,8 @@ namespace ECommerceNetApp.Service.UnitTest
             // Arrange
             var categories = new List<Category>
             {
-                new Category { Id = 1, Name = "Electronics" },
-                new Category { Id = 2, Name = "Books" },
+                new Category(1, "Electronics"),
+                new Category(2, "Books"),
             };
 
             _mockCategoryRepository.Setup(repo => repo.GetAllAsync())
@@ -43,7 +43,7 @@ namespace ECommerceNetApp.Service.UnitTest
         public async Task GetCategoryByIdAsync_WithValidId_ShouldReturnCategory()
         {
             // Arrange
-            var category = new Category { Id = 1, Name = "Electronics" };
+            var category = new Category(1, "Electronics");
 
             _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(1))
                 .ReturnsAsync(category);
@@ -62,7 +62,7 @@ namespace ECommerceNetApp.Service.UnitTest
         {
             // Arrange
             var categoryDto = new CategoryDto { Name = "Electronics" };
-            var category = new Category { Id = 1, Name = "Electronics" };
+            var category = new Category(1, "Electronics");
 
             _mockCategoryRepository.Setup(repo => repo.AddAsync(It.IsAny<Category>()))
                 .ReturnsAsync(category);

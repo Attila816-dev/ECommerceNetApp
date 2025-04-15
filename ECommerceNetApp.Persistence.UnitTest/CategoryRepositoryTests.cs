@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Implementation;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
@@ -56,7 +56,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task AddAsync_ShouldAddNewCategory()
         {
             // Arrange
-            var newCategory = new Category { Name = "Toys" };
+            var newCategory = new Category("Toys");
 
             // Act
             var result = await _categoryRepository.AddAsync(newCategory);
@@ -96,8 +96,11 @@ namespace ECommerceNetApp.Persistence.UnitTest
 
         private void SeedTestData()
         {
-            _dbContext.Categories.Add(new Category { Id = 1, Name = "Electronics" });
-            _dbContext.Categories.Add(new Category { Id = 2, Name = "Books", ParentCategoryId = 1 });
+            var category1 = new Category(1, "Electronics");
+            var category2 = new Category(2, "Books", parentCategory: category1);
+
+            _dbContext.Categories.Add(category1);
+            _dbContext.Categories.Add(category2);
             _dbContext.SaveChanges();
         }
     }

@@ -1,9 +1,9 @@
-﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.ValueObjects;
+﻿using ECommerceNetApp.Domain.ValueObjects;
 using LiteDB;
 using LiteDB.Async;
+using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
-namespace ECommerceNetApp.Persistence.Implementation
+namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
     public class CartDbContext : IDisposable
     {
@@ -96,11 +96,11 @@ namespace ECommerceNetApp.Persistence.Implementation
                 deserialize: (bson) =>
                 {
                     // Use Cart's constructor with id
-                    var cart = new Cart(bson["_id"].AsString);
+                    var cart = new CartEntity(bson["_id"].AsString);
 
                     // Set the readonly properties using reflection if needed
-                    typeof(Cart).GetProperty(nameof(Cart.CreatedAt))?.SetValue(cart, bson["CreatedAt"].AsDateTime);
-                    typeof(Cart).GetProperty(nameof(Cart.UpdatedAt))?.SetValue(cart, bson["UpdatedAt"].AsDateTime);
+                    typeof(CartEntity).GetProperty(nameof(CartEntity.CreatedAt))?.SetValue(cart, bson["CreatedAt"].AsDateTime);
+                    typeof(CartEntity).GetProperty(nameof(CartEntity.UpdatedAt))?.SetValue(cart, bson["UpdatedAt"].AsDateTime);
 
                     // Add the items
                     if (bson["Items"] != null && bson["Items"].IsArray)

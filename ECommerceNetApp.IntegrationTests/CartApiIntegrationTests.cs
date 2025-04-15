@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
-using ECommerceNetApp.Persistence.Implementation;
+using ECommerceNetApp.Persistence.Implementation.Cart;
 using ECommerceNetApp.Service.DTO;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;

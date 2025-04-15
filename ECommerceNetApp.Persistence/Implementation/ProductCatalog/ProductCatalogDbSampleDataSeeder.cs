@@ -3,7 +3,7 @@ using ECommerceNetApp.Domain.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-namespace ECommerceNetApp.Persistence.Implementation
+namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 {
     public class ProductCatalogDbSampleDataSeeder
     {
@@ -26,9 +26,9 @@ namespace ECommerceNetApp.Persistence.Implementation
             if (!await _dbContext.Categories.AnyAsync(cancellationToken).ConfigureAwait(false))
             {
                 await _dbContext.Categories.AddRangeAsync(
-                    new Category { Name = "Electronics" },
-                    new Category { Name = "Books" },
-                    new Category { Name = "Clothing" })
+                    new Category("Electronics"),
+                    new Category("Books"),
+                    new Category("Clothing"))
                     .ConfigureAwait(false);
                 await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }

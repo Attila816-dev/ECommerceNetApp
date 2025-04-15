@@ -1,6 +1,6 @@
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
-using ECommerceNetApp.Persistence.Implementation;
+using ECommerceNetApp.Persistence.Implementation.Cart;
 using LiteDB.Async;
 using Shouldly;
 
