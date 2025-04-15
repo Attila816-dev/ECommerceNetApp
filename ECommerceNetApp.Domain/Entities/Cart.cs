@@ -84,11 +84,6 @@ namespace ECommerceNetApp.Domain.Entities
 
         public void UpdateItemQuantity(int itemId, int newQuantity)
         {
-            if (newQuantity <= 0)
-            {
-                throw new DomainException("Quantity must be greater than zero");
-            }
-
             var item = _items.FirstOrDefault(i => i.Id == itemId);
 
             if (item == null)

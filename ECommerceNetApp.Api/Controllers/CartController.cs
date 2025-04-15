@@ -54,6 +54,11 @@ namespace ECommerceNetApp.Api.Controllers
         public async Task<ActionResult<decimal>> GetCartTotal(string cartId, CancellationToken cancellationToken)
         {
             var total = await _mediator.Send(new GetCartTotalQuery(cartId), cancellationToken).ConfigureAwait(false);
+            if (total == null)
+            {
+                return NotFound();
+            }
+
             return Ok(total);
         }
     }

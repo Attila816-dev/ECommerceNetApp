@@ -5,11 +5,11 @@ using MediatR;
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers
 {
     public class GetCartTotalQueryHandler(ICartRepository cartRepository)
-        : IRequestHandler<GetCartTotalQuery, decimal>
+        : IRequestHandler<GetCartTotalQuery, decimal?>
     {
         private readonly ICartRepository _cartRepository = cartRepository;
 
-        public async Task<decimal> Handle(GetCartTotalQuery request, CancellationToken cancellationToken)
+        public async Task<decimal?> Handle(GetCartTotalQuery request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentException.ThrowIfNullOrEmpty(request.CartId, nameof(request.CartId));
@@ -18,7 +18,7 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers
 
             if (cart == null)
             {
-                return 0; // Empty cart has zero total
+                return null;
             }
 
             var cartTotal = cart.CalculateTotal();

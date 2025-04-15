@@ -15,11 +15,6 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers
             ArgumentNullException.ThrowIfNull(request);
             ArgumentException.ThrowIfNullOrEmpty(request.CartId, nameof(request.CartId));
 
-            if (request.Quantity <= 0)
-            {
-                throw new ArgumentException("Quantity must be greater than zero.");
-            }
-
             var cart = await _cartRepository.GetByIdAsync(request.CartId, cancellationToken).ConfigureAwait(false);
 
             if (cart == null)

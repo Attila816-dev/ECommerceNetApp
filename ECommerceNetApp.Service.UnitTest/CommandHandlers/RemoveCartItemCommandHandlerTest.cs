@@ -39,7 +39,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers
             // Assert
             _mockRepository.Verify(
                 r => r.SaveAsync(
-                    It.Is<Cart>(c => c.Items.Count == 1 && c.Items.First().Id == 2),
+                    It.Is<Cart>(c => c.Items.Count == 1 && c.Items.Count == 1 && c.Items.First().Id == 2),
                     CancellationToken.None),
                 Times.Once);
         }

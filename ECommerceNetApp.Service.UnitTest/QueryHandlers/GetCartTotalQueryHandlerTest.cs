@@ -39,5 +39,20 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers
             // Assert
             cartTotal.ShouldBe(52.97m); // 10.99 + (20.99 * 2)
         }
+
+        [Fact]
+        public async Task GetCartTotalWithInvalidCart_ReturnsNull()
+        {
+            // Arrange
+            string testCartId = "test-cart-123";
+            _mockRepository.Setup(r => r.GetByIdAsync(testCartId, CancellationToken.None))
+                .ReturnsAsync((Cart?)null);
+
+            // Act
+            var cartTotal = await _queryHandler.Handle(new GetCartTotalQuery(testCartId), CancellationToken.None);
+
+            // Assert
+            cartTotal.ShouldBeNull();
+        }
     }
 }
