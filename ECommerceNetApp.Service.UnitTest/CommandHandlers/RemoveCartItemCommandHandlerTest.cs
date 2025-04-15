@@ -1,7 +1,7 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces;
-using ECommerceNetApp.Service.Commands;
+using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.Implementation.CommandHandlers;
 using Moq;
 

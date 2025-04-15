@@ -73,6 +73,7 @@ namespace ECommerceNetApp.Service.Implementation
                 Name = category.Name,
                 ImageUrl = category.ImageUrl,
                 ParentCategoryId = category.ParentCategoryId,
+                ParentCategoryName = category.ParentCategory?.Name,
             };
         }
 

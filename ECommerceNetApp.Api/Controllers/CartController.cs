@@ -1,6 +1,6 @@
-using ECommerceNetApp.Service.Commands;
+using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
-using ECommerceNetApp.Service.Queries;
+using ECommerceNetApp.Service.Queries.Cart;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

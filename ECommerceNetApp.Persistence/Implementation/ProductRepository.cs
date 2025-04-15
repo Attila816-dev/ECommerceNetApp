@@ -38,6 +38,11 @@ namespace ECommerceNetApp.Persistence.Implementation
                 .ConfigureAwait(false);
         }
 
+        public async Task<bool> ExistsAsync(int id)
+        {
+            return await _dbContext.Products.AnyAsync(c => c.Id == id).ConfigureAwait(false);
+        }
+
         public async Task<Product> AddAsync(Product product)
         {
             await _dbContext.Products.AddAsync(product).ConfigureAwait(false);

@@ -2,7 +2,7 @@
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Implementation.QueryHandlers;
-using ECommerceNetApp.Service.Queries;
+using ECommerceNetApp.Service.Queries.Cart;
 using Moq;
 using Shouldly;
 

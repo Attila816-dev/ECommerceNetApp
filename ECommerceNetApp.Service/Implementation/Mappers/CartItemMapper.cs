@@ -1,5 +1,5 @@
 using ECommerceNetApp.Domain.ValueObjects;
-using ECommerceNetApp.Service.Commands;
+using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
 

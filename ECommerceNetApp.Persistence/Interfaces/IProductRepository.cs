@@ -10,6 +10,8 @@ namespace ECommerceNetApp.Persistence.Interfaces
 
         Task<Product?> GetByIdAsync(int id);
 
+        Task<bool> ExistsAsync(int id);
+
         Task<Product> AddAsync(Product product);
 
         Task UpdateAsync(Product product);

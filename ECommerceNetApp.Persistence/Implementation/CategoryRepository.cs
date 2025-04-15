@@ -30,6 +30,20 @@ namespace ECommerceNetApp.Persistence.Implementation
                 .ConfigureAwait(false);
         }
 
+        public async Task<IEnumerable<Category>> GetByParentCategoryIdAsync(int? parentCategoryId)
+        {
+            return await _dbContext.Categories
+                .Include(c => c.ParentCategory)
+                .Where(c => (parentCategoryId == null && c.ParentCategoryId == null) || (parentCategoryId != null && c.ParentCategoryId == parentCategoryId))
+                .ToListAsync()
+                .ConfigureAwait(false);
+        }
+
+        public async Task<bool> ExistsAsync(int id)
+        {
+            return await _dbContext.Categories.AnyAsync(c => c.Id == id).ConfigureAwait(false);
+        }
+
         public async Task<Category> AddAsync(Category category)
         {
             await _dbContext.Categories.AddAsync(category).ConfigureAwait(false);

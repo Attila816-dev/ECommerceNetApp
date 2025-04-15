@@ -1,7 +1,9 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
+using ECommerceNetApp.Service.Queries.Product;
 
 namespace ECommerceNetApp.Service.Implementation
 {
@@ -16,59 +18,64 @@ namespace ECommerceNetApp.Service.Implementation
             _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
         }
 
-        public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
+        public async Task<IEnumerable<ProductDto>> GetAllProductsAsync(GetAllProductsQuery query)
         {
             var products = await _productRepository.GetAllAsync().ConfigureAwait(false);
             return products.Select(MapToDto);
         }
 
-        public async Task<IEnumerable<ProductDto>> GetProductsByCategoryIdAsync(int categoryId)
+        public async Task<IEnumerable<ProductDto>> GetProductsByCategoryIdAsync(GetProductsByCategoryQuery query)
         {
-            var products = await _productRepository.GetProductsByCategoryIdAsync(categoryId).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(query);
+            var products = await _productRepository.GetProductsByCategoryIdAsync(query.CategoryId).ConfigureAwait(false);
             return products.Select(MapToDto);
         }
 
-        public async Task<ProductDto?> GetProductByIdAsync(int id)
+        public async Task<ProductDto?> GetProductByIdAsync(GetProductByIdQuery query)
         {
-            var product = await _productRepository.GetByIdAsync(id).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(query);
+            var product = await _productRepository.GetByIdAsync(query.Id).ConfigureAwait(false);
             return product != null ? MapToDto(product) : null;
         }
 
-        public async Task<ProductDto> AddProductAsync(ProductDto productDto)
+        public async Task<ProductDto> AddProductAsync(CreateProductCommand command)
         {
-            await ValidateProductAsync(productDto).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(command);
+            await ValidateProductAsync(command).ConfigureAwait(false);
 
-            var product = MapToDomain(productDto);
+            var product = MapToDomain(command);
             var result = await _productRepository.AddAsync(product).ConfigureAwait(false);
 
             return MapToDto(result);
         }
 
-        public async Task UpdateProductAsync(ProductDto productDto)
+        public async Task UpdateProductAsync(UpdateProductCommand command)
         {
-            await ValidateProductAsync(productDto).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(command);
+            await ValidateProductAsync(command).ConfigureAwait(false);
 
-            var existingProduct = await _productRepository.GetByIdAsync(productDto.Id).ConfigureAwait(false);
+            var existingProduct = await _productRepository.GetByIdAsync(command.Id).ConfigureAwait(false);
 
             if (existingProduct == null)
             {
-                throw new KeyNotFoundException($"Product with ID {productDto.Id} not found.");
+                throw new KeyNotFoundException($"Product with ID {command.Id} not found.");
             }
 
-            var product = MapToDomain(productDto);
+            var product = MapToDomain(command);
             await _productRepository.UpdateAsync(product).ConfigureAwait(false);
         }
 
-        public async Task DeleteProductAsync(int id)
+        public async Task DeleteProductAsync(DeleteProductCommand command)
         {
-            var existingProduct = await _productRepository.GetByIdAsync(id).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(command);
+            var existingProduct = await _productRepository.GetByIdAsync(command.Id).ConfigureAwait(false);
 
             if (existingProduct == null)
             {
-                throw new KeyNotFoundException($"Product with ID {id} not found.");
+                throw new KeyNotFoundException($"Product with ID {command.Id} not found.");
             }
 
-            await _productRepository.DeleteAsync(id).ConfigureAwait(false);
+            await _productRepository.DeleteAsync(command.Id).ConfigureAwait(false);
         }
 
         private static ProductDto MapToDto(Product product)
@@ -80,12 +87,26 @@ namespace ECommerceNetApp.Service.Implementation
                 Description = product.Description,
                 ImageUrl = product.ImageUrl,
                 CategoryId = product.CategoryId,
+                CategoryName = product.Category?.Name,
                 Price = product.Price,
                 Amount = product.Amount,
             };
         }
 
-        private static Product MapToDomain(ProductDto dto)
+        private static Product MapToDomain(CreateProductCommand dto)
+        {
+            return new Product
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                ImageUrl = dto.ImageUrl,
+                CategoryId = dto.CategoryId,
+                Price = dto.Price,
+                Amount = dto.Amount,
+            };
+        }
+
+        private static Product MapToDomain(UpdateProductCommand dto)
         {
             return new Product
             {
@@ -99,35 +120,67 @@ namespace ECommerceNetApp.Service.Implementation
             };
         }
 
-        private async Task ValidateProductAsync(ProductDto product)
+        private async Task ValidateProductAsync(CreateProductCommand command)
         {
-            ArgumentNullException.ThrowIfNull(product);
+            ArgumentNullException.ThrowIfNull(command);
 
-            if (string.IsNullOrEmpty(product.Name))
+            if (string.IsNullOrEmpty(command.Name))
             {
-                throw new ArgumentException("Product name is required.", nameof(product));
+                throw new ArgumentException("Product name is required.");
             }
 
-            if (product.Name.Length > 50)
+            if (command.Name.Length > 50)
             {
-                throw new ArgumentException("Product name cannot exceed 50 characters.", nameof(product));
+                throw new ArgumentException("Product name cannot exceed 50 characters.");
             }
 
-            if (product.Price <= 0)
+            if (command.Price <= 0)
             {
-                throw new ArgumentException("Product price must be greater than zero.", nameof(product));
+                throw new ArgumentException("Product price must be greater than zero.");
             }
 
-            if (product.Amount <= 0)
+            if (command.Amount <= 0)
             {
-                throw new ArgumentException("Product amount must be greater than zero.", nameof(product));
+                throw new ArgumentException("Product amount must be greater than zero.");
             }
 
             // Validate that category exists
-            var category = await _categoryRepository.GetByIdAsync(product.CategoryId).ConfigureAwait(false);
+            var category = await _categoryRepository.GetByIdAsync(command.CategoryId).ConfigureAwait(false);
             if (category == null)
             {
-                throw new ArgumentException($"Category with ID {product.CategoryId} not found.", nameof(product));
+                throw new ArgumentException($"Category with ID {command.CategoryId} not found.");
+            }
+        }
+
+        private async Task ValidateProductAsync(UpdateProductCommand command)
+        {
+            ArgumentNullException.ThrowIfNull(command);
+
+            if (string.IsNullOrEmpty(command.Name))
+            {
+                throw new ArgumentException("Product name is required.");
+            }
+
+            if (command.Name.Length > 50)
+            {
+                throw new ArgumentException("Product name cannot exceed 50 characters.");
+            }
+
+            if (command.Price <= 0)
+            {
+                throw new ArgumentException("Product price must be greater than zero.");
+            }
+
+            if (command.Amount <= 0)
+            {
+                throw new ArgumentException("Product amount must be greater than zero.");
+            }
+
+            // Validate that category exists
+            var category = await _categoryRepository.GetByIdAsync(command.CategoryId).ConfigureAwait(false);
+            if (category == null)
+            {
+                throw new ArgumentException($"Category with ID {command.CategoryId} not found.");
             }
         }
     }

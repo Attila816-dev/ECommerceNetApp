@@ -4,7 +4,7 @@ using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
 using ECommerceNetApp.Persistence.Implementation;
-using ECommerceNetApp.Service.Commands;
+using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.Extensions;
 using ECommerceNetApp.Service.Implementation.Behaviors;
 using ECommerceNetApp.Service.Implementation.Validators;

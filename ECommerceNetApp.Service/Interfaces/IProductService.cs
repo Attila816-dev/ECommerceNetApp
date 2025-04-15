@@ -1,19 +1,21 @@
-﻿using ECommerceNetApp.Service.DTO;
+﻿using ECommerceNetApp.Service.Commands.Product;
+using ECommerceNetApp.Service.DTO;
+using ECommerceNetApp.Service.Queries.Product;
 
 namespace ECommerceNetApp.Service.Interfaces
 {
     public interface IProductService
     {
-        Task<IEnumerable<ProductDto>> GetAllProductsAsync();
+        Task<IEnumerable<ProductDto>> GetAllProductsAsync(GetAllProductsQuery query);
 
-        Task<IEnumerable<ProductDto>> GetProductsByCategoryIdAsync(int categoryId);
+        Task<IEnumerable<ProductDto>> GetProductsByCategoryIdAsync(GetProductsByCategoryQuery query);
 
-        Task<ProductDto?> GetProductByIdAsync(int id);
+        Task<ProductDto?> GetProductByIdAsync(GetProductByIdQuery query);
 
-        Task<ProductDto> AddProductAsync(ProductDto productDto);
+        Task<ProductDto> AddProductAsync(CreateProductCommand command);
 
-        Task UpdateProductAsync(ProductDto productDto);
+        Task UpdateProductAsync(UpdateProductCommand command);
 
-        Task DeleteProductAsync(int id);
+        Task DeleteProductAsync(DeleteProductCommand command);
     }
 }

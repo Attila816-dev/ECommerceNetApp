@@ -1,7 +1,9 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation;
+using ECommerceNetApp.Service.Queries.Product;
 using Moq;
 using Shouldly;
 
@@ -34,7 +36,7 @@ namespace ECommerceNetApp.Service.UnitTest
                 .ReturnsAsync(products);
 
             // Act
-            var result = await _productService.GetAllProductsAsync();
+            var result = await _productService.GetAllProductsAsync(new GetAllProductsQuery());
 
             // Assert
             Assert.Equal(2, result.Count());
@@ -56,7 +58,7 @@ namespace ECommerceNetApp.Service.UnitTest
                 .ReturnsAsync(products);
 
             // Act
-            var result = await _productService.GetProductsByCategoryIdAsync(1);
+            var result = await _productService.GetProductsByCategoryIdAsync(new GetProductsByCategoryQuery(1));
 
             // Assert
             Assert.Equal(2, result.Count());
@@ -73,7 +75,7 @@ namespace ECommerceNetApp.Service.UnitTest
                 .ReturnsAsync(product);
 
             // Act
-            var result = await _productService.GetProductByIdAsync(1);
+            var result = await _productService.GetProductByIdAsync(new GetProductByIdQuery(1));
 
             // Assert
             Assert.NotNull(result);
@@ -110,7 +112,14 @@ namespace ECommerceNetApp.Service.UnitTest
                 .ReturnsAsync(product);
 
             // Act
-            var result = await _productService.AddProductAsync(productDto);
+            var command = new CreateProductCommand(
+                productDto.Name,
+                productDto.Description,
+                productDto.ImageUrl,
+                productDto.CategoryId,
+                productDto.Price,
+                productDto.Amount);
+            var result = await _productService.AddProductAsync(command);
 
             // Assert
             Assert.NotNull(result);
@@ -137,8 +146,15 @@ namespace ECommerceNetApp.Service.UnitTest
                 .ReturnsAsync((Category?)null);
 
             // Act & Assert
+            var command = new CreateProductCommand(
+                productDto.Name,
+                productDto.Description,
+                productDto.ImageUrl,
+                productDto.CategoryId,
+                productDto.Price,
+                productDto.Amount);
             var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                _productService.AddProductAsync(productDto));
+                _productService.AddProductAsync(command));
 
             exception.Message.ShouldContain("Category with ID 999 not found");
         }
@@ -163,8 +179,16 @@ namespace ECommerceNetApp.Service.UnitTest
                 .ReturnsAsync((Product?)null);
 
             // Act & Assert
+            var command = new UpdateProductCommand(
+                productDto.Id,
+                productDto.Name,
+                productDto.Description,
+                productDto.ImageUrl,
+                productDto.CategoryId,
+                productDto.Price,
+                productDto.Amount);
             await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _productService.UpdateProductAsync(productDto));
+                _productService.UpdateProductAsync(command));
         }
 
         [Fact]
@@ -187,8 +211,16 @@ namespace ECommerceNetApp.Service.UnitTest
                 .ReturnsAsync(new Product { Id = 1 });
 
             // Act & Assert
+            var command = new UpdateProductCommand(
+                productDto.Id,
+                productDto.Name,
+                productDto.Description,
+                productDto.ImageUrl,
+                productDto.CategoryId,
+                productDto.Price,
+                productDto.Amount);
             var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                _productService.UpdateProductAsync(productDto));
+                _productService.UpdateProductAsync(command));
 
             exception.Message.ShouldContain("Product price must be greater than zero");
         }
@@ -203,7 +235,7 @@ namespace ECommerceNetApp.Service.UnitTest
                 .ReturnsAsync(product);
 
             // Act
-            await _productService.DeleteProductAsync(1);
+            await _productService.DeleteProductAsync(new DeleteProductCommand(1));
 
             // Assert
             _mockProductRepository.Verify(repo => repo.DeleteAsync(1), Times.Once);
@@ -218,7 +250,7 @@ namespace ECommerceNetApp.Service.UnitTest
 
             // Act & Assert
             await Should.ThrowAsync<KeyNotFoundException>(() =>
-                _productService.DeleteProductAsync(999));
+                _productService.DeleteProductAsync(new DeleteProductCommand(999)));
         }
     }
 }

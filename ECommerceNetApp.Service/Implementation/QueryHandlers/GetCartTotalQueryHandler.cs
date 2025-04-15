@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Persistence.Interfaces;
-using ECommerceNetApp.Service.Queries;
+using ECommerceNetApp.Service.Queries.Cart;
 using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers

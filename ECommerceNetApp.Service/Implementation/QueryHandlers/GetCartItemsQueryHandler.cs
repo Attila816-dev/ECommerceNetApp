@@ -1,7 +1,7 @@
 ﻿using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
-using ECommerceNetApp.Service.Queries;
+using ECommerceNetApp.Service.Queries.Cart;
 using LiteDB;
 using MediatR;
 

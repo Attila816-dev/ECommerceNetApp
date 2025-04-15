@@ -1,6 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Exceptions;
 using ECommerceNetApp.Persistence.Interfaces;
-using ECommerceNetApp.Service.Commands;
+using ECommerceNetApp.Service.Commands.Cart;
 using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers
