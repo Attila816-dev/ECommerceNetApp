@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Queries.Category;
 using MediatR;

@@ -1,7 +1,5 @@
 ﻿using ECommerceNetApp.Persistence.Interfaces;
-using ECommerceNetApp.Service.Implementation.QueryHandlers.Category;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Product;
-using ECommerceNetApp.Service.Queries.Category;
 using ECommerceNetApp.Service.Queries.Product;
 using Moq;
 using Shouldly;

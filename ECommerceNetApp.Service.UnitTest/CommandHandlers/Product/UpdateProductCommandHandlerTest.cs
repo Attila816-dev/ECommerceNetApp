@@ -1,5 +1,4 @@
 ﻿using ECommerceNetApp.Persistence.Interfaces;
-using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
