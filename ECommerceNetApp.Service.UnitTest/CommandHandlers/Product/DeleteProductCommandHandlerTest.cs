@@ -42,7 +42,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         }
 
         [Fact]
-        public async Task DeleteProductAsync_WithNonExistingProduct_ShouldThrowKeyNotFoundException()
+        public async Task DeleteProductAsync_WithNonExistingProduct_ShouldThrowInvalidOperationException()
         {
             // Arrange
             var productId = 2;

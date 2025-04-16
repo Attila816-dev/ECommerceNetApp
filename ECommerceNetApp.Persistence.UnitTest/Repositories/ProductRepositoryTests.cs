@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
-namespace ECommerceNetApp.Persistence.UnitTest
+namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 {
     public class ProductRepositoryTests : IDisposable
     {

@@ -30,10 +30,18 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpPost("{cartId}/items")]
-        public async Task<ActionResult> AddItemToCart(string cartId, CartItemDto item, CancellationToken cancellationToken)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> AddItemToCart(string cartId, [FromBody] CartItemDto cartItem, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new AddCartItemCommand(cartId, item), cancellationToken).ConfigureAwait(false);
-            return Ok();
+            if (cartItem == null)
+            {
+                return BadRequest("Cart item is required.");
+            }
+
+            await _mediator.Send(new AddCartItemCommand(cartId, cartItem), cancellationToken).ConfigureAwait(false);
+
+            return CreatedAtAction(nameof(GetCartItems), new { cartId }, cartId);
         }
 
         [HttpDelete("{cartId}/items/{itemId}")]

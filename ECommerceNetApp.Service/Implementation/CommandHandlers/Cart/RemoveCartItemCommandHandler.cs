@@ -1,4 +1,4 @@
-﻿using ECommerceNetApp.Domain.Exceptions;
+﻿using ECommerceNetApp.Domain.Exceptions.Cart;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Cart;
 using MediatR;

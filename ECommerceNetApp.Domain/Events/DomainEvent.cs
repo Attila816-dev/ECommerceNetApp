@@ -1,6 +1,8 @@
-﻿namespace ECommerceNetApp.Domain.Events
+﻿using MediatR;
+
+namespace ECommerceNetApp.Domain.Events
 {
-    public abstract record DomainEvent
+    public abstract record DomainEvent : INotification
     {
         protected DomainEvent()
         {

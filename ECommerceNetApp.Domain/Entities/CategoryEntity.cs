@@ -1,25 +1,45 @@
-﻿namespace ECommerceNetApp.Domain.Entities
+﻿using ECommerceNetApp.Domain.Events.Category;
+using ECommerceNetApp.Domain.Exceptions.Category;
+
+namespace ECommerceNetApp.Domain.Entities
 {
-    public class CategoryEntity
+    public class CategoryEntity : BaseEntity
     {
-        public const int MaxCategoryNameLength = 100;
+        public const int MaxCategoryNameLength = 50;
 
 #pragma warning disable CA1054 // URI-like parameters should not be strings
-        public CategoryEntity(string name, string? imageUrl = null, CategoryEntity? parentCategory = null)
+        public CategoryEntity(string name, string? imageUrl = null, CategoryEntity? parentCategory = null, bool raiseDomainEvent = true)
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         {
             UpdateName(name);
-            ImageUrl = imageUrl;
-            ParentCategory = parentCategory;
-            ParentCategoryId = parentCategory?.Id;
+            UpdateImage(imageUrl);
+
+            if (parentCategory != null)
+            {
+                UpdateParentCategory(parentCategory);
+            }
+            else
+            {
+                ParentCategory = null;
+                ParentCategoryId = null;
+            }
+
+            if (raiseDomainEvent)
+            {
+                ClearDomainEvents();
+                AddDomainEvent(new CategoryCreatedEvent(Id, Name, ImageUrl, ParentCategoryId));
+            }
         }
 
 #pragma warning disable CA1054 // URI-like parameters should not be strings
         public CategoryEntity(int id, string name, string? imageUrl = null, CategoryEntity? parentCategory = null)
 #pragma warning restore CA1054 // URI-like parameters should not be strings
-            : this(name, imageUrl, parentCategory)
+            : this(name, imageUrl, parentCategory, raiseDomainEvent: false)
         {
             Id = id;
+
+            ClearDomainEvents();
+            AddDomainEvent(new CategoryCreatedEvent(Id, Name, ImageUrl, ParentCategoryId));
         }
 
         // For EF Core
@@ -45,15 +65,16 @@
         {
             if (string.IsNullOrWhiteSpace(name))
             {
-                throw new ArgumentException("Category name is required", nameof(name));
+                throw InvalidCategoryException.NameRequired();
             }
 
             if (name.Length > MaxCategoryNameLength)
             {
-                throw new ArgumentException($"Category name cannot exceed {MaxCategoryNameLength} characters", nameof(name));
+                throw InvalidCategoryException.NameTooLong();
             }
 
             Name = name;
+            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, ImageUrl, ParentCategoryId));
         }
 
 #pragma warning disable CA1054 // URI-like parameters should not be strings
@@ -61,6 +82,7 @@
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         {
             ImageUrl = imageUrl;
+            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, ImageUrl, ParentCategoryId));
         }
 
         public void UpdateParentCategory(CategoryEntity? parentCategory)
@@ -73,7 +95,7 @@
                 {
                     if (parent.Id == this.Id)
                     {
-                        throw new InvalidOperationException("Circular reference detected in category hierarchy");
+                        throw InvalidCategoryException.CircularReference();
                     }
 
                     parent = parent.ParentCategory;
@@ -82,6 +104,12 @@
 
             ParentCategory = parentCategory;
             ParentCategoryId = parentCategory?.Id;
+            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, ImageUrl, ParentCategoryId));
+        }
+
+        public void MarkAsDeleted()
+        {
+            AddDomainEvent(new CategoryDeletedEvent(Id));
         }
     }
 }

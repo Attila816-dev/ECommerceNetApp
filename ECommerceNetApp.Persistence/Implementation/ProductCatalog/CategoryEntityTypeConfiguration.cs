@@ -20,6 +20,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             builder.Property(c => c.ImageUrl)
                    .IsRequired(false);
 
+            builder.Ignore(c => c.DomainEvents);
+
             // Self-referencing relationship for parent category
             builder.HasOne(c => c.ParentCategory)
                    .WithMany(c => c.SubCategories)

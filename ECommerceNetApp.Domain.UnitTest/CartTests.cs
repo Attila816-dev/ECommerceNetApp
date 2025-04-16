@@ -1,8 +1,8 @@
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Events.Cart;
-using ECommerceNetApp.Domain.Exceptions;
+using ECommerceNetApp.Domain.Exceptions.Cart;
 using ECommerceNetApp.Domain.ValueObjects;
-using FluentAssertions;
+using Shouldly;
 
 namespace ECommerceNetApp.Domain.UnitTest
 {
@@ -15,15 +15,16 @@ namespace ECommerceNetApp.Domain.UnitTest
             var cart = new CartEntity("test-cart-123");
 
             // Assert
-            cart.Id.Should().Be("test-cart-123", cart.Id);
-            cart.Items.Should().BeEmpty();
+            cart.Id.ShouldBe("test-cart-123");
+            cart.Items.ShouldBeEmpty();
         }
 
         [Fact]
         public void CreateCart_WithEmptyId_ThrowsDomainException()
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => new CartEntity(string.Empty));
+            var exception = Should.Throw<ArgumentException>(()
+                => new CartEntity(string.Empty));
         }
 
         [Fact]
@@ -37,12 +38,10 @@ namespace ECommerceNetApp.Domain.UnitTest
             cart.AddItem(item);
 
             // Assert
-            cart.Items.Should().ContainSingle()
-                .Which.Should().Match<CartItem>(i => i.Name == "Test Item" && i.Quantity == 2);
+            cart.Items.ShouldContain(i => i.Name == "Test Item" && i.Quantity == 2, 1);
 
             // Verify domain event was raised
-            cart.DomainEvents.Should().ContainSingle()
-                .Which.Should().BeOfType<CartItemAddedEvent>();
+            cart.DomainEvents.ShouldContain(x => x is CartItemAddedEvent, 1);
         }
 
         [Fact]
@@ -58,13 +57,12 @@ namespace ECommerceNetApp.Domain.UnitTest
             cart.AddItem(item2);
 
             // Assert
-            cart.Items.Should().ContainSingle()
-                .Which.Quantity.Should().Be(5);
+            cart.Items.ShouldContain(c => c.Quantity == 5);
 
             // Verify domain events
-            cart.DomainEvents.Should().HaveCount(2);
-            cart.DomainEvents.First().Should().BeOfType<CartItemAddedEvent>();
-            cart.DomainEvents.Skip(1).First().Should().BeOfType<CartItemQuantityUpdatedEvent>();
+            cart.DomainEvents.Count.ShouldBe(2);
+            cart.DomainEvents.ShouldContain(x => x is CartItemAddedEvent, 1);
+            cart.DomainEvents.ShouldContain(x => x is CartItemQuantityUpdatedEvent, 1);
         }
 
         [Fact]
@@ -80,11 +78,11 @@ namespace ECommerceNetApp.Domain.UnitTest
             cart.RemoveItem(1);
 
             // Assert
-            cart.Items.Should().BeEmpty();
+            cart.Items.ShouldBeEmpty();
 
             // Verify domain event
-            cart.DomainEvents.Should().ContainSingle()
-                .Which.Should().BeOfType<CartItemRemovedEvent>();
+            cart.DomainEvents.Count.ShouldBe(1);
+            cart.DomainEvents.ShouldContain(x => x is CartItemRemovedEvent, 1);
         }
 
         [Fact]
@@ -94,8 +92,7 @@ namespace ECommerceNetApp.Domain.UnitTest
             var cart = new CartEntity("test-cart-123");
 
             // Act & Assert
-            var exception = Assert.Throws<CartItemNotFoundException>(() => cart.RemoveItem(1));
-            exception.Should().NotBeNull();
+            var exception = Should.Throw<CartItemNotFoundException>(() => cart.RemoveItem(1));
         }
 
         [Fact]
@@ -111,16 +108,14 @@ namespace ECommerceNetApp.Domain.UnitTest
             cart.UpdateItemQuantity(1, 5);
 
             // Assert
-            cart.Items.First().Quantity.Should().Be(5);
+            cart.Items.ShouldContain(c => c.Quantity == 5);
 
             // Verify domain event
-            cart.DomainEvents.Should().ContainSingle();
-
-            // Verify domain event
-            Assert.Single(cart.DomainEvents);
-            var updateEvent = Assert.IsType<CartItemQuantityUpdatedEvent>(cart.DomainEvents.First());
-            Assert.Equal(2, updateEvent.OldQuantity);
-            Assert.Equal(5, updateEvent.NewQuantity);
+            cart.DomainEvents.Count.ShouldBe(1);
+            cart.DomainEvents.ShouldContain(x => x is CartItemQuantityUpdatedEvent, 1);
+            var updateEvent = cart.DomainEvents.OfType<CartItemQuantityUpdatedEvent>().Single();
+            updateEvent.OldQuantity.ShouldBe(2);
+            updateEvent.NewQuantity.ShouldBe(5);
         }
 
         [Fact]
@@ -138,7 +133,7 @@ namespace ECommerceNetApp.Domain.UnitTest
             var total = cart.CalculateTotal();
 
             // Assert
-            Assert.Equal(36.50m, total.Amount); // (10.00 * 2) + (5.50 * 3)
+            total.Amount.ShouldBe(36.50m); // (10.00 * 2) + (5.50 * 3)
         }
     }
 }

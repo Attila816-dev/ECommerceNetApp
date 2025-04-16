@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
+using ECommerceNetApp.Api;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Implementation.Cart;

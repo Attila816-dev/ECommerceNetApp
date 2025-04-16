@@ -2,5 +2,6 @@
 
 namespace ECommerceNetApp.Domain.Events.Cart
 {
-    public record CartItemAddedEvent(string CartId, CartItem CartItem) : DomainEvent;
+    public record CartItemAddedEvent(string CartId, CartItem CartItem)
+        : DomainEvent;
 }

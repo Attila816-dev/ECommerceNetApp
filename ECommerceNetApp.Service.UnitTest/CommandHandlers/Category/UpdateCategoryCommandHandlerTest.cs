@@ -52,7 +52,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
         }
 
         [Fact]
-        public async Task UpdateCategoryAsync_WithNonExistingCategory_ShouldThrowKeyNotFoundException()
+        public async Task UpdateCategoryAsync_WithNonExistingCategory_ShouldThrowInvalidOperationException()
         {
             // Arrange
             var categoryDto = new CategoryDto { Id = 99, Name = "Electronics Updated" };

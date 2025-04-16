@@ -1,8 +1,8 @@
 ﻿namespace ECommerceNetApp.Domain.Entities
 {
-    public class ProductEntity
+    public class ProductEntity : BaseEntity
     {
-        public const int MaxProductNameLength = 256;
+        public const int MaxProductNameLength = 50;
 
         public ProductEntity(
             string name,
@@ -16,7 +16,7 @@
         {
             UpdateName(name);
             Description = description;
-            ImageUrl = imageUrl;
+            UpdateImage(imageUrl);
             UpdateCategory(category);
             UpdatePrice(price);
             UpdateAmount(amount);

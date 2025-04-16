@@ -43,7 +43,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
         }
 
         [Fact]
-        public async Task DeleteCategoryAsync_WithNonExistingCategory_ShouldThrowKeyNotFoundException()
+        public async Task DeleteCategoryAsync_WithNonExistingCategory_ShouldThrowInvalidOperationException()
         {
             // Arrange
             var categoryId = 2;

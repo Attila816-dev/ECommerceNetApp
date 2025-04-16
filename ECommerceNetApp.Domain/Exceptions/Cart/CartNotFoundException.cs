@@ -1,4 +1,4 @@
-﻿namespace ECommerceNetApp.Domain.Exceptions
+﻿namespace ECommerceNetApp.Domain.Exceptions.Cart
 {
     public class CartNotFoundException : DomainException
     {

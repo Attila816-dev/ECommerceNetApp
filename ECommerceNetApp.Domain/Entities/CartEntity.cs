@@ -1,16 +1,12 @@
-﻿using ECommerceNetApp.Domain.Events;
-using ECommerceNetApp.Domain.Events.Cart;
-using ECommerceNetApp.Domain.Exceptions;
+﻿using ECommerceNetApp.Domain.Events.Cart;
+using ECommerceNetApp.Domain.Exceptions.Cart;
 using ECommerceNetApp.Domain.ValueObjects;
 
 namespace ECommerceNetApp.Domain.Entities
 {
-    public class CartEntity
+    public class CartEntity : BaseEntity
     {
         private readonly List<CartItem> _items = new List<CartItem>();
-
-        // Domain events collection
-        private readonly List<DomainEvent> _domainEvents = new List<DomainEvent>();
 
         public CartEntity(string id)
         {
@@ -39,14 +35,6 @@ namespace ECommerceNetApp.Domain.Entities
         // Expose items as read-only collection
         public IReadOnlyCollection<CartItem> Items => _items.AsReadOnly();
 
-        public IReadOnlyCollection<DomainEvent> DomainEvents => _domainEvents.AsReadOnly();
-
-        // For event handling/processing
-        public void ClearDomainEvents()
-        {
-            _domainEvents.Clear();
-        }
-
         public void AddItem(CartItem item)
         {
             ArgumentNullException.ThrowIfNull(item);
@@ -57,13 +45,13 @@ namespace ECommerceNetApp.Domain.Entities
                 // Increase quantity of existing item
                 int oldQuantity = existingItem.Quantity;
                 existingItem.IncreaseQuantity(item.Quantity);
-                _domainEvents.Add(new CartItemQuantityUpdatedEvent(Id, item.Id, oldQuantity, existingItem.Quantity));
+                AddDomainEvent(new CartItemQuantityUpdatedEvent(Id, item.Id, oldQuantity, existingItem.Quantity));
             }
             else
             {
                 // Add new item
                 _items.Add(item);
-                _domainEvents.Add(new CartItemAddedEvent(Id, item));
+                AddDomainEvent(new CartItemAddedEvent(Id, item));
             }
 
             UpdatedAt = DateTime.UtcNow;
@@ -79,7 +67,7 @@ namespace ECommerceNetApp.Domain.Entities
             }
 
             _items.Remove(item);
-            _domainEvents.Add(new CartItemRemovedEvent(Id, itemId));
+            AddDomainEvent(new CartItemRemovedEvent(Id, itemId));
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -94,8 +82,13 @@ namespace ECommerceNetApp.Domain.Entities
 
             int oldQuantity = item.Quantity;
             item.UpdateQuantity(newQuantity);
-            _domainEvents.Add(new CartItemQuantityUpdatedEvent(Id, itemId, oldQuantity, newQuantity));
+            AddDomainEvent(new CartItemQuantityUpdatedEvent(Id, itemId, oldQuantity, newQuantity));
             UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void MarkAsDeleted()
+        {
+            AddDomainEvent(new CartDeletedEvent(Id));
         }
 
         public Money CalculateTotal()

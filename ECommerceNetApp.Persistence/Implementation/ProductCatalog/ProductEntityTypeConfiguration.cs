@@ -30,6 +30,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             builder.Property(p => p.Amount)
                    .IsRequired();
 
+            builder.Ignore(p => p.DomainEvents);
+
             // Relationship with Category
             builder.HasOne(p => p.Category)
                    .WithMany(c => c.Products)

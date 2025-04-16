@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ECommerceNetApp.Persistence.Migrations
 {
     [DbContext(typeof(ProductCatalogDbContext))]
-    [Migration("20250414094850_InitialCreate")]
+    [Migration("20250416134912_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,7 +24,7 @@ namespace ECommerceNetApp.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ECommerceNetApp.Domain.Category", b =>
+            modelBuilder.Entity("ECommerceNetApp.Domain.Entities.CategoryEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -50,7 +50,7 @@ namespace ECommerceNetApp.Persistence.Migrations
                     b.ToTable("Categories", (string)null);
                 });
 
-            modelBuilder.Entity("ECommerceNetApp.Domain.Product", b =>
+            modelBuilder.Entity("ECommerceNetApp.Domain.Entities.ProductEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -85,9 +85,9 @@ namespace ECommerceNetApp.Persistence.Migrations
                     b.ToTable("Products", (string)null);
                 });
 
-            modelBuilder.Entity("ECommerceNetApp.Domain.Category", b =>
+            modelBuilder.Entity("ECommerceNetApp.Domain.Entities.CategoryEntity", b =>
                 {
-                    b.HasOne("ECommerceNetApp.Domain.Category", "ParentCategory")
+                    b.HasOne("ECommerceNetApp.Domain.Entities.CategoryEntity", "ParentCategory")
                         .WithMany("SubCategories")
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -95,18 +95,18 @@ namespace ECommerceNetApp.Persistence.Migrations
                     b.Navigation("ParentCategory");
                 });
 
-            modelBuilder.Entity("ECommerceNetApp.Domain.Product", b =>
+            modelBuilder.Entity("ECommerceNetApp.Domain.Entities.ProductEntity", b =>
                 {
-                    b.HasOne("ECommerceNetApp.Domain.Category", "Category")
+                    b.HasOne("ECommerceNetApp.Domain.Entities.CategoryEntity", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("ECommerceNetApp.Domain.Category", b =>
+            modelBuilder.Entity("ECommerceNetApp.Domain.Entities.CategoryEntity", b =>
                 {
                     b.Navigation("Products");
 

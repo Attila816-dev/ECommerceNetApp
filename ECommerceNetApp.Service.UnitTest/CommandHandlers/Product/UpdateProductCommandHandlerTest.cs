@@ -71,7 +71,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         }
 
         [Fact]
-        public async Task UpdateProductAsync_WithNonExistingProduct_ShouldThrowKeyNotFoundException()
+        public async Task UpdateProductAsync_WithNonExistingProduct_ShouldThrowInvalidOperationException()
         {
             // Arrange
             var category = new CategoryEntity(1, "Electronics");
