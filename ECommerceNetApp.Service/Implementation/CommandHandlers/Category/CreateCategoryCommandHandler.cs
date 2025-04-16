@@ -1,23 +1,26 @@
 ﻿using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Category;
+using FluentValidation;
 using MediatR;
 using CategoryEntity = ECommerceNetApp.Domain.Entities.Category;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
-    public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, int>
+    public class CreateCategoryCommandHandler(
+            ICategoryRepository categoryRepository,
+            IValidator<CreateCategoryCommand> validator) : IRequestHandler<CreateCategoryCommand, int>
     {
-        private readonly ICategoryRepository _categoryRepository;
-
-        public CreateCategoryCommandHandler(ICategoryRepository categoryRepository)
-        {
-            _categoryRepository = categoryRepository;
-        }
+        private readonly ICategoryRepository _categoryRepository = categoryRepository;
+        private readonly IValidator<CreateCategoryCommand> _validator = validator;
 
         public async Task<int> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
-            ValidateCommandParameters(request);
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
 
             CategoryEntity? parentCategory = null;
             if (request.ParentCategoryId.HasValue)
@@ -33,19 +36,6 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
             await _categoryRepository.AddAsync(category, cancellationToken).ConfigureAwait(false);
 
             return category.Id;
-        }
-
-        private static void ValidateCommandParameters(CreateCategoryCommand request)
-        {
-            if (string.IsNullOrEmpty(request.Name))
-            {
-                throw new ArgumentException("Category name is required.");
-            }
-
-            if (request.Name.Length > CategoryEntity.MaxCategoryNameLength)
-            {
-                throw new ArgumentException($"Category name cannot exceed {CategoryEntity.MaxCategoryNameLength} characters.");
-            }
         }
     }
 }

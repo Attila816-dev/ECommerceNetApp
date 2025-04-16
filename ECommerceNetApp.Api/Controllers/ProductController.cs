@@ -55,7 +55,11 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateProduct([FromBody] ProductDto productDto, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(productDto);
+            if (productDto == null)
+            {
+                return BadRequest("Product data is required.");
+            }
+
             var command = new CreateProductCommand(
                 productDto.Name,
                 productDto.Description,
@@ -63,20 +67,26 @@ namespace ECommerceNetApp.Api.Controllers
                 productDto.CategoryId,
                 productDto.Price,
                 productDto.Amount);
-            var result = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
-            return Created();
+
+            var createdProductId = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+
+            return CreatedAtAction(nameof(GetProductById), new { id = createdProductId }, createdProductId);
         }
 
         [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductDto productDto, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(productDto);
+            if (productDto == null)
+            {
+                return BadRequest("Product data is required.");
+            }
+
             if (id != productDto.Id)
             {
-                return BadRequest("The ID in the URL does not match the ID in the request body.");
+                return BadRequest("Invalid product data.");
             }
 
             var command = new UpdateProductCommand(
@@ -87,8 +97,10 @@ namespace ECommerceNetApp.Api.Controllers
                 productDto.CategoryId,
                 productDto.Price,
                 productDto.Amount);
+
             await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
-            return Ok();
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]

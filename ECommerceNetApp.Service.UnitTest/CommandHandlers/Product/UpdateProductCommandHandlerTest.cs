@@ -2,6 +2,8 @@
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
+using FluentValidation;
+using FluentValidation.Results;
 using Moq;
 using Shouldly;
 using CategoryEntity = ECommerceNetApp.Domain.Entities.Category;
@@ -14,13 +16,17 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         private readonly UpdateProductCommandHandler _commandHandler;
         private readonly Mock<ICategoryRepository> _mockCategoryRepository;
         private readonly Mock<IProductRepository> _mockProductRepository;
+        private readonly Mock<IValidator<UpdateProductCommand>> _mockValidator;
 
         public UpdateProductCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockCategoryRepository = new Mock<ICategoryRepository>();
             _mockProductRepository = new Mock<IProductRepository>();
-            _commandHandler = new UpdateProductCommandHandler(_mockProductRepository.Object, _mockCategoryRepository.Object);
+            _mockValidator = new Mock<IValidator<UpdateProductCommand>>();
+            _mockValidator.Setup(c => c.ValidateAsync(It.IsAny<UpdateProductCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
+            _commandHandler = new UpdateProductCommandHandler(_mockProductRepository.Object, _mockCategoryRepository.Object, _mockValidator.Object);
         }
 
         [Fact]
@@ -131,7 +137,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
                 _commandHandler.Handle(command, CancellationToken.None));
 
-            exception.Message.ShouldContain("Product price must be greater than zero");
+            exception.Message.ShouldContain("Price cannot be negative");
         }
     }
 }

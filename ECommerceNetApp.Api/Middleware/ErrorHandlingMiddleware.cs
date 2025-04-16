@@ -44,7 +44,11 @@ namespace ECommerceNetApp.Api.Middleware
         private static Task HandleExceptionAsync(HttpContext context, HttpStatusCode statusCode, string message)
         {
             context.Response.StatusCode = (int)statusCode;
-            return context.Response.WriteAsJsonAsync(new { error = message });
+            return context.Response.WriteAsJsonAsync(new
+            {
+                error = message,
+                traceId = context.TraceIdentifier,
+            });
         }
     }
 }

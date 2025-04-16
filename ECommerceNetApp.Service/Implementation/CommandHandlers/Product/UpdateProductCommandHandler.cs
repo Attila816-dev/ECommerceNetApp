@@ -1,22 +1,20 @@
 ﻿using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Product;
+using FluentValidation;
 using MediatR;
 using ProductEntity = ECommerceNetApp.Domain.Entities.Product;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
 {
-    public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand>
-    {
-        private readonly IProductRepository _productRepository;
-        private readonly ICategoryRepository _categoryRepository;
-
-        public UpdateProductCommandHandler(
+    public class UpdateProductCommandHandler(
             IProductRepository productRepository,
-            ICategoryRepository categoryRepository)
-        {
-            _productRepository = productRepository;
-            _categoryRepository = categoryRepository;
-        }
+            ICategoryRepository categoryRepository,
+            IValidator<UpdateProductCommand> validator)
+        : IRequestHandler<UpdateProductCommand>
+    {
+        private readonly IProductRepository _productRepository = productRepository;
+        private readonly ICategoryRepository _categoryRepository = categoryRepository;
+        private readonly IValidator<UpdateProductCommand> _validator = validator;
 
         public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
         {
@@ -28,44 +26,23 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
                 throw new InvalidOperationException($"Product with id {request.Id} not found");
             }
 
-            ValidateCommandParameters(request);
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
 
             product.UpdateName(request.Name);
             product.UpdateDescription(request.Description);
             product.UpdateImage(request.ImageUrl);
             product.UpdatePrice(request.Price);
             product.UpdateAmount(request.Amount);
-            await UpdateProductCategory(request, product, cancellationToken).ConfigureAwait(false);
+            await UpdateProductCategoryAsync(request, product, cancellationToken).ConfigureAwait(false);
 
             await _productRepository.UpdateAsync(product, cancellationToken).ConfigureAwait(false);
         }
 
-        private static void ValidateCommandParameters(UpdateProductCommand command)
-        {
-            ArgumentNullException.ThrowIfNull(command);
-
-            if (string.IsNullOrEmpty(command.Name))
-            {
-                throw new ArgumentException("Product name is required.");
-            }
-
-            if (command.Name.Length > ProductEntity.MaxProductNameLength)
-            {
-                throw new ArgumentException($"Product name cannot exceed {ProductEntity.MaxProductNameLength} characters.");
-            }
-
-            if (command.Price <= 0)
-            {
-                throw new ArgumentException("Product price must be greater than zero.");
-            }
-
-            if (command.Amount <= 0)
-            {
-                throw new ArgumentException("Product amount must be greater than zero.");
-            }
-        }
-
-        private async Task UpdateProductCategory(UpdateProductCommand command, Domain.Entities.Product product, CancellationToken cancellationToken)
+        private async Task UpdateProductCategoryAsync(UpdateProductCommand command, ProductEntity product, CancellationToken cancellationToken)
         {
             if (command.CategoryId != product.CategoryId)
             {

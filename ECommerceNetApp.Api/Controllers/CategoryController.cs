@@ -25,9 +25,9 @@ namespace ECommerceNetApp.Api.Controllers
             return Ok(categories);
         }
 
-        [HttpGet("SubCategories")]
+        [HttpGet("GetCategoriesByParentCategory")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetSubCategories([FromQuery] int? parentCategoryId, CancellationToken cancellationToken)
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategoriesByParentId([FromQuery] int? parentCategoryId, CancellationToken cancellationToken)
         {
             var query = new GetCategoriesByParentCategoryIdQuery(parentCategoryId);
             var categories = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
@@ -53,30 +53,37 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<int>> CreateCategory([FromBody] CategoryDto categoryDto, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(categoryDto);
+            if (categoryDto == null)
+            {
+                return BadRequest("Category data is required.");
+            }
+
             var command = new CreateCategoryCommand(categoryDto.Name, categoryDto.ImageUrl, categoryDto.ParentCategoryId);
             var createdCategoryId = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
-            return Created();
 
-            // return CreatedAtAction(nameof(GetCategory), new { id = result }, result);
+            return CreatedAtAction(nameof(GetCategoryById), new { id = createdCategoryId }, createdCategoryId);
         }
 
         [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryDto categoryDto, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(categoryDto);
-            if (id != categoryDto.Id)
+            if (categoryDto == null)
             {
-                return BadRequest("The ID in the URL does not match the ID in the request body.");
+                return BadRequest("Category data is required.");
             }
 
-            ArgumentNullException.ThrowIfNull(categoryDto);
+            if (id != categoryDto.Id)
+            {
+                return BadRequest("Invalid category data.");
+            }
+
             var command = new UpdateCategoryCommand(categoryDto.Id, categoryDto.Name, categoryDto.ImageUrl, categoryDto.ParentCategoryId);
             await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
-            return Ok();
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]

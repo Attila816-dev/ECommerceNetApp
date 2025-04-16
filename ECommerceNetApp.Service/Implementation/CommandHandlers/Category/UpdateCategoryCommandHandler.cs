@@ -1,18 +1,17 @@
 ﻿using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Category;
+using FluentValidation;
 using MediatR;
 using CategoryEntity = ECommerceNetApp.Domain.Entities.Category;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
-    public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand>
+    public class UpdateCategoryCommandHandler(
+            ICategoryRepository categoryRepository,
+            IValidator<UpdateCategoryCommand> validator) : IRequestHandler<UpdateCategoryCommand>
     {
-        private readonly ICategoryRepository _categoryRepository;
-
-        public UpdateCategoryCommandHandler(ICategoryRepository categoryRepository)
-        {
-            _categoryRepository = categoryRepository;
-        }
+        private readonly ICategoryRepository _categoryRepository = categoryRepository;
+        private readonly IValidator<UpdateCategoryCommand> _validator = validator;
 
         public async Task Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
         {
@@ -24,22 +23,16 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
                 throw new InvalidOperationException($"Category with Id {request.Id} not found");
             }
 
-            ValidateCommandParameters(request);
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
 
             existingCategory.UpdateName(request.Name);
             existingCategory.UpdateImage(request.ImageUrl);
             await UpdateParentCategoryAsync(request, existingCategory, cancellationToken).ConfigureAwait(false);
             await _categoryRepository.UpdateAsync(existingCategory, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static void ValidateCommandParameters(UpdateCategoryCommand request)
-        {
-            ArgumentException.ThrowIfNullOrEmpty(request.Name, "Category Name");
-
-            if (request.Name.Length > CategoryEntity.MaxCategoryNameLength)
-            {
-                throw new ArgumentException($"Category name cannot exceed {CategoryEntity.MaxCategoryNameLength} characters.");
-            }
         }
 
         private async Task UpdateParentCategoryAsync(UpdateCategoryCommand request, CategoryEntity category, CancellationToken cancellationToken)

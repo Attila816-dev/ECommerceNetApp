@@ -1,31 +1,35 @@
 ﻿using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Product;
+using FluentValidation;
 using MediatR;
-using CategoryEntity = ECommerceNetApp.Domain.Entities.Category;
 using ProductEntity = ECommerceNetApp.Domain.Entities.Product;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
 {
-    public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, int>
-    {
-        private readonly IProductRepository _productRepository;
-        private readonly ICategoryRepository _categoryRepository;
-
-        public CreateProductCommandHandler(
+    public class CreateProductCommandHandler(
             IProductRepository productRepository,
-            ICategoryRepository categoryRepository)
-        {
-            _productRepository = productRepository;
-            _categoryRepository = categoryRepository;
-        }
+            ICategoryRepository categoryRepository,
+            IValidator<CreateProductCommand> validator) : IRequestHandler<CreateProductCommand, int>
+    {
+        private readonly IProductRepository _productRepository = productRepository;
+        private readonly ICategoryRepository _categoryRepository = categoryRepository;
+        private readonly IValidator<CreateProductCommand> _validator = validator;
 
         public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
 
             var category = await _categoryRepository.GetByIdAsync(request.CategoryId, cancellationToken).ConfigureAwait(false);
+            if (category == null)
+            {
+                throw new InvalidOperationException($"Category with id {request.CategoryId} not found");
+            }
 
-            ValidateCommandParameters(request, category);
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
 
             var product = new ProductEntity(
                 request.Name,
@@ -37,36 +41,6 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
 
             await _productRepository.AddAsync(product, cancellationToken).ConfigureAwait(false);
             return product.Id;
-        }
-
-        private static void ValidateCommandParameters(CreateProductCommand command, CategoryEntity? category)
-        {
-            ArgumentNullException.ThrowIfNull(command);
-
-            if (string.IsNullOrEmpty(command.Name))
-            {
-                throw new ArgumentException("Product name is required.");
-            }
-
-            if (command.Name.Length > ProductEntity.MaxProductNameLength)
-            {
-                throw new ArgumentException($"Product name cannot exceed {ProductEntity.MaxProductNameLength} characters.");
-            }
-
-            if (command.Price <= 0)
-            {
-                throw new ArgumentException("Product price must be greater than zero.");
-            }
-
-            if (command.Amount <= 0)
-            {
-                throw new ArgumentException("Product amount must be greater than zero.");
-            }
-
-            if (category == null)
-            {
-                throw new InvalidOperationException($"Category with id {command.CategoryId} not found");
-            }
         }
     }
 }

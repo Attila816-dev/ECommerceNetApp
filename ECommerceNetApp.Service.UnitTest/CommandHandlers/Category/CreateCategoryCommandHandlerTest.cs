@@ -2,6 +2,8 @@
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Category;
+using FluentValidation;
+using FluentValidation.Results;
 using Moq;
 using CategoryEntity = ECommerceNetApp.Domain.Entities.Category;
 
@@ -11,12 +13,16 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
     {
         private readonly CreateCategoryCommandHandler _commandHandler;
         private readonly Mock<ICategoryRepository> _mockRepository;
+        private readonly Mock<IValidator<CreateCategoryCommand>> _mockValidator;
 
         public CreateCategoryCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICategoryRepository>();
-            _commandHandler = new CreateCategoryCommandHandler(_mockRepository.Object);
+            _mockValidator = new Mock<IValidator<CreateCategoryCommand>>();
+            _mockValidator.Setup(c => c.ValidateAsync(It.IsAny<CreateCategoryCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
+            _commandHandler = new CreateCategoryCommandHandler(_mockRepository.Object, _mockValidator.Object);
         }
 
         [Fact]
