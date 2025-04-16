@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 {
-    public class ProductEntityTypeConfiguration : IEntityTypeConfiguration<Product>
+    public class ProductEntityTypeConfiguration : IEntityTypeConfiguration<ProductEntity>
     {
-        public void Configure(EntityTypeBuilder<Product> builder)
+        public void Configure(EntityTypeBuilder<ProductEntity> builder)
         {
             ArgumentNullException.ThrowIfNull(builder);
 
@@ -15,7 +15,7 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 
             builder.Property(p => p.Name)
                    .IsRequired()
-                   .HasMaxLength(Product.MaxProductNameLength);
+                   .HasMaxLength(ProductEntity.MaxProductNameLength);
 
             builder.Property(p => p.Description)
                    .IsRequired(false);

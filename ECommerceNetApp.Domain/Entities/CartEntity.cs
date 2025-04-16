@@ -1,17 +1,18 @@
 ﻿using ECommerceNetApp.Domain.Events;
+using ECommerceNetApp.Domain.Events.Cart;
 using ECommerceNetApp.Domain.Exceptions;
 using ECommerceNetApp.Domain.ValueObjects;
 
 namespace ECommerceNetApp.Domain.Entities
 {
-    public class Cart
+    public class CartEntity
     {
         private readonly List<CartItem> _items = new List<CartItem>();
 
         // Domain events collection
         private readonly List<DomainEvent> _domainEvents = new List<DomainEvent>();
 
-        public Cart(string id)
+        public CartEntity(string id)
         {
             ArgumentException.ThrowIfNullOrEmpty(id);
 
@@ -21,10 +22,10 @@ namespace ECommerceNetApp.Domain.Entities
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Cart"/> class.
+        /// Initializes a new instance of the <see cref="CartEntity"/> class.
         /// Default constructor for ORM purposes.
         /// </summary>
-        private Cart()
+        private CartEntity()
         {
             Id = string.Empty;
         }

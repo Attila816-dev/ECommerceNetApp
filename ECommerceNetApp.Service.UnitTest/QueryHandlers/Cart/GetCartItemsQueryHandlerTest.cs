@@ -1,11 +1,11 @@
-﻿using ECommerceNetApp.Domain.ValueObjects;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Implementation.Mappers;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Cart;
 using ECommerceNetApp.Service.Queries.Cart;
 using Moq;
 using Shouldly;
-using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
 namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
 {

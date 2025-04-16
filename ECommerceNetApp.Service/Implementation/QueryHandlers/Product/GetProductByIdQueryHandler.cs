@@ -27,7 +27,7 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
             return MapToProductDto(product);
         }
 
-        private static ProductDto MapToProductDto(Domain.Entities.Product product)
+        private static ProductDto MapToProductDto(Domain.Entities.ProductEntity product)
         {
             return new ProductDto
             {

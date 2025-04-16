@@ -1,4 +1,4 @@
-﻿using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
+﻿using ECommerceNetApp.Domain.Entities;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
 {

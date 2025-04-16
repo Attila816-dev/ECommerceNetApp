@@ -1,7 +1,7 @@
-﻿using ECommerceNetApp.Domain.Options;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Domain.ValueObjects;
 using Microsoft.Extensions.Options;
-using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
 {

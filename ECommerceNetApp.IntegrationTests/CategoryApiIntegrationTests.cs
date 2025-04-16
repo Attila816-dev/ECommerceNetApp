@@ -54,8 +54,8 @@ namespace ECommerceNetApp.IntegrationTests
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
             await dbContext.Categories.AddRangeAsync(
-                new Category("Electronics"),
-                new Category("Books"));
+                new CategoryEntity("Electronics"),
+                new CategoryEntity("Books"));
             await dbContext.SaveChangesAsync();
 
             // Act
@@ -98,7 +98,7 @@ namespace ECommerceNetApp.IntegrationTests
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
-            var category = new Category("Old Category");
+            var category = new CategoryEntity("Old Category");
             await dbContext.Categories.AddAsync(category);
             await dbContext.SaveChangesAsync();
             dbContext.Entry(category).State = EntityState.Detached;
@@ -127,7 +127,7 @@ namespace ECommerceNetApp.IntegrationTests
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
-            var category = new Category("Category to Delete");
+            var category = new CategoryEntity("Category to Delete");
             await dbContext.Categories.AddAsync(category);
             await dbContext.SaveChangesAsync();
 

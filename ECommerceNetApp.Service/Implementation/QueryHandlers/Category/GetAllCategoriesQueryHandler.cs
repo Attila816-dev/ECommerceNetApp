@@ -1,8 +1,8 @@
-﻿using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Queries.Category;
 using MediatR;
-using CategoryEntity = ECommerceNetApp.Domain.Entities.Category;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Category
 {

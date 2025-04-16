@@ -27,9 +27,9 @@ namespace ECommerceNetApp.Persistence.UnitTest
         {
             // Arrange
             var cartId = "test-cart-123";
-            var expectedCart = new Cart(cartId);
+            var expectedCart = new CartEntity(cartId);
 
-            var cartCollection = _dbContext.GetCollection<Cart>();
+            var cartCollection = _dbContext.GetCollection<CartEntity>();
             await cartCollection.InsertAsync(expectedCart);
 
             // Act
@@ -46,7 +46,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
             // Arrange
             var cartId = "nonexistent-cart";
 
-            var cartCollection = _dbContext.GetCollection<Cart>();
+            var cartCollection = _dbContext.GetCollection<CartEntity>();
 
             // Act
             var result = await _repository.GetByIdAsync(cartId, CancellationToken.None);
@@ -59,9 +59,9 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task SaveCartAsync_ValidCart_SavesSuccessfully()
         {
             // Arrange
-            var cart = new Cart("cart-123");
+            var cart = new CartEntity("cart-123");
 
-            var cartCollection = _dbContext.GetCollection<Cart>();
+            var cartCollection = _dbContext.GetCollection<CartEntity>();
 
             // Act
             await _repository.SaveAsync(cart, CancellationToken.None);
@@ -75,7 +75,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task SaveAndGetCart_Success()
         {
             // Arrange
-            var cart = new Cart("integration-test-cart");
+            var cart = new CartEntity("integration-test-cart");
             cart.AddItem(new CartItem(1, "Test Item", Money.From(10.99m), 2));
 
             // Act
@@ -97,7 +97,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task DeleteCart_Success()
         {
             // Arrange
-            var cart = new Cart("cart-to-delete");
+            var cart = new CartEntity("cart-to-delete");
             cart.AddItem(new CartItem(1, "Item to delete", Money.From(15.99m), 1));
 
             await _repository.SaveAsync(cart, CancellationToken.None);
@@ -115,9 +115,9 @@ namespace ECommerceNetApp.Persistence.UnitTest
         {
             // Arrange
             var cartId = "cart-to-delete";
-            var expectedCart = new Cart(cartId);
+            var expectedCart = new CartEntity(cartId);
 
-            var cartCollection = _dbContext.GetCollection<Cart>();
+            var cartCollection = _dbContext.GetCollection<CartEntity>();
             await cartCollection.InsertAsync(expectedCart);
 
             // Act
@@ -132,7 +132,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         {
             // Arrange
             var cartId = "nonexistent-cart";
-            var cartCollection = _dbContext.GetCollection<Cart>();
+            var cartCollection = _dbContext.GetCollection<CartEntity>();
 
             // Act
             await _repository.DeleteAsync(cartId, CancellationToken.None);
@@ -153,7 +153,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task AddItem_WithHighQuantity_SuccessfullyAddsItem()
         {
             // Arrange
-            var cart = new Cart("cart-high-values");
+            var cart = new CartEntity("cart-high-values");
             var quantity = int.MaxValue;
             var price = Money.From(10);
 
@@ -176,7 +176,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task AddItem_WithHighPrice_SuccessfullyAddsItem()
         {
             // Arrange
-            var cart = new Cart("cart-high-values");
+            var cart = new CartEntity("cart-high-values");
             var quantity = 2;
             var price = Money.From(int.MaxValue);
 
@@ -199,7 +199,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task AddItem_SpecialCharactersInName_Success()
         {
             // Arrange
-            var cart = new Cart("cart-special-characters");
+            var cart = new CartEntity("cart-special-characters");
             var specialName = "Item@#%&*()!";
 
             // Act
@@ -222,7 +222,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         {
             // Arrange
             var nonexistentCartId = "nonexistent-cart";
-            var cart = new Cart(nonexistentCartId);
+            var cart = new CartEntity(nonexistentCartId);
 
             // Act
             cart.AddItem(new CartItem(1, "Test Item", Money.From(10.99m), 1));

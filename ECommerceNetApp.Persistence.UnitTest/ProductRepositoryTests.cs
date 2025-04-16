@@ -11,11 +11,11 @@ namespace ECommerceNetApp.Persistence.UnitTest
         private readonly ProductCatalogDbContext _dbContext;
         private readonly ProductRepository _productRepository;
         private bool disposedValue;
-        private Category _electronicsCategory = new Category("Electronics", null, null);
-        private Category _booksCategory = new Category("Books", null, null);
-        private Product? _laptopProduct;
-        private Product? _smartPhoneProduct;
-        private Product? _bookProduct;
+        private CategoryEntity _electronicsCategory = new CategoryEntity("Electronics", null, null);
+        private CategoryEntity _booksCategory = new CategoryEntity("Books", null, null);
+        private ProductEntity? _laptopProduct;
+        private ProductEntity? _smartPhoneProduct;
+        private ProductEntity? _bookProduct;
 
         public ProductRepositoryTests()
         {
@@ -86,7 +86,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task AddProductAsync_ShouldAddNewProduct()
         {
             // Arrange
-            var newProduct = new Product("Tablet", "Compact tablet", null, _electronicsCategory, 299.99m, 15);
+            var newProduct = new ProductEntity("Tablet", "Compact tablet", null, _electronicsCategory, 299.99m, 15);
 
             // Act
             await _productRepository.AddAsync(newProduct, CancellationToken.None);
@@ -178,13 +178,13 @@ namespace ECommerceNetApp.Persistence.UnitTest
             _dbContext.SaveChanges();
 
             // Add products
-            _laptopProduct = new Product("Laptop", "Powerful laptop", null, _electronicsCategory, 999.99m, 10);
-            _smartPhoneProduct = new Product("Smartphone", "Latest model", null, _electronicsCategory, 499.99m, 20);
+            _laptopProduct = new ProductEntity("Laptop", "Powerful laptop", null, _electronicsCategory, 999.99m, 10);
+            _smartPhoneProduct = new ProductEntity("Smartphone", "Latest model", null, _electronicsCategory, 499.99m, 20);
 
             _dbContext.Products.Add(_laptopProduct);
             _dbContext.Products.Add(_smartPhoneProduct);
 
-            _bookProduct = new Product("Programming Book", "Learn to code", null, _booksCategory, 39.99m, 50);
+            _bookProduct = new ProductEntity("Programming Book", "Learn to code", null, _booksCategory, 39.99m, 50);
             _dbContext.Products.Add(_bookProduct);
 
             _dbContext.SaveChanges();

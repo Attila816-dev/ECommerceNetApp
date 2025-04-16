@@ -1,7 +1,7 @@
-﻿using ECommerceNetApp.Domain.ValueObjects;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using LiteDB;
 using LiteDB.Async;
-using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
 {

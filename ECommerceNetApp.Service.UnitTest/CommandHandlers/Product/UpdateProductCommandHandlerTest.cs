@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
@@ -6,8 +7,6 @@ using FluentValidation;
 using FluentValidation.Results;
 using Moq;
 using Shouldly;
-using CategoryEntity = ECommerceNetApp.Domain.Entities.Category;
-using ProductEntity = ECommerceNetApp.Domain.Entities.Product;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
 {

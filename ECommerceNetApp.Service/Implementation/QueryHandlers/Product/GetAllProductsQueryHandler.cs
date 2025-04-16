@@ -1,8 +1,8 @@
-﻿using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Queries.Product;
 using MediatR;
-using ProductEntity = ECommerceNetApp.Domain.Entities.Product;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
 {
@@ -18,7 +18,7 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
         public async Task<IEnumerable<ProductDto>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
-            IEnumerable<Domain.Entities.Product> products = await _productRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+            IEnumerable<Domain.Entities.ProductEntity> products = await _productRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
             return products.Select(p => MapProductDto(p)).ToList();
         }
 

@@ -1,5 +1,5 @@
 using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.Events;
+using ECommerceNetApp.Domain.Events.Cart;
 using ECommerceNetApp.Domain.Exceptions;
 using ECommerceNetApp.Domain.ValueObjects;
 using FluentAssertions;
@@ -12,7 +12,7 @@ namespace ECommerceNetApp.Domain.UnitTest
         public void CreateCart_WithValidId_Succeeds()
         {
             // Act
-            var cart = new Cart("test-cart-123");
+            var cart = new CartEntity("test-cart-123");
 
             // Assert
             cart.Id.Should().Be("test-cart-123", cart.Id);
@@ -23,14 +23,14 @@ namespace ECommerceNetApp.Domain.UnitTest
         public void CreateCart_WithEmptyId_ThrowsDomainException()
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => new Cart(string.Empty));
+            var exception = Assert.Throws<ArgumentException>(() => new CartEntity(string.Empty));
         }
 
         [Fact]
         public void AddItem_NewItem_AddsToCart()
         {
             // Arrange
-            var cart = new Cart("test-cart-123");
+            var cart = new CartEntity("test-cart-123");
             var item = new CartItem(1, "Test Item", Money.From(10.99m), 2);
 
             // Act
@@ -49,7 +49,7 @@ namespace ECommerceNetApp.Domain.UnitTest
         public void AddItem_ExistingItem_UpdatesQuantity()
         {
             // Arrange
-            var cart = new Cart("test-cart-123");
+            var cart = new CartEntity("test-cart-123");
             var item1 = new CartItem(1, "Test Item", Money.From(10.99m), 2);
             var item2 = new CartItem(1, "Test Item", Money.From(10.99m), 3);
 
@@ -71,7 +71,7 @@ namespace ECommerceNetApp.Domain.UnitTest
         public void RemoveItem_ExistingItem_RemovesFromCart()
         {
             // Arrange
-            var cart = new Cart("test-cart-123");
+            var cart = new CartEntity("test-cart-123");
             var item = new CartItem(1, "Test Item", Money.From(10.99m), 2);
             cart.AddItem(item);
             cart.ClearDomainEvents(); // Clear add event for this test
@@ -91,7 +91,7 @@ namespace ECommerceNetApp.Domain.UnitTest
         public void RemoveItem_NonExistingItem_ThrowsException()
         {
             // Arrange
-            var cart = new Cart("test-cart-123");
+            var cart = new CartEntity("test-cart-123");
 
             // Act & Assert
             var exception = Assert.Throws<CartItemNotFoundException>(() => cart.RemoveItem(1));
@@ -102,7 +102,7 @@ namespace ECommerceNetApp.Domain.UnitTest
         public void UpdateItemQuantity_ExistingItem_UpdatesQuantity()
         {
             // Arrange
-            var cart = new Cart("test-cart-123");
+            var cart = new CartEntity("test-cart-123");
             var item = new CartItem(1, "Test Item", Money.From(10.99m), 2);
             cart.AddItem(item);
             cart.ClearDomainEvents(); // Clear add event for this test
@@ -127,7 +127,7 @@ namespace ECommerceNetApp.Domain.UnitTest
         public void CalculateTotal_WithMultipleItems_ReturnsTotalPrice()
         {
             // Arrange
-            var cart = new Cart("test-cart-123");
+            var cart = new CartEntity("test-cart-123");
             var item1 = new CartItem(1, "Item 1", Money.From(10.00m), 2);
             var item2 = new CartItem(2, "Item 2", Money.From(5.50m), 3);
 

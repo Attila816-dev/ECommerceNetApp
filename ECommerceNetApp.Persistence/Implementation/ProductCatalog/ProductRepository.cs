@@ -13,7 +13,7 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<IEnumerable<Product>> GetAllAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<ProductEntity>> GetAllAsync(CancellationToken cancellationToken)
         {
             return await _dbContext.Products
                 .Include(p => p.Category)
@@ -21,7 +21,7 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
                 .ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<Product>> GetProductsByCategoryIdAsync(int categoryId, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ProductEntity>> GetProductsByCategoryIdAsync(int categoryId, CancellationToken cancellationToken)
         {
             return await _dbContext.Products
                 .Where(p => p.CategoryId == categoryId)
@@ -30,7 +30,7 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
                 .ConfigureAwait(false);
         }
 
-        public async Task<Product?> GetByIdAsync(int id, CancellationToken cancellationToken)
+        public async Task<ProductEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
             return await _dbContext.Products
                 .Include(p => p.Category)
@@ -43,13 +43,13 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             return await _dbContext.Products.AnyAsync(c => c.Id == id, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task AddAsync(Product product, CancellationToken cancellationToken)
+        public async Task AddAsync(ProductEntity product, CancellationToken cancellationToken)
         {
             await _dbContext.Products.AddAsync(product, cancellationToken).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task UpdateAsync(Product product, CancellationToken cancellationToken)
+        public async Task UpdateAsync(ProductEntity product, CancellationToken cancellationToken)
         {
             _dbContext.Products.Update(product);
             await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

@@ -1,16 +1,16 @@
 ﻿namespace ECommerceNetApp.Domain.Entities
 {
-    public class Product
+    public class ProductEntity
     {
         public const int MaxProductNameLength = 256;
 
-        public Product(
+        public ProductEntity(
             string name,
             string? description,
 #pragma warning disable CA1054 // URI-like parameters should not be strings
             string? imageUrl,
 #pragma warning restore CA1054 // URI-like parameters should not be strings
-            Category category,
+            CategoryEntity category,
             decimal price,
             int amount)
         {
@@ -22,14 +22,14 @@
             UpdateAmount(amount);
         }
 
-        public Product(
+        public ProductEntity(
             int id,
             string name,
             string? description,
 #pragma warning disable CA1054 // URI-like parameters should not be strings
             string? imageUrl,
 #pragma warning restore CA1054 // URI-like parameters should not be strings
-            Category category,
+            CategoryEntity category,
             decimal price,
             int amount)
             : this(name, description, imageUrl, category, price, amount)
@@ -38,7 +38,7 @@
         }
 
         // For EF Core
-        protected Product()
+        protected ProductEntity()
         {
         }
 
@@ -52,7 +52,7 @@
 
         public int CategoryId { get; private set; }
 
-        public virtual Category? Category { get; private set; }
+        public virtual CategoryEntity? Category { get; private set; }
 
         public decimal Price { get; private set; }
 
@@ -85,7 +85,7 @@
             ImageUrl = imageUrl;
         }
 
-        public void UpdateCategory(Category category)
+        public void UpdateCategory(CategoryEntity category)
         {
             Category = category ?? throw new ArgumentNullException(nameof(category), "Category is required");
             CategoryId = category.Id;

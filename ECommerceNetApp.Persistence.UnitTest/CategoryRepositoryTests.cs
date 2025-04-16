@@ -56,7 +56,7 @@ namespace ECommerceNetApp.Persistence.UnitTest
         public async Task AddAsync_ShouldAddNewCategory()
         {
             // Arrange
-            var newCategory = new Category("Toys");
+            var newCategory = new CategoryEntity("Toys");
 
             // Act
             await _categoryRepository.AddAsync(newCategory, CancellationToken.None);
@@ -91,8 +91,8 @@ namespace ECommerceNetApp.Persistence.UnitTest
 
         private void SeedTestData()
         {
-            var category1 = new Category(1, "Electronics");
-            var category2 = new Category(2, "Books", parentCategory: category1);
+            var category1 = new CategoryEntity(1, "Electronics");
+            var category2 = new CategoryEntity(2, "Books", parentCategory: category1);
 
             _dbContext.Categories.Add(category1);
             _dbContext.Categories.Add(category2);

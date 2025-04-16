@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Domain.ValueObjects;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
@@ -8,7 +9,6 @@ using ECommerceNetApp.Service.Implementation.Validators.Cart;
 using FluentValidation;
 using Moq;
 using Shouldly;
-using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
 {

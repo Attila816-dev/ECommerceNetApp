@@ -1,6 +1,6 @@
+using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Service.Commands.Product;
 using FluentValidation;
-using ProductEntity = ECommerceNetApp.Domain.Entities.Product;
 
 namespace ECommerceNetApp.Service.Validators.Product
 {

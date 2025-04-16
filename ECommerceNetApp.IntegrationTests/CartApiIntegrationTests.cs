@@ -44,8 +44,8 @@ namespace ECommerceNetApp.IntegrationTests
             // Arrange
             var cartId = "test-cart-id-1";
             var cartDbContext = _factory.Services.GetService<CartDbContext>();
-            cartDbContext!.CreateCollection<Cart>();
-            await cartDbContext.GetCollection<Cart>().InsertAsync(new Cart(cartId));
+            cartDbContext!.CreateCollection<CartEntity>();
+            await cartDbContext.GetCollection<CartEntity>().InsertAsync(new CartEntity(cartId));
 
             // Act
             var response = await _client.GetAsync($"/api/carts/{cartId}/items");

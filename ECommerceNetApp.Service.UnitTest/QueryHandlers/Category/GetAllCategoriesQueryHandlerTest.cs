@@ -1,9 +1,9 @@
-﻿using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Category;
 using ECommerceNetApp.Service.Queries.Category;
 using Moq;
 using Shouldly;
-using CategoryEntity = ECommerceNetApp.Domain.Entities.Category;
 
 namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
 {

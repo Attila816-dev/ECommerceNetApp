@@ -1,5 +1,5 @@
-﻿using ECommerceNetApp.Persistence.Interfaces;
-using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
 {

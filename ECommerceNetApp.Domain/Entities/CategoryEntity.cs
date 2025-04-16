@@ -1,11 +1,11 @@
 ﻿namespace ECommerceNetApp.Domain.Entities
 {
-    public class Category
+    public class CategoryEntity
     {
         public const int MaxCategoryNameLength = 100;
 
 #pragma warning disable CA1054 // URI-like parameters should not be strings
-        public Category(string name, string? imageUrl = null, Category? parentCategory = null)
+        public CategoryEntity(string name, string? imageUrl = null, CategoryEntity? parentCategory = null)
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         {
             UpdateName(name);
@@ -15,7 +15,7 @@
         }
 
 #pragma warning disable CA1054 // URI-like parameters should not be strings
-        public Category(int id, string name, string? imageUrl = null, Category? parentCategory = null)
+        public CategoryEntity(int id, string name, string? imageUrl = null, CategoryEntity? parentCategory = null)
 #pragma warning restore CA1054 // URI-like parameters should not be strings
             : this(name, imageUrl, parentCategory)
         {
@@ -23,7 +23,7 @@
         }
 
         // For EF Core
-        protected Category()
+        protected CategoryEntity()
         {
         }
 
@@ -35,11 +35,11 @@
 
         public int? ParentCategoryId { get; private set; }
 
-        public virtual Category? ParentCategory { get; private set; }
+        public virtual CategoryEntity? ParentCategory { get; private set; }
 
-        public virtual ICollection<Category> SubCategories { get; private set; } = new List<Category>();
+        public virtual ICollection<CategoryEntity> SubCategories { get; private set; } = new List<CategoryEntity>();
 
-        public virtual ICollection<Product> Products { get; private set; } = new List<Product>();
+        public virtual ICollection<ProductEntity> Products { get; private set; } = new List<ProductEntity>();
 
         public void UpdateName(string name)
         {
@@ -63,7 +63,7 @@
             ImageUrl = imageUrl;
         }
 
-        public void UpdateParentCategory(Category? parentCategory)
+        public void UpdateParentCategory(CategoryEntity? parentCategory)
         {
             // Check for circular reference
             if (parentCategory != null)

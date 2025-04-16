@@ -1,7 +1,7 @@
+using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.Validators.Category;
 using FluentValidation.TestHelper;
-using CategoryEntity = ECommerceNetApp.Domain.Entities.Category;
 
 namespace ECommerceNetApp.Service.UnitTest.Validators.Category
 {

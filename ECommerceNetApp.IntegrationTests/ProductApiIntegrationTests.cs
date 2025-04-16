@@ -53,13 +53,13 @@ namespace ECommerceNetApp.IntegrationTests
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
-            var category = new Category("Sample Category");
+            var category = new CategoryEntity("Sample Category");
 
             await dbContext.Categories.AddAsync(category);
 
             await dbContext.SaveChangesAsync();
 
-            var product = new Product("Sample Product", null, null, category, 10.99m, 5);
+            var product = new ProductEntity("Sample Product", null, null, category, 10.99m, 5);
 
             await dbContext.Products.AddAsync(product);
 
@@ -82,7 +82,7 @@ namespace ECommerceNetApp.IntegrationTests
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
-            var category = new Category("Sample Category");
+            var category = new CategoryEntity("Sample Category");
 
             await dbContext.Categories.AddAsync(category);
 

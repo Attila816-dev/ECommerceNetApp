@@ -14,7 +14,7 @@ namespace ECommerceNetApp.Api.HealthCheck
             try
             {
                 // Perform a simple query to check if the database is accessible
-                var collection = _dbContext.GetCollection<Cart>();
+                var collection = _dbContext.GetCollection<CartEntity>();
                 await collection.CountAsync().ConfigureAwait(false);
                 return HealthCheckResult.Healthy("CartDb is operational");
             }

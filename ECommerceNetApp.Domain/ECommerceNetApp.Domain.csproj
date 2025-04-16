@@ -9,5 +9,9 @@
   <ItemGroup>
 	  <InternalsVisibleTo Include="ECommerceNetApp.Persistence" />
   </ItemGroup>
+	
+  <ItemGroup>
+    <Folder Include="Events\Product\" />
+  </ItemGroup>
 
 </Project>

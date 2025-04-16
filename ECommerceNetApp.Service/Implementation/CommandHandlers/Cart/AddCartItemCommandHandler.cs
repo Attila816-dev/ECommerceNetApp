@@ -1,10 +1,10 @@
-﻿using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
 using FluentValidation;
 using MediatR;
-using CartEntity = ECommerceNetApp.Domain.Entities.Cart;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
