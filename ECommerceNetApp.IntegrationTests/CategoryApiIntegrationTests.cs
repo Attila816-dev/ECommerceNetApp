@@ -1,7 +1,10 @@
 ﻿using System.Net.Http.Json;
-using ECommerceNetApp.Domain;
-using ECommerceNetApp.Persistence;
-using ECommerceNetApp.Service;
+using ECommerceNetApp.Api;
+using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Options;
+using ECommerceNetApp.Persistence.Implementation.Cart;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
+using ECommerceNetApp.Service.DTO;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -52,8 +55,8 @@ namespace ECommerceNetApp.IntegrationTests
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
             await dbContext.Categories.AddRangeAsync(
-                new Category { Name = "Electronics" },
-                new Category { Name = "Books" });
+                new CategoryEntity("Electronics"),
+                new CategoryEntity("Books"));
             await dbContext.SaveChangesAsync();
 
             // Act
@@ -96,7 +99,7 @@ namespace ECommerceNetApp.IntegrationTests
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
-            var category = new Category { Name = "Old Category" };
+            var category = new CategoryEntity("Old Category");
             await dbContext.Categories.AddAsync(category);
             await dbContext.SaveChangesAsync();
             dbContext.Entry(category).State = EntityState.Detached;
@@ -125,7 +128,7 @@ namespace ECommerceNetApp.IntegrationTests
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
-            var category = new Category { Name = "Category to Delete" };
+            var category = new CategoryEntity("Category to Delete");
             await dbContext.Categories.AddAsync(category);
             await dbContext.SaveChangesAsync();
 

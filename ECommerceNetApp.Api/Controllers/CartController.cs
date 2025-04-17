@@ -1,5 +1,7 @@
-using ECommerceNetApp.Service;
-using ECommerceNetApp.Service.Interfaces;
+using ECommerceNetApp.Service.Commands.Cart;
+using ECommerceNetApp.Service.DTO;
+using ECommerceNetApp.Service.Queries.Cart;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceNetApp.Api.Controllers
@@ -8,17 +10,17 @@ namespace ECommerceNetApp.Api.Controllers
     [Route("api/carts")]
     public class CartController : ControllerBase
     {
-        private readonly ICartService _cartService;
+        private readonly IMediator _mediator;
 
-        public CartController(ICartService cartService)
+        public CartController(IMediator mediator)
         {
-            _cartService = cartService ?? throw new ArgumentNullException(nameof(cartService));
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
         [HttpGet("{cartId}/items")]
-        public async Task<ActionResult<List<CartItemDto>>> GetCartItems(string cartId)
+        public async Task<ActionResult<List<CartItemDto>>> GetCartItems(string cartId, CancellationToken cancellationToken)
         {
-            var cartItems = await _cartService.GetCartItemsAsync(cartId).ConfigureAwait(false);
+            var cartItems = await _mediator.Send(new GetCartItemsQuery(cartId), cancellationToken).ConfigureAwait(false);
             if (cartItems == null)
             {
                 return NotFound();
@@ -28,30 +30,43 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpPost("{cartId}/items")]
-        public async Task<ActionResult> AddItemToCart(string cartId, CartItemDto item)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> AddItemToCart(string cartId, [FromBody] CartItemDto cartItem, CancellationToken cancellationToken)
         {
-            await _cartService.AddItemToCartAsync(cartId, item).ConfigureAwait(false);
-            return Ok();
+            if (cartItem == null)
+            {
+                return BadRequest("Cart item is required.");
+            }
+
+            await _mediator.Send(new AddCartItemCommand(cartId, cartItem), cancellationToken).ConfigureAwait(false);
+
+            return CreatedAtAction(nameof(GetCartItems), new { cartId }, cartId);
         }
 
         [HttpDelete("{cartId}/items/{itemId}")]
-        public async Task<ActionResult> RemoveItemFromCart(string cartId, int itemId)
+        public async Task<ActionResult> RemoveItemFromCart(string cartId, int itemId, CancellationToken cancellationToken)
         {
-            await _cartService.RemoveItemFromCartAsync(cartId, itemId).ConfigureAwait(false);
+            await _mediator.Send(new RemoveCartItemCommand(cartId, itemId), cancellationToken).ConfigureAwait(false);
             return Ok();
         }
 
         [HttpPut("{cartId}/items/{itemId}")]
-        public async Task<ActionResult> UpdateItemQuantity(string cartId, int itemId, [FromBody] int quantity)
+        public async Task<ActionResult> UpdateItemQuantity(string cartId, int itemId, [FromBody] int quantity, CancellationToken cancellationToken)
         {
-            await _cartService.UpdateItemQuantityAsync(cartId, itemId, quantity).ConfigureAwait(false);
+            await _mediator.Send(new UpdateCartItemQuantityCommand(cartId, itemId, quantity), cancellationToken).ConfigureAwait(false);
             return Ok();
         }
 
         [HttpGet("{cartId}/total")]
-        public async Task<ActionResult<decimal>> GetCartTotal(string cartId)
+        public async Task<ActionResult<decimal>> GetCartTotal(string cartId, CancellationToken cancellationToken)
         {
-            var total = await _cartService.GetCartTotalAsync(cartId).ConfigureAwait(false);
+            var total = await _mediator.Send(new GetCartTotalQuery(cartId), cancellationToken).ConfigureAwait(false);
+            if (total == null)
+            {
+                return NotFound();
+            }
+
             return Ok(total);
         }
     }

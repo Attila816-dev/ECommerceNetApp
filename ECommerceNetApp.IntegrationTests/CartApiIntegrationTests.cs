@@ -1,9 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
-using ECommerceNetApp.Domain;
-using ECommerceNetApp.Persistence;
-using ECommerceNetApp.Service;
+using ECommerceNetApp.Api;
+using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Options;
+using ECommerceNetApp.Persistence.Implementation.Cart;
+using ECommerceNetApp.Service.DTO;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -43,13 +45,8 @@ namespace ECommerceNetApp.IntegrationTests
             // Arrange
             var cartId = "test-cart-id-1";
             var cartDbContext = _factory.Services.GetService<CartDbContext>();
-            cartDbContext!.CreateCollection<Cart>();
-            await cartDbContext.GetCollection<Cart>().InsertAsync(new Cart
-            {
-                Id = cartId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-            });
+            cartDbContext!.CreateCollection<CartEntity>();
+            await cartDbContext.GetCollection<CartEntity>().InsertAsync(new CartEntity(cartId));
 
             // Act
             var response = await _client.GetAsync($"/api/carts/{cartId}/items");

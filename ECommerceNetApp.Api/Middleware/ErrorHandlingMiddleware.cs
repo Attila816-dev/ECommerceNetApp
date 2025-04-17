@@ -1,48 +1,66 @@
 using System.Net;
+using ECommerceNetApp.Domain.Exceptions;
+using ECommerceNetApp.Domain.Exceptions.Cart;
+using FluentValidation;
 
 namespace ECommerceNetApp.Api.Middleware
 {
     public class ErrorHandlingMiddleware
     {
-        private readonly RequestDelegate _next;
+        private static readonly Action<ILogger, HttpStatusCode, string, Exception> LogErrorMessage =
+            LoggerMessage.Define<HttpStatusCode, string>(
+                LogLevel.Error,
+                new EventId(1, nameof(ErrorHandlingMiddleware)),
+                "An error occurred while processing the request. StatusCode: {StatusCode}, TraceId: {TraceId}");
 
-        public ErrorHandlingMiddleware(RequestDelegate next)
+        private readonly RequestDelegate _next;
+        private readonly ILogger<ErrorHandlingMiddleware> _logger;
+
+        public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
-#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 await _next(context).ConfigureAwait(false);
             }
-            catch (ArgumentException ex)
+            catch (CartItemNotFoundException ex)
             {
-                await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message).ConfigureAwait(false);
+                await HandleExceptionAsync(context, HttpStatusCode.NotFound, ex).ConfigureAwait(false);
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex) when (ex is ArgumentException or DomainException or ValidationException)
             {
-                await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message).ConfigureAwait(false);
+                await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex).ConfigureAwait(false);
             }
             catch (InvalidOperationException ex)
             {
-                await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, ex.Message).ConfigureAwait(false);
+                await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, ex).ConfigureAwait(false);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
             {
-                await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, "An unexpected error occurred: " + ex.Message).ConfigureAwait(false);
+                await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, ex).ConfigureAwait(false);
             }
 #pragma warning restore CA1031 // Do not catch general exception types
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, HttpStatusCode statusCode, string message)
+        private Task HandleExceptionAsync(HttpContext context, HttpStatusCode statusCode, Exception exception)
         {
+            // Log the exception using LoggerMessage delegate
+            LogErrorMessage(_logger, statusCode, context.TraceIdentifier, exception);
+
             context.Response.StatusCode = (int)statusCode;
-            return context.Response.WriteAsJsonAsync(message);
+            return context.Response.WriteAsJsonAsync(new
+            {
+                error = statusCode == HttpStatusCode.InternalServerError ? "An unexpected error occurred." : exception.Message,
+                traceId = context.TraceIdentifier,
+            });
         }
     }
 }

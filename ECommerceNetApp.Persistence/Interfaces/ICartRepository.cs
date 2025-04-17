@@ -1,13 +1,13 @@
-﻿using ECommerceNetApp.Domain;
+﻿using ECommerceNetApp.Domain.Entities;
 
 namespace ECommerceNetApp.Persistence.Interfaces
 {
     public interface ICartRepository
     {
-        Task<Cart?> GetCartAsync(string cartId);
+        Task<CartEntity?> GetByIdAsync(string cartId, CancellationToken cancellationToken);
 
-        Task SaveCartAsync(Cart cart);
+        Task SaveAsync(CartEntity cart, CancellationToken cancellationToken);
 
-        Task DeleteCartAsync(string cartId);
+        Task DeleteAsync(string cartId, CancellationToken cancellationToken);
     }
 }

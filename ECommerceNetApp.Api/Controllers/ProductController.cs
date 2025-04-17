@@ -1,5 +1,7 @@
-﻿using ECommerceNetApp.Service;
-using ECommerceNetApp.Service.Interfaces;
+﻿using ECommerceNetApp.Service.Commands.Product;
+using ECommerceNetApp.Service.DTO;
+using ECommerceNetApp.Service.Queries.Product;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceNetApp.Api.Controllers
@@ -8,31 +10,37 @@ namespace ECommerceNetApp.Api.Controllers
     [Route("api/products")]
     public class ProductController : ControllerBase
     {
-        private readonly IProductService _productService;
+        private readonly IMediator _mediator;
 
-        public ProductController(IProductService productService)
+        public ProductController(IMediator mediator)
         {
-            _productService = productService ?? throw new ArgumentNullException(nameof(productService));
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProducts()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProducts(CancellationToken cancellationToken)
         {
-            var products = await _productService.GetAllProductsAsync().ConfigureAwait(false);
+            var products = await _mediator.Send(new GetAllProductsQuery(), cancellationToken).ConfigureAwait(false);
             return Ok(products);
         }
 
-        [HttpGet("category/{categoryId}")]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductsByCategory(int categoryId)
+        [HttpGet("GetProductsByCategoryId")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductsByCategoryId([FromQuery] int categoryId, CancellationToken cancellationToken)
         {
-            var products = await _productService.GetProductsByCategoryIdAsync(categoryId).ConfigureAwait(false);
+            var query = new GetProductsByCategoryQuery(categoryId);
+            var products = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
             return Ok(products);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProductDto>> GetProductById(int id)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ProductDto>> GetProductById(int id, CancellationToken cancellationToken)
         {
-            var product = await _productService.GetProductByIdAsync(id).ConfigureAwait(false);
+            var query = new GetProductByIdQuery(id);
+            var product = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
 
             if (product == null)
             {
@@ -43,57 +51,66 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProductDto>> CreateProduct(ProductDto productDto)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreateProduct([FromBody] ProductDto productDto, CancellationToken cancellationToken)
         {
-            try
+            if (productDto == null)
             {
-                var result = await _productService.AddProductAsync(productDto).ConfigureAwait(false);
-                return CreatedAtAction(nameof(GetProductById), new { id = result.Id }, result);
+                return BadRequest("Product data is required.");
             }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            var command = new CreateProductCommand(
+                productDto.Name,
+                productDto.Description,
+                productDto.ImageUrl,
+                productDto.CategoryId,
+                productDto.Price,
+                productDto.Amount);
+
+            var createdProductId = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+
+            return CreatedAtAction(nameof(GetProductById), new { id = createdProductId }, createdProductId);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateProduct(int id, ProductDto productDto)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductDto productDto, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(productDto);
-            if (id != productDto.Id)
+            if (productDto == null)
             {
-                return BadRequest();
+                return BadRequest("Product data is required.");
             }
 
-            try
+            if (id != productDto.Id)
             {
-                await _productService.UpdateProductAsync(productDto).ConfigureAwait(false);
+                return BadRequest("Invalid product data.");
             }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            var command = new UpdateProductCommand(
+                id,
+                productDto.Name,
+                productDto.Description,
+                productDto.ImageUrl,
+                productDto.CategoryId,
+                productDto.Price,
+                productDto.Amount);
+
+            await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteProduct(int id)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken)
         {
-            try
-            {
-                await _productService.DeleteProductAsync(id).ConfigureAwait(false);
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-
-            return NoContent();
+            await _mediator.Send(new DeleteProductCommand(id), cancellationToken).ConfigureAwait(false);
+            return Ok();
         }
     }
 }

@@ -1,7 +1,10 @@
 using System.Net.Http.Json;
-using ECommerceNetApp.Domain;
-using ECommerceNetApp.Persistence;
-using ECommerceNetApp.Service;
+using ECommerceNetApp.Api;
+using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Options;
+using ECommerceNetApp.Persistence.Implementation.Cart;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
+using ECommerceNetApp.Service.DTO;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -51,22 +54,15 @@ namespace ECommerceNetApp.IntegrationTests
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
-            var category = new Category
-            {
-                Name = "Sample Category",
-            };
+            var category = new CategoryEntity("Sample Category");
 
             await dbContext.Categories.AddAsync(category);
 
             await dbContext.SaveChangesAsync();
 
-            await dbContext.Products.AddAsync(new Product
-            {
-                Name = "Sample Product",
-                Price = 10.99m,
-                Amount = 5,
-                CategoryId = category.Id,
-            });
+            var product = new ProductEntity("Sample Product", null, null, category, 10.99m, 5);
+
+            await dbContext.Products.AddAsync(product);
 
             await dbContext.SaveChangesAsync();
 
@@ -87,10 +83,7 @@ namespace ECommerceNetApp.IntegrationTests
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
 
-            var category = new Category
-            {
-                Name = "Sample Category",
-            };
+            var category = new CategoryEntity("Sample Category");
 
             await dbContext.Categories.AddAsync(category);
 

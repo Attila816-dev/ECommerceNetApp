@@ -29,4 +29,8 @@
    <InternalsVisibleTo Include="ECommerceNetApp.Persistence.Unittest" />
  </ItemGroup>
 
+ <ItemGroup>
+   <Folder Include="Migrations\" />
+ </ItemGroup>
+
 </Project>
