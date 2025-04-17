@@ -17,4 +17,8 @@
     <ProjectReference Include="..\ECommerceNetApp.Persistence\ECommerceNetApp.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Implementation\NotificationHandlers\Cart\" />
+  </ItemGroup>
+
 </Project>

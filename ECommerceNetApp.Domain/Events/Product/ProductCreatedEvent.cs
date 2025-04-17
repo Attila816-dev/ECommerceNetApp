@@ -1,6 +1,6 @@
 ﻿namespace ECommerceNetApp.Domain.Events.Product
 {
-    public record ProductCreatedEvent(int ProducId,
+    public record ProductCreatedEvent(int ProductId,
         string Name,
         string? Description,
         int CategoryId,
