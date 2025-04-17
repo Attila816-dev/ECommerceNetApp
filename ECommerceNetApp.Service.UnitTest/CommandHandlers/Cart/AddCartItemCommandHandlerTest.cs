@@ -5,10 +5,9 @@ using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Cart;
 using ECommerceNetApp.Service.Implementation.Mappers;
-using ECommerceNetApp.Service.Implementation.Validators.Cart;
 using FluentValidation;
+using FluentValidation.Results;
 using Moq;
-using Shouldly;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
 {
@@ -17,15 +16,17 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
         private readonly AddCartItemCommandHandler _commandHandler;
         private readonly Mock<ICartRepository> _mockRepository;
         private readonly CartItemMapper _cartItemMapper;
-        private readonly CartItemValidator _cartItemValidator;
+        private readonly Mock<IValidator<AddCartItemCommand>> _mockValidator;
 
         public AddCartItemCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICartRepository>();
             _cartItemMapper = new CartItemMapper();
-            _cartItemValidator = new CartItemValidator();
-            _commandHandler = new AddCartItemCommandHandler(_mockRepository.Object, _cartItemMapper, _cartItemValidator);
+            _mockValidator = new Mock<IValidator<AddCartItemCommand>>();
+            _mockValidator.Setup(x => x.ValidateAsync(It.IsAny<AddCartItemCommand>(), CancellationToken.None))
+                .ReturnsAsync(new ValidationResult());
+            _commandHandler = new AddCartItemCommandHandler(_mockRepository.Object, _cartItemMapper, _mockValidator.Object);
         }
 
         [Fact]
@@ -57,31 +58,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
         }
 
         [Fact]
-        public async Task CallAddCartItemWithoutName_ThrowsValidationException()
-        {
-            // Arrange
-            string testCartId = "test-cart-123";
-
-            var cart = CreateTestCart(testCartId);
-            SetupMockRepository(cart);
-
-            var itemDto = new CartItemDto
-            {
-                Id = 1,
-                Price = 15.99m,
-                Quantity = 1,
-            };
-
-            // Act & Assert
-            var validationException = await Should.ThrowAsync<ValidationException>(async () =>
-            {
-                await _commandHandler.Handle(new AddCartItemCommand(testCartId, itemDto), CancellationToken.None);
-            });
-
-            validationException.Message.ShouldContain("Item name is required.");
-        }
-
-        [Fact]
         public async Task AddItemToCart_ExistingItem_UpdatesQuantity()
         {
             // Arrange
@@ -108,66 +84,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
                     It.Is<CartEntity>(c => c.Items.Count == 1 && c.Items.First().Quantity == 3),
                     CancellationToken.None),
                 Times.Once);
-        }
-
-        [Fact]
-        public async Task AddItemToCart_InvalidItem_ThrowsException()
-        {
-            // Arrange
-            string testCartId = "test-cart-123";
-            var itemDto = new CartItemDto
-            {
-                Id = 0, // Invalid ID
-                Name = "Test Item",
-                Price = 10.99m,
-                Quantity = 1,
-            };
-
-            // Act & Assert
-            var validationException = await Should.ThrowAsync<ValidationException>(
-                () => _commandHandler.Handle(new AddCartItemCommand(testCartId, itemDto), CancellationToken.None));
-
-            validationException.Message.ShouldContain("Item ID must be a positive number.");
-        }
-
-        [Fact]
-        public async Task AddItemToCart_WithNegativeQuantity_ThrowsException()
-        {
-            // Arrange
-            string testCartId = "test-cart-123";
-            var itemDto = new CartItemDto
-            {
-                Id = 2, // Invalid ID
-                Name = "Test Item",
-                Price = 10.99m,
-                Quantity = -1,
-            };
-
-            // Act & Assert
-            var validationException = await Should.ThrowAsync<ValidationException>(
-                () => _commandHandler.Handle(new AddCartItemCommand(testCartId, itemDto), CancellationToken.None));
-
-            validationException.Message.ShouldContain("Item quantity must be greater than zero.");
-        }
-
-        [Fact]
-        public async Task AddItemToCart_WithNegativePrice_ThrowsException()
-        {
-            // Arrange
-            string testCartId = "test-cart-123";
-            var itemDto = new CartItemDto
-            {
-                Id = 2, // Invalid ID
-                Name = "Test Item",
-                Price = -10.99m,
-                Quantity = 1,
-            };
-
-            // Act & Assert
-            var validationException = await Should.ThrowAsync<ValidationException>(
-                () => _commandHandler.Handle(new AddCartItemCommand(testCartId, itemDto), CancellationToken.None));
-
-            validationException.Message.ShouldContain("Item price must be greater than zero.");
         }
 
         private static CartEntity CreateTestCart(string cartId)

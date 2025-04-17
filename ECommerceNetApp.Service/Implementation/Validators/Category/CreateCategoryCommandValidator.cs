@@ -11,7 +11,7 @@ namespace ECommerceNetApp.Service.Validators.Category
 
         public CreateCategoryCommandValidator(ICategoryRepository categoryRepository)
         {
-            _categoryRepository = categoryRepository;
+            _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
 
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Category name is required.")

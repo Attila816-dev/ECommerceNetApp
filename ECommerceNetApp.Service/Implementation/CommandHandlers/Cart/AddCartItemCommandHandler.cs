@@ -1,7 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Cart;
-using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
 using FluentValidation;
 using MediatR;
@@ -11,19 +10,18 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
     public class AddCartItemCommandHandler(
         ICartRepository cartRepository,
         ICartItemMapper cartItemMapper,
-        IValidator<CartItemDto> cartItemValidator)
+        IValidator<AddCartItemCommand> validator)
         : IRequestHandler<AddCartItemCommand>
     {
         private readonly ICartRepository _cartRepository = cartRepository;
         private readonly ICartItemMapper _cartItemMapper = cartItemMapper;
-        private readonly IValidator<CartItemDto> _cartItemValidator = cartItemValidator;
+        private readonly IValidator<AddCartItemCommand> _validator = validator;
 
         public async Task Handle(AddCartItemCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
-            ArgumentException.ThrowIfNullOrEmpty(request.CartId, nameof(request.CartId));
 
-            var validationResult = await _cartItemValidator.ValidateAsync(request.Item, cancellationToken).ConfigureAwait(false);
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
             if (!validationResult.IsValid)
             {
                 throw new ValidationException(validationResult.Errors);

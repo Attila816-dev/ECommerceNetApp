@@ -8,7 +8,7 @@ using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.Extensions;
 using ECommerceNetApp.Service.Implementation.Behaviors;
-using ECommerceNetApp.Service.Implementation.Validators.Cart;
+using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
 using MediatR;
 using Serilog;
@@ -77,7 +77,7 @@ namespace ECommerceNetApp.Api
 
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
             builder.Services.AddECommerceRepositories(builder.Configuration);
-            builder.Services.AddValidatorsFromAssemblyContaining<CartItemValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<AddCartItemCommandValidator>();
             builder.Services.AddECommerceServices();
             ConfigureHealthCheck(builder);
         }
