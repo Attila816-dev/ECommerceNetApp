@@ -40,8 +40,8 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
             // Assert
             result.ShouldNotBeNull();
             result.Count().ShouldBe(2);
-            result.First(c => c.Id == 1).Name.ShouldBe("Laptop");
-            result.First(c => c.Id == 2).Name.ShouldBe("Smartphone");
+            result.ShouldContain(c => c.Id == 1 && c.Name == "Laptop");
+            result.ShouldContain(c => c.Id == 2 && c.Name == "Smartphone");
         }
     }
 }

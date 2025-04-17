@@ -88,14 +88,14 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
 
             // Assert
-            Assert.NotNull(retrievedCart);
-            Assert.Equal(cart.Id, retrievedCart.Id);
-            Assert.Single(retrievedCart.Items);
+            retrievedCart.ShouldNotBeNull();
+            retrievedCart.Id.ShouldBe(cart.Id);
+            retrievedCart.Items.Count.ShouldBe(1);
 
             var item = retrievedCart.Items.First();
-            Assert.Equal("Test Item", item.Name);
-            Assert.Equal(10.99m, item.Price!.Amount);
-            Assert.Equal(2, item.Quantity);
+            item.Name.ShouldBe("Test Item");
+            item.Price!.Amount.ShouldBe(10.99m);
+            item.Quantity.ShouldBe(2);
         }
 
         [Fact]
@@ -112,7 +112,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
 
             // Assert
-            Assert.Null(retrievedCart);
+            retrievedCart.ShouldBeNull();
         }
 
         [Fact]
@@ -153,7 +153,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public void Constructor_NullDbContext_ThrowsArgumentNullException()
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentNullException>(() => new CartRepository(null, _mockDomainEventService.Object));
+            var exception = Should.Throw<ArgumentNullException>(() => new CartRepository(null, _mockDomainEventService.Object));
             exception.ParamName.ShouldBe("dbContext");
         }
 
@@ -171,13 +171,13 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
 
             // Assert
-            Assert.NotNull(retrievedCart);
-            Assert.Single(retrievedCart.Items);
+            retrievedCart.ShouldNotBeNull();
+            retrievedCart.Items.Count.ShouldBe(1);
 
             var item = retrievedCart.Items.First();
-            Assert.Equal("High Quantity Item", item.Name);
-            Assert.Equal(price.Amount, item.Price!.Amount);
-            Assert.Equal(quantity, item.Quantity);
+            item.Name.ShouldBe("High Quantity Item");
+            item.Price!.Amount.ShouldBe(price.Amount);
+            item.Quantity.ShouldBe(quantity);
         }
 
         [Fact]
@@ -194,13 +194,13 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
 
             // Assert
-            Assert.NotNull(retrievedCart);
-            Assert.Single(retrievedCart.Items);
+            retrievedCart.ShouldNotBeNull();
+            retrievedCart.Items.Count.ShouldBe(1);
 
             var item = retrievedCart.Items.First();
-            Assert.Equal("High Quantity Item", item.Name);
-            Assert.Equal(price.Amount, item.Price!.Amount);
-            Assert.Equal(quantity, item.Quantity);
+            item.Name.ShouldBe("High Quantity Item");
+            item.Price!.Amount.ShouldBe(price.Amount);
+            item.Quantity.ShouldBe(quantity);
         }
 
         [Fact]
@@ -216,13 +216,13 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
 
             // Assert
-            Assert.NotNull(retrievedCart);
-            Assert.Single(retrievedCart.Items);
+            retrievedCart.ShouldNotBeNull();
+            retrievedCart.Items.Count.ShouldBe(1);
 
             var item = retrievedCart.Items.First();
-            Assert.Equal(specialName, item.Name);
-            Assert.Equal(19.99m, item.Price!.Amount);
-            Assert.Equal(1, item.Quantity);
+            item.Name.ShouldBe(specialName);
+            item.Price!.Amount.ShouldBe(19.99m);
+            item.Quantity.ShouldBe(1);
         }
 
         [Fact]
@@ -238,13 +238,13 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 
             // Assert
             var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
-            Assert.NotNull(retrievedCart);
-            Assert.Single(retrievedCart.Items);
+            retrievedCart.ShouldNotBeNull();
+            retrievedCart.Items.Count.ShouldBe(1);
 
             var item = retrievedCart.Items.First();
-            Assert.Equal("Test Item", item.Name);
-            Assert.Equal(10.99m, item.Price!.Amount);
-            Assert.Equal(1, item.Quantity);
+            item.Name.ShouldBe("Test Item");
+            item.Price!.Amount.ShouldBe(10.99m);
+            item.Quantity.ShouldBe(1);
         }
 
         public void Dispose()

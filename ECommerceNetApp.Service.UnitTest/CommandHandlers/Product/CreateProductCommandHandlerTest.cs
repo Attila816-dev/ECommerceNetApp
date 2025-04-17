@@ -88,7 +88,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.CategoryId,
                 productDto.Price,
                 productDto.Amount);
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
                 _commandHandler.Handle(command, CancellationToken.None));
 
             exception.Message.ShouldContain("Category with ID 999 not found");

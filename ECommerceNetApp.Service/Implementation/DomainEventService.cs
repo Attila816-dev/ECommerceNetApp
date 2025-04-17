@@ -21,7 +21,7 @@ namespace ECommerceNetApp.Service.Implementation
         /// <returns>Task completed.</returns>
         public async Task PublishEventsAsync(BaseEntity entity, CancellationToken cancellationToken)
         {
-            if (entity == null || entity.DomainEvents == null || entity.DomainEvents.Count == 0)
+            if (entity?.DomainEvents == null || entity.DomainEvents.Count == 0)
             {
                 return;
             }

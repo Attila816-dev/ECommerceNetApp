@@ -1,7 +1,9 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Shouldly;
 
 namespace ECommerceNetApp.Persistence.UnitTest.Repositories
@@ -10,6 +12,8 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
     {
         private readonly ProductCatalogDbContext _dbContext;
         private readonly ProductRepository _productRepository;
+        private readonly Mock<IDomainEventService> _mockDomainEventService;
+
         private bool disposedValue;
         private CategoryEntity _electronicsCategory = new CategoryEntity("Electronics", null, null);
         private CategoryEntity _booksCategory = new CategoryEntity("Books", null, null);
@@ -29,8 +33,9 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
                 .UseInternalServiceProvider(serviceProvider)
                 .Options;
 
+            _mockDomainEventService = new Mock<IDomainEventService>();
             _dbContext = new ProductCatalogDbContext(options);
-            _productRepository = new ProductRepository(_dbContext);
+            _productRepository = new ProductRepository(_dbContext, _mockDomainEventService.Object);
 
             // Seed test data
             SeedTestData();

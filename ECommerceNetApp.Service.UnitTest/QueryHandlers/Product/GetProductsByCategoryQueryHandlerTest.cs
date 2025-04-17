@@ -37,10 +37,10 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
             var result = await _queryHandler.Handle(new GetProductsByCategoryQuery(category.Id), CancellationToken.None);
 
             // Assert
-            Assert.Equal(2, result.Count());
-            Assert.All(result, p => Assert.Equal(category.Id, p.CategoryId));
-            result.First(c => c.Id == 1).Name.ShouldBe("Laptop");
-            result.First(c => c.Id == 2).Name.ShouldBe("Smartphone");
+            result.Count().ShouldBe(2);
+            result.ShouldAllBe(p => p.CategoryId == category.Id);
+            result.ShouldContain(c => c.Id == 1 && c.Name == "Laptop");
+            result.ShouldContain(c => c.Id == 2 && c.Name == "Smartphone");
         }
     }
 }

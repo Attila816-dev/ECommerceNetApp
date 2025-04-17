@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Exceptions.Product;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
@@ -133,7 +134,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.Price,
                 productDto.Amount);
 
-            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+            var exception = await Should.ThrowAsync<InvalidProductException>(() =>
                 _commandHandler.Handle(command, CancellationToken.None));
 
             exception.Message.ShouldContain("Price cannot be negative");

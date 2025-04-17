@@ -1,4 +1,7 @@
-﻿namespace ECommerceNetApp.Domain.Entities
+﻿using ECommerceNetApp.Domain.Events.Product;
+using ECommerceNetApp.Domain.Exceptions.Product;
+
+namespace ECommerceNetApp.Domain.Entities
 {
     public class ProductEntity : BaseEntity
     {
@@ -12,14 +15,21 @@
 #pragma warning restore CA1054 // URI-like parameters should not be strings
             CategoryEntity category,
             decimal price,
-            int amount)
+            int amount,
+            bool raiseDomainEvent = true)
         {
             UpdateName(name);
-            Description = description;
+            UpdateDescription(description);
             UpdateImage(imageUrl);
             UpdateCategory(category);
             UpdatePrice(price);
             UpdateAmount(amount);
+
+            if (raiseDomainEvent)
+            {
+                ClearDomainEvents();
+                AddDomainEvent(new ProductCreatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
+            }
         }
 
         public ProductEntity(
@@ -32,9 +42,12 @@
             CategoryEntity category,
             decimal price,
             int amount)
-            : this(name, description, imageUrl, category, price, amount)
+            : this(name, description, imageUrl, category, price, amount, raiseDomainEvent: false)
         {
             Id = id;
+
+            ClearDomainEvents();
+            AddDomainEvent(new ProductCreatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
         }
 
         // For EF Core
@@ -62,53 +75,88 @@
         {
             if (string.IsNullOrWhiteSpace(name))
             {
-                throw new ArgumentException("Product name is required", nameof(name));
+                throw InvalidProductException.NameRequired();
+            }
+
+            if (name.Equals(Name, StringComparison.Ordinal))
+            {
+                return;
             }
 
             if (name.Length > MaxProductNameLength)
             {
-                throw new ArgumentException($"Product name cannot exceed {MaxProductNameLength} characters", nameof(name));
+                throw InvalidProductException.NameTooLong();
             }
 
             Name = name;
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
         }
 
         public void UpdateDescription(string? description)
         {
+            if ((string.IsNullOrEmpty(description) && string.IsNullOrEmpty(Description))
+                || (!string.IsNullOrEmpty(description) && description.Equals(Description, StringComparison.Ordinal)))
+            {
+                return;
+            }
+
             Description = description;
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
         }
 
 #pragma warning disable CA1054 // URI-like parameters should not be strings
         public void UpdateImage(string? imageUrl)
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         {
+            if ((string.IsNullOrEmpty(imageUrl) && string.IsNullOrEmpty(ImageUrl)) ||
+                (!string.IsNullOrEmpty(imageUrl) && !imageUrl.Equals(ImageUrl, StringComparison.Ordinal)))
+            {
+                return;
+            }
+
             ImageUrl = imageUrl;
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
         }
 
         public void UpdateCategory(CategoryEntity category)
         {
-            Category = category ?? throw new ArgumentNullException(nameof(category), "Category is required");
+            Category = category ?? throw InvalidProductException.CategoryRequired();
             CategoryId = category.Id;
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
         }
 
         public void UpdatePrice(decimal price)
         {
             if (price < 0)
             {
-                throw new ArgumentException("Price cannot be negative", nameof(price));
+                throw InvalidProductException.InvalidPrice();
             }
 
             Price = price;
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
         }
 
         public void UpdateAmount(int amount)
         {
             if (amount < 0)
             {
-                throw new ArgumentException("Amount must be a positive integer", nameof(amount));
+                throw InvalidProductException.InvalidAmount();
             }
 
+            int oldAmount = Amount;
             Amount = amount;
+
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
+
+            if (oldAmount != amount)
+            {
+                AddDomainEvent(new ProductStockChangedEvent(Id, amount, oldAmount));
+            }
+        }
+
+        public void MarkAsDeleted()
+        {
+            AddDomainEvent(new ProductDeletedEvent(Id));
         }
     }
 }

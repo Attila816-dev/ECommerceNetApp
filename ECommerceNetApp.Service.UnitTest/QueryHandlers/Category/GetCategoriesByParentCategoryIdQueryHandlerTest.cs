@@ -35,7 +35,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
             // Assert
             result.ShouldNotBeNull();
             result.Count().ShouldBe(1);
-            result.First().Name.ShouldBe("Test Category");
+            result.ShouldContain(c => c.Name == "Test Category");
         }
     }
 }

@@ -59,8 +59,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
             // Assert
             result.ShouldNotBeNull();
             result.Count.ShouldBe(1);
-            result.First().Name.ShouldBe("Test Item");
-            result.First().Quantity.ShouldBe(2);
+            result.ShouldContain(c => c.Name == "Test Item" && c.Quantity == 2);
         }
     }
 }

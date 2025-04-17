@@ -7,9 +7,13 @@ namespace ECommerceNetApp.Domain.Entities
     {
         public const int MaxCategoryNameLength = 50;
 
+        public CategoryEntity(
+            string name,
 #pragma warning disable CA1054 // URI-like parameters should not be strings
-        public CategoryEntity(string name, string? imageUrl = null, CategoryEntity? parentCategory = null, bool raiseDomainEvent = true)
+            string? imageUrl = null,
 #pragma warning restore CA1054 // URI-like parameters should not be strings
+            CategoryEntity? parentCategory = null,
+            bool raiseDomainEvent = true)
         {
             UpdateName(name);
             UpdateImage(imageUrl);
@@ -68,6 +72,11 @@ namespace ECommerceNetApp.Domain.Entities
                 throw InvalidCategoryException.NameRequired();
             }
 
+            if (name.Equals(Name, StringComparison.Ordinal))
+            {
+                return;
+            }
+
             if (name.Length > MaxCategoryNameLength)
             {
                 throw InvalidCategoryException.NameTooLong();
@@ -81,6 +90,12 @@ namespace ECommerceNetApp.Domain.Entities
         public void UpdateImage(string? imageUrl)
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         {
+            if ((string.IsNullOrEmpty(imageUrl) && string.IsNullOrEmpty(ImageUrl))
+                || (!string.IsNullOrEmpty(imageUrl) && !imageUrl.Equals(ImageUrl, StringComparison.Ordinal)))
+            {
+                return;
+            }
+
             ImageUrl = imageUrl;
             AddDomainEvent(new CategoryUpdatedEvent(Id, Name, ImageUrl, ParentCategoryId));
         }
