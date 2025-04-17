@@ -1,40 +1,50 @@
 using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.Validators.Category;
 using FluentValidation.TestHelper;
+using Moq;
 
 namespace ECommerceNetApp.Service.UnitTest.Validators.Category
 {
     public class UpdateCategoryCommandValidatorTest
     {
         private readonly UpdateCategoryCommandValidator _validator;
+        private readonly Mock<ICategoryRepository> _categoryRepository;
 
         public UpdateCategoryCommandValidatorTest()
         {
-            _validator = new UpdateCategoryCommandValidator();
+            _categoryRepository = new Mock<ICategoryRepository>();
+            _validator = new UpdateCategoryCommandValidator(_categoryRepository.Object);
         }
 
         [Fact]
-        public void Validate_WithValidData_ShouldPassValidation()
+        public async Task Validate_WithValidData_ShouldPassValidation()
         {
             // Arrange
             var command = new UpdateCategoryCommand(1, "Valid Category Name", null, null);
 
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Fact]
-        public void Validate_WithEmptyName_ShouldFailValidation()
+        public async Task Validate_WithEmptyName_ShouldFailValidation()
         {
             // Arrange
             var command = new UpdateCategoryCommand(1, string.Empty, null, null);
 
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.Name)
@@ -42,42 +52,71 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
         }
 
         [Fact]
-        public void Validate_WithNameExceedingMaxLength_ShouldFailValidation()
+        public async Task Validate_WithNameExceedingMaxLength_ShouldFailValidation()
         {
             // Arrange
             var categoryName = new string('A', CategoryEntity.MaxCategoryNameLength + 1);
             var command = new UpdateCategoryCommand(1, categoryName, null, null);
 
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.Name)
-                .WithErrorMessage($"Category name cannot exceed {CategoryEntity.MaxCategoryNameLength} characters.");
+                .WithErrorMessage($"Category Name cannot exceed {CategoryEntity.MaxCategoryNameLength} characters.");
         }
 
         [Fact]
-        public void Validate_WithInvalidParentCategoryId_ShouldFailValidation()
+        public async Task Validate_WithInvalidParentCategoryId_ShouldFailValidation()
         {
             // Arrange
             var command = new UpdateCategoryCommand(1, "Valid Category Name", null, 0);
 
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.Is<int>(x => x == 1), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.Is<int>(x => x == 0), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.ParentCategoryId)
-                .WithErrorMessage("ParentCategory ID must be a valid positive number.");
+                .WithErrorMessage("Parent Category does not exist.");
         }
 
         [Fact]
-        public void Validate_WithNullParentCategoryId_ShouldPassValidation()
+        public async Task Validate_WithInvalidCategoryId_ShouldFailValidation()
         {
             // Arrange
             var command = new UpdateCategoryCommand(1, "Valid Category Name", null, null);
 
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.Is<int>(x => x == 1), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
+
+            // Assert
+            result.ShouldHaveValidationErrorFor(c => c.Id)
+                .WithErrorMessage("Category does not exist.");
+        }
+
+        [Fact]
+        public async Task Validate_WithNullParentCategoryId_ShouldPassValidation()
+        {
+            // Arrange
+            var command = new UpdateCategoryCommand(1, "Valid Category Name", null, null);
+
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            // Act
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldNotHaveValidationErrorFor(c => c.ParentCategoryId);

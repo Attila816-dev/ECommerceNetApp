@@ -1,17 +1,21 @@
 using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.Validators.Category;
 using FluentValidation.TestHelper;
+using Moq;
 
 namespace ECommerceNetApp.Service.UnitTest.Validators.Category
 {
     public class CreateCategoryCommandValidatorTest
     {
         private readonly CreateCategoryCommandValidator _validator;
+        private readonly Mock<ICategoryRepository> _categoryRepository;
 
         public CreateCategoryCommandValidatorTest()
         {
-            _validator = new CreateCategoryCommandValidator();
+            _categoryRepository = new Mock<ICategoryRepository>();
+            _validator = new CreateCategoryCommandValidator(_categoryRepository.Object);
         }
 
         [Fact]
@@ -19,6 +23,9 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
         {
             // Arrange
             var command = new CreateCategoryCommand("Valid Category Name", null, null);
+
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
 
             // Act
             var result = _validator.TestValidate(command);
@@ -32,6 +39,9 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
         {
             // Arrange
             var command = new CreateCategoryCommand(string.Empty, null, null);
+
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
 
             // Act
             var result = _validator.TestValidate(command);
@@ -48,6 +58,9 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
             var categoryName = new string('A', CategoryEntity.MaxCategoryNameLength + 1);
             var command = new CreateCategoryCommand(categoryName, null, null);
 
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
             // Act
             var result = _validator.TestValidate(command);
 
@@ -57,17 +70,23 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
         }
 
         [Fact]
-        public void Validate_WithInvalidParentCategoryId_ShouldFailValidation()
+        public async Task Validate_WithInvalidParentCategoryId_ShouldFailValidation()
         {
             // Arrange
             var command = new CreateCategoryCommand("Valid Category Name", null, 0);
 
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.Is<int>(x => x != 0), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.Is<int>(x => x == 0), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.ParentCategoryId)
-                .WithErrorMessage("ParentCategory ID must be a valid positive number.");
+                .WithErrorMessage("Parent Category does not exist.");
         }
 
         [Fact]
@@ -75,6 +94,9 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
         {
             // Arrange
             var command = new CreateCategoryCommand("Valid Category Name", null, null);
+
+            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
 
             // Act
             var result = _validator.TestValidate(command);

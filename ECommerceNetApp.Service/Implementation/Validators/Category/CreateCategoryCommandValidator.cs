@@ -1,4 +1,5 @@
 using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Category;
 using FluentValidation;
 
@@ -6,16 +7,31 @@ namespace ECommerceNetApp.Service.Validators.Category
 {
     public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCommand>
     {
-        public CreateCategoryCommandValidator()
+        private readonly ICategoryRepository _categoryRepository;
+
+        public CreateCategoryCommandValidator(ICategoryRepository categoryRepository)
         {
-            RuleFor(command => command.Name)
+            _categoryRepository = categoryRepository;
+
+            RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Category name is required.")
                 .MaximumLength(CategoryEntity.MaxCategoryNameLength)
                 .WithMessage($"Category name cannot exceed {CategoryEntity.MaxCategoryNameLength} characters.");
 
-            RuleFor(command => command.ParentCategoryId)
-                .GreaterThan(0).WithMessage("ParentCategory ID must be a valid positive number.")
-                .When(command => command.ParentCategoryId.HasValue);
+            RuleFor(x => x.ParentCategoryId)
+                .MustAsync(ExistingCategoryIdOrNullAsync)
+                .WithMessage("Parent Category does not exist.")
+                .When(c => c.ParentCategoryId.HasValue);
+        }
+
+        private async Task<bool> ExistingCategoryIdOrNullAsync(CreateCategoryCommand command, int? parentCategoryId, CancellationToken cancellationToken)
+        {
+            if (!parentCategoryId.HasValue)
+            {
+                return true;
+            }
+
+            return await _categoryRepository.ExistsAsync(parentCategoryId.Value, cancellationToken).ConfigureAwait(false);
         }
     }
 }
