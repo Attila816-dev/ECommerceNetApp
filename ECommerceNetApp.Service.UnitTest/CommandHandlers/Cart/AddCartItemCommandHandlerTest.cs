@@ -4,7 +4,7 @@ using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Cart;
-using ECommerceNetApp.Service.Implementation.Mappers;
+using ECommerceNetApp.Service.Implementation.Mappers.Cart;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;

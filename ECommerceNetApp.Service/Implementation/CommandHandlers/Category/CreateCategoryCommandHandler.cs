@@ -1,6 +1,7 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Category;
+using ECommerceNetApp.Service.Interfaces.Mappers.Category;
 using FluentValidation;
 using MediatR;
 
@@ -8,9 +9,12 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
     public class CreateCategoryCommandHandler(
             ICategoryRepository categoryRepository,
-            IValidator<CreateCategoryCommand> validator) : IRequestHandler<CreateCategoryCommand, int>
+            ICategoryMapper categoryMapper,
+            IValidator<CreateCategoryCommand> validator)
+        : IRequestHandler<CreateCategoryCommand, int>
     {
         private readonly ICategoryRepository _categoryRepository = categoryRepository;
+        private readonly ICategoryMapper _categoryMapper = categoryMapper;
         private readonly IValidator<CreateCategoryCommand> _validator = validator;
 
         public async Task<int> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
@@ -32,7 +36,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
                 }
             }
 
-            var category = new CategoryEntity(request.Name, request.ImageUrl, parentCategory);
+            var category = _categoryMapper.MapToEntity(request, parentCategory);
             await _categoryRepository.AddAsync(category, cancellationToken).ConfigureAwait(false);
 
             return category.Id;

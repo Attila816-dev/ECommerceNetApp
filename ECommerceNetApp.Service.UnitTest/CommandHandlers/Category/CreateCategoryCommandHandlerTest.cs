@@ -3,6 +3,7 @@ using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Category;
+using ECommerceNetApp.Service.Implementation.Mappers.Category;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
@@ -13,16 +14,18 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
     {
         private readonly CreateCategoryCommandHandler _commandHandler;
         private readonly Mock<ICategoryRepository> _mockRepository;
+        private readonly CategoryMapper _categoryMapper;
         private readonly Mock<IValidator<CreateCategoryCommand>> _mockValidator;
 
         public CreateCategoryCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICategoryRepository>();
+            _categoryMapper = new CategoryMapper();
             _mockValidator = new Mock<IValidator<CreateCategoryCommand>>();
             _mockValidator.Setup(c => c.ValidateAsync(It.IsAny<CreateCategoryCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ValidationResult());
-            _commandHandler = new CreateCategoryCommandHandler(_mockRepository.Object, _mockValidator.Object);
+            _commandHandler = new CreateCategoryCommandHandler(_mockRepository.Object, _categoryMapper, _mockValidator.Object);
         }
 
         [Fact]

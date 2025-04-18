@@ -12,6 +12,8 @@ namespace ECommerceNetApp.Persistence.Interfaces
 
         Task<bool> ExistsAsync(int id, CancellationToken cancellationToken);
 
+        Task<bool> ExistsAnyProductWithCategoryIdAsync(int categoryId, CancellationToken cancellationToken);
+
         Task AddAsync(ProductEntity product, CancellationToken cancellationToken);
 
         Task UpdateAsync(ProductEntity product, CancellationToken cancellationToken);

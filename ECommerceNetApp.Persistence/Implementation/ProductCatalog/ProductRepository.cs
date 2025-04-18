@@ -46,6 +46,11 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             return await _dbContext.Products.AnyAsync(c => c.Id == id, cancellationToken).ConfigureAwait(false);
         }
 
+        public async Task<bool> ExistsAnyProductWithCategoryIdAsync(int categoryId, CancellationToken cancellationToken)
+        {
+            return await _dbContext.Products.AnyAsync(c => c.CategoryId == categoryId, cancellationToken).ConfigureAwait(false);
+        }
+
         public async Task AddAsync(ProductEntity product, CancellationToken cancellationToken)
         {
             await _dbContext.Products.AddAsync(product, cancellationToken).ConfigureAwait(false);

@@ -1,5 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Service.Implementation.Mappers.Category;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Category;
 using ECommerceNetApp.Service.Queries.Category;
 using Moq;
@@ -11,12 +12,14 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
     {
         private readonly GetAllCategoriesQueryHandler _queryHandler;
         private readonly Mock<ICategoryRepository> _mockRepository;
+        private readonly CategoryMapper _categoryMapper;
 
         public GetAllCategoriesQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICategoryRepository>();
-            _queryHandler = new GetAllCategoriesQueryHandler(_mockRepository.Object);
+            _categoryMapper = new CategoryMapper();
+            _queryHandler = new GetAllCategoriesQueryHandler(_mockRepository.Object, _categoryMapper);
         }
 
         [Fact]

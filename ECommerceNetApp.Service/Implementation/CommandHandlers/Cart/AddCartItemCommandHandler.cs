@@ -1,7 +1,7 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Cart;
-using ECommerceNetApp.Service.Interfaces;
+using ECommerceNetApp.Service.Interfaces.Mappers.Cart;
 using FluentValidation;
 using MediatR;
 

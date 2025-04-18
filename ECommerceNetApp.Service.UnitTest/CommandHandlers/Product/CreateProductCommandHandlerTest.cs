@@ -3,6 +3,7 @@ using ECommerceNetApp.Persistence.Interfaces;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
+using ECommerceNetApp.Service.Implementation.Mappers.Product;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
@@ -15,6 +16,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         private readonly CreateProductCommandHandler _commandHandler;
         private readonly Mock<ICategoryRepository> _mockCategoryRepository;
         private readonly Mock<IProductRepository> _mockProductRepository;
+        private readonly ProductMapper _productMapper;
         private readonly Mock<IValidator<CreateProductCommand>> _mockValidator;
 
         public CreateProductCommandHandlerTest()
@@ -23,9 +25,15 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             _mockCategoryRepository = new Mock<ICategoryRepository>();
             _mockProductRepository = new Mock<IProductRepository>();
             _mockValidator = new Mock<IValidator<CreateProductCommand>>();
+            _productMapper = new ProductMapper();
             _mockValidator.Setup(c => c.ValidateAsync(It.IsAny<CreateProductCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ValidationResult());
-            _commandHandler = new CreateProductCommandHandler(_mockProductRepository.Object, _mockCategoryRepository.Object, _mockValidator.Object);
+
+            _commandHandler = new CreateProductCommandHandler(
+                _mockProductRepository.Object,
+                _mockCategoryRepository.Object,
+                _productMapper,
+                _mockValidator.Object);
         }
 
         [Fact]

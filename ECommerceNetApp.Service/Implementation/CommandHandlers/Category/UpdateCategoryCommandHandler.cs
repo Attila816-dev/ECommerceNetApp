@@ -8,7 +8,8 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
     public class UpdateCategoryCommandHandler(
             ICategoryRepository categoryRepository,
-            IValidator<UpdateCategoryCommand> validator) : IRequestHandler<UpdateCategoryCommand>
+            IValidator<UpdateCategoryCommand> validator)
+        : IRequestHandler<UpdateCategoryCommand>
     {
         private readonly ICategoryRepository _categoryRepository = categoryRepository;
         private readonly IValidator<UpdateCategoryCommand> _validator = validator;
