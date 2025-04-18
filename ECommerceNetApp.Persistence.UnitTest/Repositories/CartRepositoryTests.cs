@@ -1,10 +1,8 @@
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Exceptions.Cart;
-using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.Cart;
 using LiteDB.Async;
-using Moq;
 using Shouldly;
 
 namespace ECommerceNetApp.Persistence.UnitTest.Repositories
@@ -13,7 +11,6 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
     {
         private readonly CartDbContext _dbContext;
         private readonly CartRepository _repository;
-        private readonly Mock<IDomainEventService> _mockDomainEventService;
         private bool disposedValue;
 
         public CartRepositoryTests()
@@ -22,9 +19,8 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var liteDatabase = new LiteDatabaseAsync(new MemoryStream(), CartDbContext.CreateMapper());
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-            _mockDomainEventService = new Mock<IDomainEventService>();
             _dbContext = new CartDbContext(liteDatabase);
-            _repository = new CartRepository(_dbContext, _mockDomainEventService.Object);
+            _repository = new CartRepository(_dbContext);
         }
 
         [Fact]
@@ -147,14 +143,6 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 
             // Assert
             (await cartCollection.CountAsync()).ShouldBe(0);
-        }
-
-        [Fact]
-        public void Constructor_NullDbContext_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            var exception = Should.Throw<ArgumentNullException>(() => new CartRepository(null, _mockDomainEventService.Object));
-            exception.ParamName.ShouldBe("dbContext");
         }
 
         [Fact]

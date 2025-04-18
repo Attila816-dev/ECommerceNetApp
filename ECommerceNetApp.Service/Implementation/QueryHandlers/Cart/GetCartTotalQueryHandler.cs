@@ -1,4 +1,4 @@
-﻿using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Queries.Cart;
 using MediatR;
 

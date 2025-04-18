@@ -1,6 +1,7 @@
 ﻿using ECommerceNetApp.Persistence.Implementation.Cart;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,8 +34,8 @@ namespace ECommerceNetApp.Persistence.Extensions
             services.AddScoped<CartDbInitializer>();
             services.AddScoped<CartDbSampleDataSeeder>();
 
-            services.AddScoped<ICategoryRepository, CategoryRepository>();
-            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IProductCatalogUnitOfWork, ProductCatalogUnitOfWork>();
+
             services.AddScoped<ProductCatalogDbSampleDataSeeder>();
 
             return services;

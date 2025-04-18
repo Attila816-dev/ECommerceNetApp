@@ -1,6 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Implementation.Mappers.Cart;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Cart;
 using ECommerceNetApp.Service.Queries.Cart;

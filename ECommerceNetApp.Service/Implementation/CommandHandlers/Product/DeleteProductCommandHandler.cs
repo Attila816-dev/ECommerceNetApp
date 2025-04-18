@@ -1,28 +1,24 @@
-﻿using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
 {
-    public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand>
+    public class DeleteProductCommandHandler(IProductCatalogUnitOfWork productCatalogUnitOfWork) : IRequestHandler<DeleteProductCommand>
     {
-        private readonly IProductRepository _productRepository;
-
-        public DeleteProductCommandHandler(IProductRepository productRepository)
-        {
-            _productRepository = productRepository;
-        }
+        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
 
         public async Task Handle(DeleteProductCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
-            var exists = await _productRepository.ExistsAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            var exists = await _productCatalogUnitOfWork.ProductRepository.ExistsAsync(request.Id, cancellationToken).ConfigureAwait(false);
             if (!exists)
             {
                 throw new InvalidOperationException($"Product with id {request.Id} not found");
             }
 
-            await _productRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            await _productCatalogUnitOfWork.ProductRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

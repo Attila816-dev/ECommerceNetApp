@@ -1,4 +1,4 @@
-﻿using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using FluentValidation;
 using MediatR;
@@ -6,11 +6,11 @@ using MediatR;
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
     public class DeleteCategoryCommandHandler(
-        ICategoryRepository categoryRepository,
+        IProductCatalogUnitOfWork productCatalogUnitOfWork,
         IValidator<DeleteCategoryCommand> validator)
         : IRequestHandler<DeleteCategoryCommand>
     {
-        private readonly ICategoryRepository _categoryRepository = categoryRepository;
+        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
         private readonly IValidator<DeleteCategoryCommand> _validator = validator;
 
         public async Task Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
@@ -23,7 +23,8 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
                 throw new ValidationException(validationResult.Errors);
             }
 
-            await _categoryRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            await _productCatalogUnitOfWork.CategoryRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

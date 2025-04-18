@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.Interfaces.Mappers.Category;
 using FluentValidation;
@@ -8,12 +8,12 @@ using MediatR;
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
     public class CreateCategoryCommandHandler(
-            ICategoryRepository categoryRepository,
+            IProductCatalogUnitOfWork productCatalogUnitOfWork,
             ICategoryMapper categoryMapper,
             IValidator<CreateCategoryCommand> validator)
         : IRequestHandler<CreateCategoryCommand, int>
     {
-        private readonly ICategoryRepository _categoryRepository = categoryRepository;
+        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
         private readonly ICategoryMapper _categoryMapper = categoryMapper;
         private readonly IValidator<CreateCategoryCommand> _validator = validator;
 
@@ -29,7 +29,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
             CategoryEntity? parentCategory = null;
             if (request.ParentCategoryId.HasValue)
             {
-                parentCategory = await _categoryRepository.GetByIdAsync(request.ParentCategoryId.Value, cancellationToken).ConfigureAwait(false);
+                parentCategory = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.ParentCategoryId.Value, cancellationToken).ConfigureAwait(false);
                 if (parentCategory == null)
                 {
                     throw new InvalidOperationException($"Parent category with id {request.ParentCategoryId.Value} not found");
@@ -37,7 +37,8 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
             }
 
             var category = _categoryMapper.MapToEntity(request, parentCategory);
-            await _categoryRepository.AddAsync(category, cancellationToken).ConfigureAwait(false);
+            await _productCatalogUnitOfWork.CategoryRepository.AddAsync(category, cancellationToken).ConfigureAwait(false);
+            await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
 
             return category.Id;
         }

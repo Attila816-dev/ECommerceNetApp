@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Implementation.Mappers.Category;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Category;
 using ECommerceNetApp.Service.Queries.Category;
@@ -12,14 +12,17 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
     {
         private readonly GetCategoriesByParentCategoryIdQueryHandler _queryHandler;
         private readonly Mock<ICategoryRepository> _mockRepository;
+        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
         private readonly CategoryMapper _categoryMapper;
 
         public GetCategoriesByParentCategoryIdQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICategoryRepository>();
+            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
+            _mockUnitOfWork.SetupGet(u => u.CategoryRepository).Returns(_mockRepository.Object);
             _categoryMapper = new CategoryMapper();
-            _queryHandler = new GetCategoriesByParentCategoryIdQueryHandler(_mockRepository.Object, _categoryMapper);
+            _queryHandler = new GetCategoriesByParentCategoryIdQueryHandler(_mockUnitOfWork.Object, _categoryMapper);
         }
 
         [Fact]

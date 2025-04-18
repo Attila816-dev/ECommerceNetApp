@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
@@ -16,6 +16,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         private readonly CreateProductCommandHandler _commandHandler;
         private readonly Mock<ICategoryRepository> _mockCategoryRepository;
         private readonly Mock<IProductRepository> _mockProductRepository;
+        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
         private readonly ProductMapper _productMapper;
         private readonly Mock<IValidator<CreateProductCommand>> _mockValidator;
 
@@ -24,16 +25,16 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             // Initialize the command handler with necessary dependencies
             _mockCategoryRepository = new Mock<ICategoryRepository>();
             _mockProductRepository = new Mock<IProductRepository>();
+            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
+            _mockUnitOfWork.SetupGet(x => x.ProductRepository).Returns(_mockProductRepository.Object);
+            _mockUnitOfWork.SetupGet(x => x.CategoryRepository).Returns(_mockCategoryRepository.Object);
+
             _mockValidator = new Mock<IValidator<CreateProductCommand>>();
             _productMapper = new ProductMapper();
             _mockValidator.Setup(c => c.ValidateAsync(It.IsAny<CreateProductCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ValidationResult());
 
-            _commandHandler = new CreateProductCommandHandler(
-                _mockProductRepository.Object,
-                _mockCategoryRepository.Object,
-                _productMapper,
-                _mockValidator.Object);
+            _commandHandler = new CreateProductCommandHandler(_mockUnitOfWork.Object, _productMapper, _mockValidator.Object);
         }
 
         [Fact]
@@ -57,6 +58,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             _mockProductRepository.Setup(repo => repo.AddAsync(It.Is<ProductEntity>(p => p.Name == productDto.Name), CancellationToken.None))
                 .Verifiable();
 
+            _mockUnitOfWork.Setup(x => x.CommitAsync(CancellationToken.None))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
             // Act
             var command = new CreateProductCommand(
                 productDto.Name,
@@ -71,6 +76,8 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             _mockProductRepository.Verify(
                 repo => repo.AddAsync(It.Is<ProductEntity>(p => p.Name == productDto.Name), CancellationToken.None),
                 Times.Once);
+
+            _mockUnitOfWork.Verify(x => x.CommitAsync(CancellationToken.None), Times.Once);
         }
 
         [Fact]

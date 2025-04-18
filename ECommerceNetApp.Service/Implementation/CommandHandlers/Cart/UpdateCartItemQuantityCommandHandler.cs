@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Exceptions.Cart;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
 using FluentValidation;
 using MediatR;

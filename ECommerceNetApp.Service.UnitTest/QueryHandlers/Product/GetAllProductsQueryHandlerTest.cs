@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Implementation.Mappers.Product;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Product;
 using ECommerceNetApp.Service.Queries.Product;
@@ -12,14 +12,17 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
     {
         private readonly GetAllProductsQueryHandler _queryHandler;
         private readonly Mock<IProductRepository> _mockRepository;
+        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
         private readonly ProductMapper _productMapper;
 
         public GetAllProductsQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<IProductRepository>();
+            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
+            _mockUnitOfWork.SetupGet(x => x.ProductRepository).Returns(_mockRepository.Object);
             _productMapper = new ProductMapper();
-            _queryHandler = new GetAllProductsQueryHandler(_mockRepository.Object, _productMapper);
+            _queryHandler = new GetAllProductsQueryHandler(_mockUnitOfWork.Object, _productMapper);
         }
 
         [Fact]
