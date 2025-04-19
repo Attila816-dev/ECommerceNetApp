@@ -1,6 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Cart;
 using ECommerceNetApp.Service.Queries.Cart;
 using Moq;
@@ -12,12 +12,15 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
     {
         private readonly GetCartTotalQueryHandler _queryHandler;
         private readonly Mock<ICartRepository> _mockRepository;
+        private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
 
         public GetCartTotalQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies.
             _mockRepository = new Mock<ICartRepository>();
-            _queryHandler = new GetCartTotalQueryHandler(_mockRepository.Object);
+            _mockUnitOfWork = new Mock<ICartUnitOfWork>();
+            _mockUnitOfWork.Setup(u => u.CartRepository).Returns(_mockRepository.Object);
+            _queryHandler = new GetCartTotalQueryHandler(_mockUnitOfWork.Object);
         }
 
         [Fact]

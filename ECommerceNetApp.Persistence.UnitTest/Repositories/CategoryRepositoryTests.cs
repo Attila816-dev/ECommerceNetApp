@@ -10,8 +10,10 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 {
     public class CategoryRepositoryTests : IDisposable
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ProductCatalogDbContext _dbContext;
-        private readonly CategoryRepository _categoryRepository;
+#pragma warning restore CA2213 // Disposable fields should be disposed
+        private readonly ProductCatalogUnitOfWork _productCatalogUnitOfWork;
         private readonly Mock<IDomainEventService> _mockDomainEventService;
         private bool disposedValue;
 
@@ -29,7 +31,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 
             _mockDomainEventService = new Mock<IDomainEventService>();
             _dbContext = new ProductCatalogDbContext(options);
-            _categoryRepository = new CategoryRepository(_dbContext, _mockDomainEventService.Object);
+            _productCatalogUnitOfWork = new ProductCatalogUnitOfWork(_dbContext, _mockDomainEventService.Object);
 
             // Seed test data.
             SeedTestData();
@@ -39,7 +41,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetAllAsync_ShouldReturnAllCategories()
         {
             // Act
-            var result = await _categoryRepository.GetAllAsync(CancellationToken.None);
+            var result = await _productCatalogUnitOfWork.CategoryRepository.GetAllAsync(CancellationToken.None);
 
             // Assert
             result.Count().ShouldBe(2);
@@ -49,7 +51,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetByIdAsync_WithValidId_ShouldReturnCategory()
         {
             // Act
-            var result = await _categoryRepository.GetByIdAsync(1, CancellationToken.None);
+            var result = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(1, CancellationToken.None);
 
             // Assert
             result.ShouldNotBeNull();
@@ -63,7 +65,8 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var newCategory = new CategoryEntity("Toys");
 
             // Act
-            await _categoryRepository.AddAsync(newCategory, CancellationToken.None);
+            await _productCatalogUnitOfWork.CategoryRepository.AddAsync(newCategory, CancellationToken.None);
+            await _productCatalogUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Assert - Verify it was added to the database.
             var categoryInDb = await _dbContext.Categories.FirstAsync(c => c.Name.Equals("Toys", StringComparison.Ordinal), CancellationToken.None);
@@ -84,7 +87,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    _dbContext.Dispose();
+                    _productCatalogUnitOfWork.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer.

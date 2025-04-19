@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Category;
@@ -14,17 +14,21 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
     {
         private readonly UpdateCategoryCommandHandler _commandHandler;
         private readonly Mock<ICategoryRepository> _mockRepository;
+        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
         private readonly Mock<IValidator<UpdateCategoryCommand>> _mockValidator;
 
         public UpdateCategoryCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICategoryRepository>();
+            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
+            _mockUnitOfWork.Setup(u => u.CategoryRepository).Returns(_mockRepository.Object);
+
             _mockValidator = new Mock<IValidator<UpdateCategoryCommand>>();
             _mockValidator.Setup(c => c.ValidateAsync(It.IsAny<UpdateCategoryCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ValidationResult());
 
-            _commandHandler = new UpdateCategoryCommandHandler(_mockRepository.Object, _mockValidator.Object);
+            _commandHandler = new UpdateCategoryCommandHandler(_mockUnitOfWork.Object, _mockValidator.Object);
         }
 
         [Fact]
@@ -36,7 +40,11 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             _mockRepository.Setup(repo => repo.GetByIdAsync(It.Is<int>(id => id == 1), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CategoryEntity(categoryDto.Id, "Electronics"));
 
-            _mockRepository.Setup(c => c.UpdateAsync(It.Is<CategoryEntity>(c => c.Name == categoryDto.Name && c.Id == 1), CancellationToken.None))
+            _mockRepository.Setup(c => c.Update(It.Is<CategoryEntity>(c => c.Name == categoryDto.Name && c.Id == 1)))
+                .Verifiable();
+
+            _mockUnitOfWork.Setup(x => x.CommitAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
@@ -45,10 +53,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
 
             // Assert
             _mockRepository.Verify(
-                r => r.UpdateAsync(
-                    It.Is<CategoryEntity>(c => c.Name == categoryDto.Name),
-                    CancellationToken.None),
+                r => r.Update(It.Is<CategoryEntity>(c => c.Name == categoryDto.Name)),
                 Times.Once);
+
+            _mockUnitOfWork.Verify(x => x.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -60,7 +68,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             _mockRepository.Setup(repo => repo.GetByIdAsync(It.Is<int>(id => id == 1), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CategoryEntity(categoryDto.Id, "Electronics"));
 
-            _mockRepository.Setup(c => c.UpdateAsync(It.Is<CategoryEntity>(c => c.Name == categoryDto.Name && c.Id == 1), CancellationToken.None))
+            _mockRepository.Setup(c => c.Update(It.Is<CategoryEntity>(c => c.Name == categoryDto.Name && c.Id == 1)))
                 .Verifiable();
 
             // Act
@@ -73,9 +81,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
 
             // Assert
             _mockRepository.Verify(
-                r => r.UpdateAsync(
-                    It.Is<CategoryEntity>(c => c.Name == categoryDto.Name),
-                    CancellationToken.None),
+                r => r.Update(It.Is<CategoryEntity>(c => c.Name == categoryDto.Name)),
                 Times.Never);
         }
     }

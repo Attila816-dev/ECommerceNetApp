@@ -1,6 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Cart;
 using Moq;
@@ -11,12 +11,15 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
     {
         private readonly RemoveCartItemCommandHandler _commandHandler;
         private readonly Mock<ICartRepository> _mockRepository;
+        private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
 
         public RemoveCartItemCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICartRepository>();
-            _commandHandler = new RemoveCartItemCommandHandler(_mockRepository.Object);
+            _mockUnitOfWork = new Mock<ICartUnitOfWork>();
+            _mockUnitOfWork.Setup(u => u.CartRepository).Returns(_mockRepository.Object);
+            _commandHandler = new RemoveCartItemCommandHandler(_mockUnitOfWork.Object);
         }
 
         [Fact]

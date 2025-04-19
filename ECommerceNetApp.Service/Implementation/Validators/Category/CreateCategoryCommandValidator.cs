@@ -1,5 +1,5 @@
 using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using FluentValidation;
 
@@ -7,11 +7,11 @@ namespace ECommerceNetApp.Service.Validators.Category
 {
     public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCommand>
     {
-        private readonly ICategoryRepository _categoryRepository;
+        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork;
 
-        public CreateCategoryCommandValidator(ICategoryRepository categoryRepository)
+        public CreateCategoryCommandValidator(IProductCatalogUnitOfWork productCatalogUnitOfWork)
         {
-            _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
+            _productCatalogUnitOfWork = productCatalogUnitOfWork ?? throw new ArgumentNullException(nameof(productCatalogUnitOfWork));
 
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Category name is required.")
@@ -31,7 +31,9 @@ namespace ECommerceNetApp.Service.Validators.Category
                 return true;
             }
 
-            return await _categoryRepository.ExistsAsync(parentCategoryId.Value, cancellationToken).ConfigureAwait(false);
+            return await _productCatalogUnitOfWork.CategoryRepository
+                .ExistsAsync(parentCategoryId.Value, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

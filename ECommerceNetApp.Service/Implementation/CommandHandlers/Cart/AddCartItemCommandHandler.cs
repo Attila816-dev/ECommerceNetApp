@@ -1,19 +1,19 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
-using ECommerceNetApp.Service.Interfaces;
+using ECommerceNetApp.Service.Interfaces.Mappers.Cart;
 using FluentValidation;
 using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
     public class AddCartItemCommandHandler(
-        ICartRepository cartRepository,
+        ICartUnitOfWork cartUnitOfWork,
         ICartItemMapper cartItemMapper,
         IValidator<AddCartItemCommand> validator)
         : IRequestHandler<AddCartItemCommand>
     {
-        private readonly ICartRepository _cartRepository = cartRepository;
+        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
         private readonly ICartItemMapper _cartItemMapper = cartItemMapper;
         private readonly IValidator<AddCartItemCommand> _validator = validator;
 
@@ -27,7 +27,9 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
                 throw new ValidationException(validationResult.Errors);
             }
 
-            var cart = await _cartRepository.GetByIdAsync(request.CartId, cancellationToken).ConfigureAwait(false);
+            var cart = await _cartUnitOfWork.CartRepository
+                .GetByIdAsync(request.CartId, cancellationToken)
+                .ConfigureAwait(false);
 
             if (cart == null)
             {
@@ -35,9 +37,11 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
             }
 
             // Use domain logic to add item
-            cart.AddItem(_cartItemMapper.MapToEntity(request));
+            var cartItem = _cartItemMapper.MapToEntity(request);
+            cart.AddItem(cartItem);
 
-            await _cartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
+            await _cartUnitOfWork.CartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
+            await _cartUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

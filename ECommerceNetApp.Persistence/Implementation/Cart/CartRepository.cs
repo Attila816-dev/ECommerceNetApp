@@ -1,24 +1,17 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Exceptions.Cart;
-using ECommerceNetApp.Domain.Interfaces;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
-    public class CartRepository : ICartRepository
+    public class CartRepository(CartDbContext cartDbContext, CartUnitOfWork cartUnitOfWork) : ICartRepository
     {
-        private readonly CartDbContext _dbContext;
-        private readonly IDomainEventService _domainEventService;
-
-        public CartRepository(CartDbContext? dbContext, IDomainEventService domainEventService)
-        {
-            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-            _domainEventService = domainEventService ?? throw new ArgumentNullException(nameof(domainEventService));
-        }
+        private readonly CartDbContext _cartDbContext = cartDbContext;
+        private readonly CartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
 
         public async Task<CartEntity?> GetByIdAsync(string cartId, CancellationToken cancellationToken)
         {
-            var collection = _dbContext.GetCollection<CartEntity>();
+            var collection = _cartDbContext.GetCollection<CartEntity>();
             var cart = await collection.FindByIdAsync(cartId).ConfigureAwait(false);
             return cart;
         }
@@ -28,17 +21,18 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             ArgumentNullException.ThrowIfNull(cart, nameof(cart));
             ArgumentException.ThrowIfNullOrEmpty(cart.Id, nameof(cart.Id));
 
-            var collection = _dbContext.GetCollection<CartEntity>();
-
+            var collection = _cartDbContext.GetCollection<CartEntity>();
             await collection.UpsertAsync(cart).ConfigureAwait(false);
-            await _domainEventService.PublishEventsAsync(cart, cancellationToken).ConfigureAwait(false);
+
+            // Track the modified entity
+            _cartUnitOfWork.TrackEntity(cart);
         }
 
         public async Task DeleteAsync(string cartId, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
 
-            var collection = _dbContext.GetCollection<CartEntity>();
+            var collection = _cartDbContext.GetCollection<CartEntity>();
             var cart = await collection.FindByIdAsync(cartId).ConfigureAwait(false);
             if (cart == null)
             {
@@ -46,9 +40,10 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             }
 
             cart.MarkAsDeleted();
-
             await collection.DeleteAsync(cartId).ConfigureAwait(false);
-            await _domainEventService.PublishEventsAsync(cart, cancellationToken).ConfigureAwait(false);
+
+            // Track the modified entity
+            _cartUnitOfWork.TrackEntity(cart);
         }
     }
 }

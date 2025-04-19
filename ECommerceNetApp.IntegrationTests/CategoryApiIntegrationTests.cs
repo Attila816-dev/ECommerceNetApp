@@ -27,7 +27,10 @@ namespace ECommerceNetApp.IntegrationTests
                 builder.ConfigureServices(services =>
                 {
                     services.Remove(services.Single(d => d.ServiceType == typeof(CartDbContext)));
-                    services.AddSingleton(new CartDbContext("Filename=:memory:;Mode=Memory;Cache=Shared"));
+                    services.AddScoped(provider =>
+                    {
+                        return new CartDbContext("Filename=:memory:;Mode=Memory;Cache=Shared");
+                    });
 
                     var optionsConfig = services
                         .Where(r => r.ServiceType.IsGenericType && r.ServiceType.GetGenericTypeDefinition() == typeof(IDbContextOptionsConfiguration<>)).ToArray();

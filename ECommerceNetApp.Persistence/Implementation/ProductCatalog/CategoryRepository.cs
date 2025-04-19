@@ -1,20 +1,13 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.Interfaces;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 {
-    public class CategoryRepository : ICategoryRepository
+    internal class CategoryRepository(
+        ProductCatalogDbContext dbContext) : ICategoryRepository
     {
-        private readonly ProductCatalogDbContext _dbContext;
-        private readonly IDomainEventService _domainEventService;
-
-        public CategoryRepository(ProductCatalogDbContext dbContext, IDomainEventService domainEventService)
-        {
-            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-            _domainEventService = domainEventService ?? throw new ArgumentNullException(nameof(domainEventService));
-        }
+        private readonly ProductCatalogDbContext _dbContext = dbContext;
 
         public async Task<IEnumerable<CategoryEntity>> GetAllAsync(CancellationToken cancellationToken)
         {
@@ -49,26 +42,20 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
         public async Task AddAsync(CategoryEntity category, CancellationToken cancellationToken)
         {
             await _dbContext.Categories.AddAsync(category, cancellationToken).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            await _domainEventService.PublishEventsAsync(category, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task UpdateAsync(CategoryEntity category, CancellationToken cancellationToken)
+        public void Update(CategoryEntity category)
         {
             _dbContext.Categories.Update(category);
-            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            await _domainEventService.PublishEventsAsync(category, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task DeleteAsync(int id, CancellationToken cancellationToken)
         {
-            var category = await _dbContext.Categories.FindAsync([id], cancellationToken: cancellationToken).ConfigureAwait(false);
+            var category = await _dbContext.Categories.FindAsync([id], cancellationToken).ConfigureAwait(false);
             if (category != null)
             {
                 category.MarkAsDeleted();
                 _dbContext.Categories.Remove(category);
-                await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                await _domainEventService.PublishEventsAsync(category, cancellationToken).ConfigureAwait(false);
             }
         }
     }

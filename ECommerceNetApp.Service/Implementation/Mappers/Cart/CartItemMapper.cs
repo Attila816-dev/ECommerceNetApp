@@ -1,9 +1,9 @@
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
-using ECommerceNetApp.Service.Interfaces;
+using ECommerceNetApp.Service.Interfaces.Mappers.Cart;
 
-namespace ECommerceNetApp.Service.Implementation.Mappers
+namespace ECommerceNetApp.Service.Implementation.Mappers.Cart
 {
     public class CartItemMapper : ICartItemMapper
     {
