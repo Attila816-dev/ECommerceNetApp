@@ -4,7 +4,7 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 {
-    public class ProductCatalogUnitOfWork : IProductCatalogUnitOfWork, IDisposable
+    public class ProductCatalogUnitOfWork : IProductCatalogUnitOfWork
     {
         private readonly ProductCatalogDbContext _dbContext;
         private readonly IDomainEventService _domainEventService;

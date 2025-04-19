@@ -13,7 +13,22 @@ namespace ECommerceNetApp.Persistence.Extensions
         internal const string ProductCatalogDbConnectionStringName = "ProductCatalogDb";
         private const string CartDbConnectionStringName = "CartDb";
 
-        public static IServiceCollection AddECommerceRepositories(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddProductCatalogDb(this IServiceCollection services, IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+
+            services.AddDbContext<ProductCatalogDbContext>(options
+                => options.UseSqlServer(
+                    configuration.GetConnectionString(ProductCatalogDbConnectionStringName),
+                    b => b.MigrationsAssembly(typeof(ProductCatalogDbContext).Assembly)));
+
+            services.AddScoped<IProductCatalogUnitOfWork, ProductCatalogUnitOfWork>();
+            services.AddScoped<ProductCatalogDbSampleDataSeeder>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddCartDb(this IServiceCollection services, IConfiguration configuration)
         {
             ArgumentNullException.ThrowIfNull(configuration);
 
@@ -25,19 +40,9 @@ namespace ECommerceNetApp.Persistence.Extensions
                 return new CartDbContext(cartDbConnectionString);
             });
 
-            services.AddDbContext<ProductCatalogDbContext>(options
-                => options.UseSqlServer(
-                    configuration.GetConnectionString(ProductCatalogDbConnectionStringName),
-                    b => b.MigrationsAssembly(typeof(ProductCatalogDbContext).Assembly)));
-
-            services.AddScoped<ICartRepository, CartRepository>();
             services.AddScoped<CartDbInitializer>();
             services.AddScoped<CartDbSampleDataSeeder>();
-
-            services.AddScoped<IProductCatalogUnitOfWork, ProductCatalogUnitOfWork>();
-
-            services.AddScoped<ProductCatalogDbSampleDataSeeder>();
-
+            services.AddSingleton<ICartUnitOfWork, CartUnitOfWork>();
             return services;
         }
     }

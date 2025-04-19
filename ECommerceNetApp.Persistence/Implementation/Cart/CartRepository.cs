@@ -4,9 +4,10 @@ using ECommerceNetApp.Persistence.Interfaces.Cart;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
-    public class CartRepository(CartDbContext cartDbContext) : ICartRepository
+    public class CartRepository(CartDbContext cartDbContext, CartUnitOfWork cartUnitOfWork) : ICartRepository
     {
         private readonly CartDbContext _cartDbContext = cartDbContext;
+        private readonly CartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
 
         public async Task<CartEntity?> GetByIdAsync(string cartId, CancellationToken cancellationToken)
         {
@@ -21,8 +22,10 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             ArgumentException.ThrowIfNullOrEmpty(cart.Id, nameof(cart.Id));
 
             var collection = _cartDbContext.GetCollection<CartEntity>();
-
             await collection.UpsertAsync(cart).ConfigureAwait(false);
+
+            // Track the modified entity
+            _cartUnitOfWork.TrackEntity(cart);
         }
 
         public async Task DeleteAsync(string cartId, CancellationToken cancellationToken)
@@ -37,8 +40,10 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             }
 
             cart.MarkAsDeleted();
-
             await collection.DeleteAsync(cartId).ConfigureAwait(false);
+
+            // Track the modified entity
+            _cartUnitOfWork.TrackEntity(cart);
         }
     }
 }

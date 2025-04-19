@@ -13,14 +13,17 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
     {
         private readonly GetCartItemsQueryHandler _queryHandler;
         private readonly Mock<ICartRepository> _mockRepository;
+        private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
         private readonly CartItemMapper _cartItemMapper;
 
         public GetCartItemsQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICartRepository>();
+            _mockUnitOfWork = new Mock<ICartUnitOfWork>();
+            _mockUnitOfWork.Setup(u => u.CartRepository).Returns(_mockRepository.Object);
             _cartItemMapper = new CartItemMapper();
-            _queryHandler = new GetCartItemsQueryHandler(_mockRepository.Object, _cartItemMapper);
+            _queryHandler = new GetCartItemsQueryHandler(_mockUnitOfWork.Object, _cartItemMapper);
         }
 
         [Fact]

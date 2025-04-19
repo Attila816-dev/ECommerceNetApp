@@ -1,16 +1,22 @@
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Exceptions.Cart;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.Cart;
 using LiteDB.Async;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Shouldly;
 
 namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 {
     public class CartRepositoryTests : IDisposable
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly CartDbContext _dbContext;
-        private readonly CartRepository _repository;
+#pragma warning restore CA2213 // Disposable fields should be disposed
+        private readonly CartUnitOfWork _unitOfWork;
+        private readonly Mock<IDomainEventService> _domainEventService;
         private bool disposedValue;
 
         public CartRepositoryTests()
@@ -19,8 +25,12 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var liteDatabase = new LiteDatabaseAsync(new MemoryStream(), CartDbContext.CreateMapper());
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
+            _domainEventService = new Mock<IDomainEventService>();
+            var mockServiceProvider = new Mock<IServiceProvider>();
+            RegisterDomainServiceIntoServiceProvider(mockServiceProvider);
+
             _dbContext = new CartDbContext(liteDatabase);
-            _repository = new CartRepository(_dbContext);
+            _unitOfWork = new CartUnitOfWork(_dbContext, mockServiceProvider.Object);
         }
 
         [Fact]
@@ -34,7 +44,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             await cartCollection.InsertAsync(expectedCart);
 
             // Act
-            var result = await _repository.GetByIdAsync(cartId, CancellationToken.None);
+            var result = await _unitOfWork.CartRepository.GetByIdAsync(cartId, CancellationToken.None);
 
             // Assert
             result.ShouldNotBeNull();
@@ -50,7 +60,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var cartCollection = _dbContext.GetCollection<CartEntity>();
 
             // Act
-            var result = await _repository.GetByIdAsync(cartId, CancellationToken.None);
+            var result = await _unitOfWork.CartRepository.GetByIdAsync(cartId, CancellationToken.None);
 
             // Assert
             result.ShouldBeNull();
@@ -65,7 +75,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var cartCollection = _dbContext.GetCollection<CartEntity>();
 
             // Act
-            await _repository.SaveAsync(cart, CancellationToken.None);
+            await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
 
             // Assert
             var insertedCart = await cartCollection.FindByIdAsync(cart.Id);
@@ -80,8 +90,8 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             cart.AddItem(new CartItem(1, "Test Item", Money.From(10.99m), 2));
 
             // Act
-            await _repository.SaveAsync(cart, CancellationToken.None);
-            var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
+            await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
+            var retrievedCart = await _unitOfWork.CartRepository.GetByIdAsync(cart.Id, CancellationToken.None);
 
             // Assert
             retrievedCart.ShouldNotBeNull();
@@ -101,11 +111,11 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var cart = new CartEntity("cart-to-delete");
             cart.AddItem(new CartItem(1, "Item to delete", Money.From(15.99m), 1));
 
-            await _repository.SaveAsync(cart, CancellationToken.None);
+            await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
 
             // Act
-            await _repository.DeleteAsync(cart.Id, CancellationToken.None);
-            var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
+            await _unitOfWork.CartRepository.DeleteAsync(cart.Id, CancellationToken.None);
+            var retrievedCart = await _unitOfWork.CartRepository.GetByIdAsync(cart.Id, CancellationToken.None);
 
             // Assert
             retrievedCart.ShouldBeNull();
@@ -122,7 +132,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             await cartCollection.InsertAsync(expectedCart);
 
             // Act
-            await _repository.DeleteAsync(cartId, CancellationToken.None);
+            await _unitOfWork.CartRepository.DeleteAsync(cartId, CancellationToken.None);
 
             // Assert
             (await cartCollection.CountAsync()).ShouldBe(0);
@@ -138,7 +148,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             // Act
             await Should.ThrowAsync<CartNotFoundException>(async () =>
             {
-                await _repository.DeleteAsync(cartId, CancellationToken.None);
+                await _unitOfWork.CartRepository.DeleteAsync(cartId, CancellationToken.None);
             });
 
             // Assert
@@ -155,8 +165,8 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 
             // Act
             cart.AddItem(new CartItem(1, "High Quantity Item", price, quantity));
-            await _repository.SaveAsync(cart, CancellationToken.None);
-            var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
+            await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
+            var retrievedCart = await _unitOfWork.CartRepository.GetByIdAsync(cart.Id, CancellationToken.None);
 
             // Assert
             retrievedCart.ShouldNotBeNull();
@@ -178,8 +188,8 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 
             // Act
             cart.AddItem(new CartItem(1, "High Quantity Item", price, quantity));
-            await _repository.SaveAsync(cart, CancellationToken.None);
-            var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
+            await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
+            var retrievedCart = await _unitOfWork.CartRepository.GetByIdAsync(cart.Id, CancellationToken.None);
 
             // Assert
             retrievedCart.ShouldNotBeNull();
@@ -200,8 +210,8 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 
             // Act
             cart.AddItem(new CartItem(1, specialName, Money.From(19.99m), 1));
-            await _repository.SaveAsync(cart, CancellationToken.None);
-            var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
+            await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
+            var retrievedCart = await _unitOfWork.CartRepository.GetByIdAsync(cart.Id, CancellationToken.None);
 
             // Assert
             retrievedCart.ShouldNotBeNull();
@@ -222,10 +232,10 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 
             // Act
             cart.AddItem(new CartItem(1, "Test Item", Money.From(10.99m), 1));
-            await _repository.SaveAsync(cart, CancellationToken.None);
+            await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
 
             // Assert
-            var retrievedCart = await _repository.GetByIdAsync(cart.Id, CancellationToken.None);
+            var retrievedCart = await _unitOfWork.CartRepository.GetByIdAsync(cart.Id, CancellationToken.None);
             retrievedCart.ShouldNotBeNull();
             retrievedCart.Items.Count.ShouldBe(1);
 
@@ -249,13 +259,25 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects)
-                    _dbContext.Dispose();
+                    _unitOfWork.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
                 disposedValue = true;
             }
+        }
+
+        private void RegisterDomainServiceIntoServiceProvider(Mock<IServiceProvider> mockServiceProvider)
+        {
+            var mockServiceScope = new Mock<IServiceScope>();
+            var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+            mockServiceProvider.Setup(x => x.GetService(typeof(IServiceScopeFactory)))
+                .Returns(mockServiceScopeFactory.Object);
+            mockServiceScopeFactory.Setup(x => x.CreateScope()).Returns(mockServiceScope.Object);
+            mockServiceScope.SetupGet(sp => sp.ServiceProvider).Returns(mockServiceProvider.Object);
+            mockServiceProvider.Setup(sp => sp.GetService(typeof(IDomainEventService)))
+                .Returns(_domainEventService.Object);
         }
     }
 }

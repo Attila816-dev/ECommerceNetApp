@@ -7,11 +7,11 @@ using MediatR;
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
     public class UpdateCartItemQuantityCommandHandler(
-        ICartRepository cartRepository,
+        ICartUnitOfWork cartUnitOfWork,
         IValidator<UpdateCartItemQuantityCommand> validator)
         : IRequestHandler<UpdateCartItemQuantityCommand>
     {
-        private readonly ICartRepository _cartRepository = cartRepository;
+        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
         private readonly IValidator<UpdateCartItemQuantityCommand> _validator = validator;
 
         public async Task Handle(UpdateCartItemQuantityCommand request, CancellationToken cancellationToken)
@@ -24,7 +24,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
                 throw new ValidationException(validationResult.Errors);
             }
 
-            var cart = await _cartRepository.GetByIdAsync(request.CartId, cancellationToken).ConfigureAwait(false);
+            var cart = await _cartUnitOfWork.CartRepository.GetByIdAsync(request.CartId, cancellationToken).ConfigureAwait(false);
 
             if (cart == null)
             {
@@ -32,7 +32,8 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
             }
 
             cart.UpdateItemQuantity(request.ItemId, request.Quantity);
-            await _cartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
+            await _cartUnitOfWork.CartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
+            await _cartUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

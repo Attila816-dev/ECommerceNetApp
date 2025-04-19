@@ -76,7 +76,8 @@ namespace ECommerceNetApp.Api
             });
 
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-            builder.Services.AddECommerceRepositories(builder.Configuration);
+            builder.Services.AddCartDb(builder.Configuration);
+            builder.Services.AddProductCatalogDb(builder.Configuration);
             builder.Services.AddValidatorsFromAssemblyContaining<AddCartItemCommandValidator>();
             builder.Services.AddECommerceServices();
             ConfigureHealthCheck(builder);
