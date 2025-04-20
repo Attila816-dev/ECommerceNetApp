@@ -28,7 +28,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 
             if (cart == null)
             {
-                throw new CartNotFoundException(request.CartId);
+                throw InvalidCartException.CartNotFound(request.CartId);
             }
 
             cart.UpdateItemQuantity(request.ItemId, request.Quantity);

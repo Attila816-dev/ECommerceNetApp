@@ -23,8 +23,22 @@ namespace ECommerceNetApp.Domain.UnitTest
         public void CreateCart_WithEmptyId_ThrowsDomainException()
         {
             // Act & Assert
-            var exception = Should.Throw<ArgumentException>(()
+            var exception = Should.Throw<InvalidCartException>(()
                 => new CartEntity(string.Empty));
+        }
+
+        [Fact]
+        public void AddItem_NewItem_RaisesCartItemAddedEvent()
+        {
+            // Arrange
+            var cart = new CartEntity("test-cart");
+            var item = new CartItem(1, "Test Item", Money.From(10.99m), 2);
+
+            // Act
+            cart.AddItem(item);
+
+            // Assert
+            cart.DomainEvents.ShouldContain(e => e is CartItemAddedEvent);
         }
 
         [Fact]
@@ -92,7 +106,7 @@ namespace ECommerceNetApp.Domain.UnitTest
             var cart = new CartEntity("test-cart-123");
 
             // Act & Assert
-            var exception = Should.Throw<CartItemNotFoundException>(() => cart.RemoveItem(1));
+            var exception = Should.Throw<InvalidCartException>(() => cart.RemoveItem(1));
         }
 
         [Fact]

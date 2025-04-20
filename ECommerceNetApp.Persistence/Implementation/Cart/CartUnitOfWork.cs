@@ -35,13 +35,12 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             {
                 if (cart.DomainEvents.Count > 0)
                 {
-                    var domainEvents = cart.DomainEvents.ToList();
-                    cart.ClearDomainEvents();
-
-                    foreach (var domainEvent in domainEvents)
+                    foreach (var domainEvent in cart.DomainEvents)
                     {
                         await _domainEventService.PublishEventAsync(domainEvent, cancellationToken).ConfigureAwait(false);
                     }
+
+                    cart.ClearDomainEvents();
                 }
             }
 

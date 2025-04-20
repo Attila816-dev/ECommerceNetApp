@@ -36,7 +36,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             var cart = await collection.FindByIdAsync(cartId).ConfigureAwait(false);
             if (cart == null)
             {
-                throw new CartNotFoundException();
+                throw InvalidCartException.CartNotFound(cartId);
             }
 
             cart.MarkAsDeleted();

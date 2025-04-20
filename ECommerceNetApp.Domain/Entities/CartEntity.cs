@@ -10,7 +10,10 @@ namespace ECommerceNetApp.Domain.Entities
 
         public CartEntity(string id)
         {
-            ArgumentException.ThrowIfNullOrEmpty(id);
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw InvalidCartException.InvalidCartId();
+            }
 
             Id = id;
             CreatedAt = DateTime.UtcNow;
@@ -63,7 +66,7 @@ namespace ECommerceNetApp.Domain.Entities
 
             if (item == null)
             {
-                throw new CartItemNotFoundException(itemId);
+                throw InvalidCartException.CartItemNotFound(itemId);
             }
 
             _items.Remove(item);
@@ -73,11 +76,16 @@ namespace ECommerceNetApp.Domain.Entities
 
         public void UpdateItemQuantity(int itemId, int newQuantity)
         {
+            if (newQuantity <= 0)
+            {
+                throw InvalidCartException.InvalidCartItemQuantity();
+            }
+
             var item = _items.FirstOrDefault(i => i.Id == itemId);
 
             if (item == null)
             {
-                throw new CartItemNotFoundException(itemId);
+                throw InvalidCartException.CartItemNotFound(itemId);
             }
 
             int oldQuantity = item.Quantity;

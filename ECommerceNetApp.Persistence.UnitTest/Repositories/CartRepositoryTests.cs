@@ -148,7 +148,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var cartCollection = _dbContext.GetCollection<CartEntity>();
 
             // Act
-            await Should.ThrowAsync<CartNotFoundException>(async () =>
+            await Should.ThrowAsync<InvalidCartException>(async () =>
             {
                 await _unitOfWork.CartRepository.DeleteAsync(cartId, CancellationToken.None);
             });

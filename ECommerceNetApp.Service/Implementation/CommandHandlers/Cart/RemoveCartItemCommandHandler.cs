@@ -19,7 +19,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 
             if (cart == null)
             {
-                throw new CartNotFoundException(request.CartId);
+                throw InvalidCartException.CartNotFound(request.CartId);
             }
 
             cart.RemoveItem(request.ItemId);
