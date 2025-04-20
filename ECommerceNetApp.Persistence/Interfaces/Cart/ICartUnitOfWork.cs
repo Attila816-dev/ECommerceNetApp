@@ -1,9 +1,13 @@
-﻿namespace ECommerceNetApp.Persistence.Interfaces.Cart
+﻿using ECommerceNetApp.Domain.Entities;
+
+namespace ECommerceNetApp.Persistence.Interfaces.Cart
 {
     public interface ICartUnitOfWork : IDisposable
     {
         ICartRepository CartRepository { get; }
 
         Task CommitAsync(CancellationToken cancellationToken = default);
+
+        void TrackEntity(CartEntity cartEntity);
     }
 }

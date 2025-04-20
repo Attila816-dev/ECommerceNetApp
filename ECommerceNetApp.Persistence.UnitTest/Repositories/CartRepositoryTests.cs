@@ -3,8 +3,8 @@ using ECommerceNetApp.Domain.Exceptions.Cart;
 using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.Cart;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
 using LiteDB.Async;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Shouldly;
 
@@ -16,7 +16,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         private readonly CartDbContext _dbContext;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly CartUnitOfWork _unitOfWork;
-        private readonly Mock<IDomainEventService> _domainEventService;
+        private readonly Mock<IDomainEventService> _mockDomainEventService;
         private bool disposedValue;
 
         public CartRepositoryTests()
@@ -24,13 +24,15 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var liteDatabase = new LiteDatabaseAsync(new MemoryStream(), CartDbContext.CreateMapper());
 #pragma warning restore CA2000 // Dispose objects before losing scope
-
-            _domainEventService = new Mock<IDomainEventService>();
-            var mockServiceProvider = new Mock<IServiceProvider>();
-            RegisterDomainServiceIntoServiceProvider(mockServiceProvider);
-
             _dbContext = new CartDbContext(liteDatabase);
-            _unitOfWork = new CartUnitOfWork(_dbContext, mockServiceProvider.Object);
+
+            _mockDomainEventService = new Mock<IDomainEventService>();
+            var mockCartRepositoryFactory = new Mock<ICartRepositoryFactory>();
+            _unitOfWork = new CartUnitOfWork(_dbContext, _mockDomainEventService.Object, mockCartRepositoryFactory.Object);
+
+            mockCartRepositoryFactory
+                .Setup(x => x.CreateRepository(It.IsAny<ICartUnitOfWork>()))
+                .Returns(new CartRepository(_dbContext, _unitOfWork));
         }
 
         [Fact]
@@ -266,18 +268,6 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
                 // TODO: set large fields to null
                 disposedValue = true;
             }
-        }
-
-        private void RegisterDomainServiceIntoServiceProvider(Mock<IServiceProvider> mockServiceProvider)
-        {
-            var mockServiceScope = new Mock<IServiceScope>();
-            var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
-            mockServiceProvider.Setup(x => x.GetService(typeof(IServiceScopeFactory)))
-                .Returns(mockServiceScopeFactory.Object);
-            mockServiceScopeFactory.Setup(x => x.CreateScope()).Returns(mockServiceScope.Object);
-            mockServiceScope.SetupGet(sp => sp.ServiceProvider).Returns(mockServiceProvider.Object);
-            mockServiceProvider.Setup(sp => sp.GetService(typeof(IDomainEventService)))
-                .Returns(_domainEventService.Object);
         }
     }
 }

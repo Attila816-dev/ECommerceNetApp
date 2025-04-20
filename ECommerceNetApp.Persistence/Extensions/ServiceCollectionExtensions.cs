@@ -42,6 +42,7 @@ namespace ECommerceNetApp.Persistence.Extensions
 
             services.AddScoped<CartDbInitializer>();
             services.AddScoped<CartDbSampleDataSeeder>();
+            services.AddScoped<ICartRepositoryFactory, CartRepositoryFactory>();
             services.AddScoped<ICartUnitOfWork, CartUnitOfWork>();
             return services;
         }

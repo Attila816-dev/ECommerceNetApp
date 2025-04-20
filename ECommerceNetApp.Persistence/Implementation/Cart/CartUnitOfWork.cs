@@ -1,25 +1,24 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
-    public class CartUnitOfWork : ICartUnitOfWork
+    public class CartUnitOfWork(
+        CartDbContext cartDbContext,
+        IDomainEventService domainEventService,
+        ICartRepositoryFactory cartRepositoryFactory)
+        : ICartUnitOfWork
     {
-        private readonly CartDbContext _cartDbContext;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly CartDbContext _cartDbContext = cartDbContext;
+        private readonly IDomainEventService _domainEventService = domainEventService;
+        private readonly ICartRepositoryFactory _cartRepositoryFactory = cartRepositoryFactory;
         private readonly List<CartEntity> _trackedEntities = new(); // Track modified entities
         private bool _disposedValue;
+        private ICartRepository? _cartRepository;
 
-        public CartUnitOfWork(CartDbContext cartDbContext, IServiceProvider serviceProvider)
-        {
-            _cartDbContext = cartDbContext ?? throw new ArgumentNullException(nameof(cartDbContext));
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            CartRepository = new CartRepository(_cartDbContext, this);
-        }
-
-        public ICartRepository CartRepository { get; }
+        public ICartRepository CartRepository =>
+            _cartRepository ??= _cartRepositoryFactory.CreateRepository(this);
 
         public void TrackEntity(CartEntity cartEntity)
         {
@@ -31,9 +30,6 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
         public async Task CommitAsync(CancellationToken cancellationToken = default)
         {
-            using var scope = _serviceProvider.CreateScope();
-            var domainEventService = scope.ServiceProvider.GetRequiredService<IDomainEventService>();
-
             // Publish domain events for tracked entities
             foreach (var cart in _trackedEntities)
             {
@@ -44,7 +40,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
                     foreach (var domainEvent in domainEvents)
                     {
-                        await domainEventService.PublishEventAsync(domainEvent, cancellationToken).ConfigureAwait(false);
+                        await _domainEventService.PublishEventAsync(domainEvent, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

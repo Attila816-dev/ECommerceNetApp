@@ -4,10 +4,10 @@ using ECommerceNetApp.Persistence.Interfaces.Cart;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
-    public class CartRepository(CartDbContext cartDbContext, CartUnitOfWork cartUnitOfWork) : ICartRepository
+    public class CartRepository(CartDbContext cartDbContext, ICartUnitOfWork cartUnitOfWork) : ICartRepository
     {
         private readonly CartDbContext _cartDbContext = cartDbContext;
-        private readonly CartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
+        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
 
         public async Task<CartEntity?> GetByIdAsync(string cartId, CancellationToken cancellationToken)
         {
