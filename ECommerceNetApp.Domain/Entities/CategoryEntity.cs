@@ -3,7 +3,7 @@ using ECommerceNetApp.Domain.Exceptions.Category;
 
 namespace ECommerceNetApp.Domain.Entities
 {
-    public class CategoryEntity : BaseEntity
+    public class CategoryEntity : BaseEntity<int>
     {
         public const int MaxCategoryNameLength = 50;
 
@@ -14,6 +14,7 @@ namespace ECommerceNetApp.Domain.Entities
 #pragma warning restore CA1054 // URI-like parameters should not be strings
             CategoryEntity? parentCategory = null,
             bool raiseDomainEvent = true)
+            : base(default)
         {
             UpdateName(name);
             UpdateImage(imageUrl);
@@ -48,10 +49,9 @@ namespace ECommerceNetApp.Domain.Entities
 
         // For EF Core
         protected CategoryEntity()
+            : base(default)
         {
         }
-
-        public int Id { get; private set; }
 
         public string Name { get; private set; } = string.Empty;
 
@@ -122,7 +122,7 @@ namespace ECommerceNetApp.Domain.Entities
             AddDomainEvent(new CategoryUpdatedEvent(Id, Name, ImageUrl, ParentCategoryId));
         }
 
-        public void MarkAsDeleted()
+        public override void MarkAsDeleted()
         {
             AddDomainEvent(new CategoryDeletedEvent(Id));
         }

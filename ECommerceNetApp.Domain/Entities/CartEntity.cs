@@ -4,18 +4,18 @@ using ECommerceNetApp.Domain.ValueObjects;
 
 namespace ECommerceNetApp.Domain.Entities
 {
-    public class CartEntity : BaseEntity
+    public class CartEntity : BaseEntity<string>
     {
         private readonly List<CartItem> _items = new List<CartItem>();
 
         public CartEntity(string id)
+            : base(id)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw InvalidCartException.InvalidCartId();
             }
 
-            Id = id;
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = CreatedAt;
         }
@@ -25,11 +25,9 @@ namespace ECommerceNetApp.Domain.Entities
         /// Default constructor for ORM purposes.
         /// </summary>
         private CartEntity()
+            : base(string.Empty)
         {
-            Id = string.Empty;
         }
-
-        public string Id { get; private set; }
 
         public DateTime CreatedAt { get; private set; }
 
@@ -94,7 +92,7 @@ namespace ECommerceNetApp.Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void MarkAsDeleted()
+        public override void MarkAsDeleted()
         {
             AddDomainEvent(new CartDeletedEvent(Id));
         }

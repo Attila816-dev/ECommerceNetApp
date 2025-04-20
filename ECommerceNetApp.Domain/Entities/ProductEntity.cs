@@ -3,7 +3,7 @@ using ECommerceNetApp.Domain.Exceptions.Product;
 
 namespace ECommerceNetApp.Domain.Entities
 {
-    public class ProductEntity : BaseEntity
+    public class ProductEntity : BaseEntity<int>
     {
         public const int MaxProductNameLength = 50;
 
@@ -17,6 +17,7 @@ namespace ECommerceNetApp.Domain.Entities
             decimal price,
             int amount,
             bool raiseDomainEvent = true)
+            : base(default)
         {
             UpdateName(name);
             UpdateDescription(description);
@@ -52,10 +53,9 @@ namespace ECommerceNetApp.Domain.Entities
 
         // For EF Core
         protected ProductEntity()
+            : base(default)
         {
         }
-
-        public int Id { get; private set; }
 
         public string Name { get; private set; } = string.Empty;
 
@@ -154,7 +154,7 @@ namespace ECommerceNetApp.Domain.Entities
             }
         }
 
-        public void MarkAsDeleted()
+        public override void MarkAsDeleted()
         {
             AddDomainEvent(new ProductDeletedEvent(Id));
         }
