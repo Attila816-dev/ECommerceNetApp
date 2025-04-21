@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Api.Model;
+using ECommerceNetApp.Api.Services;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Queries.Category;
@@ -10,31 +11,28 @@ namespace ECommerceNetApp.Api.Controllers
     /// <summary>
     /// Controller for managing categories in the E-commerce application.
     /// </summary>
-    [ApiController]
     [Route("api/categories")]
-    public class CategoryController : ControllerBase
+    public class CategoryController(IHateoasLinkService linkService, IMediator mediator)
+        : BaseApiController(linkService, mediator)
     {
-        private readonly IMediator _mediator;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CategoryController"/> class.
-        /// </summary>
-        /// <param name="mediator">The mediator instance for handling requests.</param>
-        public CategoryController(IMediator mediator)
-        {
-            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-        }
-
         /// <summary>
         /// Retrieves all categories.
         /// </summary>
+        /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>A list of all categories.</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAllCategories()
+        public async Task<ActionResult<CollectionLinkedResourceDto<CategoryDto>>> GetAllCategories(CancellationToken cancellationToken)
         {
-            var categories = await _mediator.Send(new GetAllCategoriesQuery()).ConfigureAwait(false);
-            return Ok(categories);
+            var categories = await Mediator.Send(new GetAllCategoriesQuery(), cancellationToken).ConfigureAwait(false);
+
+            var links = new List<LinkDto>
+            {
+                LinkService.CreateLink(this, nameof(GetAllCategories), rel: "self"),
+                LinkService.CreateLink(this, nameof(CreateCategory), rel: "create_category", method: "POST"),
+            };
+
+            return Ok(CreateCollectionResource(categories, links));
         }
 
         /// <summary>
@@ -43,13 +41,32 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="parentCategoryId">The ID of the parent category.</param>
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>A list of categories under the specified parent category.</returns>
-        [HttpGet("GetCategoriesByParentCategory")]
+        [HttpGet("by-parent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategoriesByParentId([FromQuery] int? parentCategoryId, CancellationToken cancellationToken)
+        public async Task<ActionResult<CollectionLinkedResourceDto<CategoryDto>>> GetCategoriesByParentId(
+            [FromQuery] int? parentCategoryId,
+            CancellationToken cancellationToken)
         {
             var query = new GetCategoriesByParentCategoryIdQuery(parentCategoryId);
-            var categories = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
-            return Ok(categories);
+            var categories = await Mediator.Send(query, cancellationToken).ConfigureAwait(false);
+
+            var links = new List<LinkDto>
+            {
+                LinkService.CreateLink(this, nameof(GetCategoriesByParentId), values: new { parentCategoryId }, rel: "self"),
+                LinkService.CreateLink(this, nameof(GetAllCategories), rel: "all_categories"),
+            };
+
+            if (parentCategoryId.HasValue)
+            {
+                var parentCategoryLink = LinkService.CreateLink(
+                    this,
+                    nameof(GetCategoryById),
+                    values: new { id = parentCategoryId.Value },
+                    rel: "parent_category");
+                links.Add(parentCategoryLink);
+            }
+
+            return Ok(CreateCollectionResource(categories, links));
         }
 
         /// <summary>
@@ -61,37 +78,50 @@ namespace ECommerceNetApp.Api.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<LinkedResourceDto<CategoryDetailDto>>> GetCategoryById(int id, CancellationToken cancellationToken)
+        public async Task<ActionResult<LinkedResourceDto<CategoryDetailDto>>> GetCategoryById(
+            int id,
+            CancellationToken cancellationToken)
         {
-            var category = await _mediator.Send(new GetCategoryByIdQuery(id), cancellationToken).ConfigureAwait(false);
+            var category = await Mediator.Send(new GetCategoryByIdQuery(id), cancellationToken).ConfigureAwait(false);
             if (category == null)
             {
                 return NotFound();
             }
 
-            var linkedResource = new LinkedResourceDto<CategoryDetailDto>(category);
+            var links = CreateResourceLinks(id, nameof(GetCategoryById), nameof(UpdateCategory), nameof(DeleteCategory));
 
-            linkedResource.AddLink(new LinkDto(
-                Url.Action(nameof(GetCategoryById), "Category", new { id }, Request.Scheme)!,
-                "self",
-                "GET"));
+            // Add additional category-specific links
+            var subCategoriesLink = LinkService.CreateLink(
+                this,
+                nameof(GetCategoriesByParentId),
+                values: new { parentCategoryId = id },
+                rel: "subcategories");
 
-            linkedResource.AddLink(new LinkDto(
-                Url.Action(nameof(UpdateCategory), "Category", new { id }, Request.Scheme)!,
-                "update_category",
-                "PUT"));
+            var productsLink = LinkService.CreateLink(
+                this,
+                nameof(ProductController.GetProductsByCategoryId),
+                controllerName: "Product",
+                values: new { categoryId = id },
+                rel: "products");
 
-            linkedResource.AddLink(new LinkDto(
-                Url.Action(nameof(DeleteCategory), "Category", new { id }, Request.Scheme)!,
-                "delete_category",
-                "DELETE"));
+            links = links.Concat(
+            [
+                subCategoriesLink,
+                productsLink,
+            ]);
 
-            linkedResource.AddLink(new LinkDto(
-                Url.Action(nameof(ProductController.GetProductsByCategoryId), "Product", new { categoryId = id }, Request.Scheme)!,
-                "products",
-                "GET"));
+            // Add parent category link if available
+            if (category.ParentCategoryId.HasValue)
+            {
+                var parentCategoryLink = LinkService.CreateLink(
+                    this,
+                    nameof(GetCategoryById),
+                    values: new { id = category.ParentCategoryId },
+                    rel: "parent_category");
+                links = links.Append(parentCategoryLink);
+            }
 
-            return Ok(linkedResource);
+            return Ok(CreateResource(category, links));
         }
 
         /// <summary>
@@ -103,17 +133,39 @@ namespace ECommerceNetApp.Api.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<int>> CreateCategory([FromBody] CreateCategoryDto categoryDto, CancellationToken cancellationToken)
+        public async Task<ActionResult<LinkedResourceDto<int>>> CreateCategory(
+            [FromBody] CreateCategoryDto categoryDto,
+            CancellationToken cancellationToken)
         {
             if (categoryDto == null)
             {
                 return BadRequest("Category data is required.");
             }
 
-            var command = new CreateCategoryCommand(categoryDto.Name, categoryDto.ImageUrl, categoryDto.ParentCategoryId);
-            var createdCategoryId = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var command = new CreateCategoryCommand(
+                categoryDto.Name,
+                categoryDto.ImageUrl,
+                categoryDto.ParentCategoryId);
 
-            return CreatedAtAction(nameof(GetCategoryById), new { id = createdCategoryId }, createdCategoryId);
+            var createdCategoryId = await Mediator.Send(command, cancellationToken).ConfigureAwait(false);
+
+            var categoryLink = LinkService.CreateLink(
+                this,
+                nameof(GetCategoryById),
+                values: new { id = createdCategoryId },
+                rel: "self");
+
+            var links = new List<LinkDto>
+            {
+                categoryLink,
+            };
+
+            var resource = CreateResource(createdCategoryId, links);
+
+            return CreatedAtAction(
+                nameof(GetCategoryById),
+                new { id = createdCategoryId },
+                resource);
         }
 
         /// <summary>
@@ -127,7 +179,10 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryDto categoryDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateCategory(
+            int id,
+            [FromBody] UpdateCategoryDto categoryDto,
+            CancellationToken cancellationToken)
         {
             if (categoryDto == null)
             {
@@ -139,8 +194,13 @@ namespace ECommerceNetApp.Api.Controllers
                 return BadRequest("Invalid category data.");
             }
 
-            var command = new UpdateCategoryCommand(categoryDto.Id, categoryDto.Name, categoryDto.ImageUrl, categoryDto.ParentCategoryId);
-            await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var command = new UpdateCategoryCommand(
+                categoryDto.Id,
+                categoryDto.Name,
+                categoryDto.ImageUrl,
+                categoryDto.ParentCategoryId);
+
+            await Mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
             return NoContent();
         }
@@ -152,13 +212,12 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>OK if the deletion is successful.</returns>
         [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteCategory(int id, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new DeleteCategoryCommand(id), cancellationToken).ConfigureAwait(false);
-            return Ok();
+            await Mediator.Send(new DeleteCategoryCommand(id), cancellationToken).ConfigureAwait(false);
+            return NoContent();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Api.Model;
+using ECommerceNetApp.Api.Services;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Queries.Product;
@@ -10,21 +11,10 @@ namespace ECommerceNetApp.Api.Controllers
     /// <summary>
     /// Controller for managing products in the E-commerce application.
     /// </summary>
-    [ApiController]
     [Route("api/products")]
-    public class ProductController : ControllerBase
+    public class ProductController(IMediator mediator, IHateoasLinkService linkService)
+        : BaseApiController(linkService, mediator)
     {
-        private readonly IMediator _mediator;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ProductController"/> class.
-        /// </summary>
-        /// <param name="mediator">The mediator instance for handling requests.</param>
-        public ProductController(IMediator mediator)
-        {
-            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-        }
-
         /// <summary>
         /// Retrieves all products.
         /// </summary>
@@ -32,10 +22,18 @@ namespace ECommerceNetApp.Api.Controllers
         /// <returns>A list of all products.</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProducts(CancellationToken cancellationToken)
+        public async Task<ActionResult<CollectionLinkedResourceDto<ProductDto>>> GetAllProducts(CancellationToken cancellationToken)
         {
-            var products = await _mediator.Send(new GetAllProductsQuery(), cancellationToken).ConfigureAwait(false);
-            return Ok(products);
+            var products = await Mediator.Send(new GetAllProductsQuery(), cancellationToken).ConfigureAwait(false);
+
+            var links = new List<LinkDto>
+            {
+                LinkService.CreateLink(this, nameof(GetAllProducts), rel: "self"),
+                LinkService.CreateLink(this, nameof(CreateProduct), rel: "create_product", method: "POST"),
+                LinkService.CreateLink(this, nameof(GetPaginatedProducts), rel: "paginated_products"),
+            };
+
+            return Ok(CreateCollectionResource(products, links));
         }
 
         /// <summary>
@@ -44,13 +42,24 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="categoryId">The ID of the category.</param>
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>A list of products in the specified category.</returns>
-        [HttpGet("GetProductsByCategoryId")]
+        [HttpGet("by-category")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductsByCategoryId([FromQuery] int categoryId, CancellationToken cancellationToken)
+        public async Task<ActionResult<CollectionLinkedResourceDto<ProductDto>>> GetProductsByCategoryId(
+            [FromQuery] int categoryId,
+            CancellationToken cancellationToken)
         {
             var query = new GetProductsByCategoryQuery(categoryId);
-            var products = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
-            return Ok(products);
+            var products = await Mediator.Send(query, cancellationToken).ConfigureAwait(false);
+
+            var links = new List<LinkDto>
+            {
+                LinkService.CreateLink(this, nameof(GetProductsByCategoryId), values: new { categoryId }, rel: "self"),
+                LinkService.CreateLink(this, nameof(GetAllProducts), rel: "all_products"),
+                LinkService.CreateLink(this, nameof(GetPaginatedProducts), values: new { categoryId }, rel: "paginated"),
+                LinkService.CreateLink(this, "GetCategoryById", controllerName: "Category", values: new { id = categoryId }, rel: "category"),
+            };
+
+            return Ok(CreateCollectionResource(products, links));
         }
 
         /// <summary>
@@ -62,39 +71,30 @@ namespace ECommerceNetApp.Api.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<LinkedResourceDto<ProductDto>>> GetProductById(int id, CancellationToken cancellationToken)
+        public async Task<ActionResult<LinkedResourceDto<ProductDto>>> GetProductById(
+            int id,
+            CancellationToken cancellationToken)
         {
             var query = new GetProductByIdQuery(id);
-            var product = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
+            var product = await Mediator.Send(query, cancellationToken).ConfigureAwait(false);
 
             if (product == null)
             {
                 return NotFound();
             }
 
-            var linkedResource = new LinkedResourceDto<ProductDto>(product);
+            var links = CreateResourceLinks(id, nameof(GetProductById), nameof(UpdateProduct), nameof(DeleteProduct));
 
-            linkedResource.AddLink(new LinkDto(
-                Url.Action(nameof(GetProductById), null, new { id }, Request.Scheme)!,
-                "self",
-                "GET"));
+            // Add additional product-specific links
+            var getCategoryProductsLink = LinkService.CreateLink(
+                this,
+                "GetCategoryById",
+                controllerName: "Category",
+                values: new { id = product.CategoryId },
+                rel: "category");
 
-            linkedResource.AddLink(new LinkDto(
-                Url.Action(nameof(UpdateProduct), null, new { id }, Request.Scheme)!,
-                "update_product",
-                "PUT"));
-
-            linkedResource.AddLink(new LinkDto(
-                Url.Action(nameof(DeleteProduct), null, new { id }, Request.Scheme)!,
-                "delete_product",
-                "DELETE"));
-
-            linkedResource.AddLink(new LinkDto(
-                Url.Action("GetCategoryById", "Category", new { id = product.CategoryId }, Request.Scheme)!,
-                "category",
-                "GET"));
-
-            return Ok(linkedResource);
+            links = links.Append(getCategoryProductsLink);
+            return Ok(CreateResource(product, links));
         }
 
         /// <summary>
@@ -107,38 +107,42 @@ namespace ECommerceNetApp.Api.Controllers
         /// <returns>A paginated list of products.</returns>
         [HttpGet("paginated")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<PaginationWithHateoas<ProductDto>>> GetPaginatedProducts(
+        public async Task<ActionResult<PagedResourceDto<ProductDto>>> GetPaginatedProducts(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] int? categoryId = null,
             CancellationToken cancellationToken = default)
         {
             var query = new GetPaginatedProductsQuery(pageNumber, pageSize, categoryId);
-            var result = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
+            var result = await Mediator.Send(query, cancellationToken).ConfigureAwait(false);
 
-            var links = new List<LinkDto>
-            {
-                CreatePaginatedLink(pageNumber, pageSize, categoryId, "self"),
-            };
+            var totalPages = (int)Math.Ceiling(result.TotalCount / (double)pageSize);
 
-            if (result.HasNextPage)
+            // Create pagination links
+            var additionalValues = categoryId.HasValue ? new { categoryId } : null;
+            var links = LinkService.CreatePaginationLinks(
+                this,
+                nameof(GetPaginatedProducts),
+                pageNumber,
+                pageSize,
+                totalPages,
+                additionalValues);
+
+            // Add additional resource links
+            links.Add(LinkService.CreateLink(this, nameof(GetAllProducts), rel: "all_products"));
+
+            if (categoryId.HasValue)
             {
-                links.Add(CreatePaginatedLink(pageNumber + 1, pageSize, categoryId, "next_page"));
+                var getCategoryLink = LinkService.CreateLink(
+                    this,
+                    "GetCategoryById",
+                    controllerName: "Category",
+                    values: new { id = categoryId.Value },
+                    rel: "category");
+                links.Add(getCategoryLink);
             }
 
-            if (result.HasPreviousPage)
-            {
-                links.Add(CreatePaginatedLink(pageNumber - 1, pageSize, categoryId, "previous_page"));
-            }
-
-            links.Add(new LinkDto(
-                Url.Action(nameof(GetAllProducts), null, null, Request.Scheme)!,
-                "all_products",
-                "GET"));
-
-            var hateoasResult = PaginationWithHateoas<ProductDto>.FromPaginationResult(result, links);
-
-            return Ok(hateoasResult);
+            return Ok(CreatePagedResource(result.Items, pageNumber, pageSize, result.TotalCount, links));
         }
 
         /// <summary>
@@ -150,7 +154,9 @@ namespace ECommerceNetApp.Api.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto productDto, CancellationToken cancellationToken)
+        public async Task<ActionResult<LinkedResourceDto<int>>> CreateProduct(
+            [FromBody] CreateProductDto productDto,
+            CancellationToken cancellationToken)
         {
             if (productDto == null)
             {
@@ -165,9 +171,25 @@ namespace ECommerceNetApp.Api.Controllers
                 productDto.Price,
                 productDto.Amount);
 
-            var createdProductId = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var createdProductId = await Mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
-            return CreatedAtAction(nameof(GetProductById), new { id = createdProductId }, createdProductId);
+            var getProductLink = LinkService.CreateLink(
+                this,
+                nameof(GetProductById),
+                values: new { id = createdProductId },
+                rel: "self");
+
+            var links = new List<LinkDto>
+            {
+                getProductLink,
+            };
+
+            var resource = CreateResource(createdProductId, links);
+
+            return CreatedAtAction(
+                nameof(GetProductById),
+                new { id = createdProductId },
+                resource);
         }
 
         /// <summary>
@@ -181,7 +203,10 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto productDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateProduct(
+            int id,
+            [FromBody] UpdateProductDto productDto,
+            CancellationToken cancellationToken)
         {
             if (productDto == null)
             {
@@ -202,8 +227,7 @@ namespace ECommerceNetApp.Api.Controllers
                 productDto.Price,
                 productDto.Amount);
 
-            await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
-
+            await Mediator.Send(command, cancellationToken).ConfigureAwait(false);
             return NoContent();
         }
 
@@ -212,27 +236,14 @@ namespace ECommerceNetApp.Api.Controllers
         /// </summary>
         /// <param name="id">The ID of the product to delete.</param>
         /// <param name="cancellationToken">Cancellation token for the request.</param>
-        /// <returns>OK if the deletion is successful.</returns>
+        /// <returns>No content if the deletion is successful.</returns>
         [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new DeleteProductCommand(id), cancellationToken).ConfigureAwait(false);
-            return Ok();
-        }
-
-        private LinkDto CreatePaginatedLink(int pageNumber, int pageSize, int? categoryId, string rel)
-        {
-            return new LinkDto(
-                Url.Action(
-                    nameof(GetPaginatedProducts),
-                    null,
-                    new { pageNumber, pageSize, categoryId },
-                    Request.Scheme)!,
-                rel,
-                "GET");
+            await Mediator.Send(new DeleteProductCommand(id), cancellationToken).ConfigureAwait(false);
+            return NoContent();
         }
     }
 }

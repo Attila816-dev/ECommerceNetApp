@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using ECommerceNetApp.Api;
+using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Implementation.Cart;
@@ -68,10 +69,11 @@ namespace ECommerceNetApp.IntegrationTests
 
             // Assert
             response.EnsureSuccessStatusCode();
-            var categories = await response.Content.ReadFromJsonAsync<List<CategoryDto>>();
-            categories.ShouldNotBeNull();
-            categories.ShouldContain(c => c.Name == "Electronics");
-            categories.ShouldContain(c => c.Name == "Books");
+            var categoriesWithLinks = await response.Content.ReadFromJsonAsync<CollectionLinkedResourceDto<CategoryDto>>();
+            categoriesWithLinks.ShouldNotBeNull();
+            categoriesWithLinks.Items.ShouldNotBeNull();
+            categoriesWithLinks.Items.ShouldContain(c => c.Name == "Electronics");
+            categoriesWithLinks.Items.ShouldContain(c => c.Name == "Books");
         }
 
         [Fact]

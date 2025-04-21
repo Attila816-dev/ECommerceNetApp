@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Api.HealthCheck;
+using ECommerceNetApp.Api.Services;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
 using ECommerceNetApp.Persistence.Implementation.Cart;
@@ -55,9 +56,10 @@ namespace ECommerceNetApp.Api
                 options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
             });
 
-            app.UseHttpsRedirection();
-            app.UseAuthorization();
             app.UseErrorHandlingMiddleware();
+            app.UseHttpsRedirection();
+            app.UseRouting();
+            app.UseAuthorization();
             app.MapControllers();
 
             // Initialize and seed databases
@@ -69,6 +71,16 @@ namespace ECommerceNetApp.Api
 
         private static void ConfigureServices(WebApplicationBuilder builder)
         {
+            builder.Services.AddProblemDetails(options =>
+            {
+                // Customize problem details if needed
+                options.CustomizeProblemDetails = context =>
+                {
+                    context.ProblemDetails.Instance = context.HttpContext.Request.Path;
+                    context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+                };
+            });
+
             builder.Services.Configure<CartDbOptions>(builder.Configuration.GetSection(nameof(CartDbOptions)));
             builder.Services.Configure<ProductCatalogDbOptions>(builder.Configuration.GetSection(nameof(ProductCatalogDbOptions)));
             builder.Services.AddMediatR(config =>
@@ -76,6 +88,7 @@ namespace ECommerceNetApp.Api
                 config.RegisterServicesFromAssembly(typeof(AddCartItemCommand).Assembly);
             });
 
+            builder.Services.AddScoped<IHateoasLinkService, HateoasLinkService>();
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
             builder.Services.AddCartDb(builder.Configuration);
             builder.Services.AddProductCatalogDb(builder.Configuration);
@@ -130,6 +143,13 @@ namespace ECommerceNetApp.Api
                     c.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi2_0;
                 });
                 app.UseSwaggerUI();
+            }
+            else
+            {
+                app.UseExceptionHandler("/error");
+
+                // The default HSTS value is 30 days. You may want to change this for production scenarios.
+                app.UseHsts();
             }
         }
 

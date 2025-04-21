@@ -1,14 +1,11 @@
 ﻿namespace ECommerceNetApp.Api.Model
 {
-    public class LinkedResourceDto<T>(T resource)
+    /// <summary>
+    /// Represents a resource with embedded data and hypermedia links.
+    /// </summary>
+    /// <typeparam name="T">Type of the data contained in this resource.</typeparam>
+    public class LinkedResourceDto<T>(T resource) : BaseLinkedResourceDto
     {
         public T Resource { get; } = resource;
-
-        public List<LinkDto> Links { get; } = new List<LinkDto>();
-
-        public void AddLink(LinkDto link)
-        {
-            Links.Add(link);
-        }
     }
 }
