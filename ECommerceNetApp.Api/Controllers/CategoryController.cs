@@ -7,17 +7,28 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceNetApp.Api.Controllers
 {
+    /// <summary>
+    /// Controller for managing categories in the E-commerce application.
+    /// </summary>
     [ApiController]
     [Route("api/categories")]
     public class CategoryController : ControllerBase
     {
         private readonly IMediator _mediator;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CategoryController"/> class.
+        /// </summary>
+        /// <param name="mediator">The mediator instance for handling requests.</param>
         public CategoryController(IMediator mediator)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
+        /// <summary>
+        /// Retrieves all categories.
+        /// </summary>
+        /// <returns>A list of all categories.</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAllCategories()
@@ -26,6 +37,12 @@ namespace ECommerceNetApp.Api.Controllers
             return Ok(categories);
         }
 
+        /// <summary>
+        /// Retrieves categories by parent category ID.
+        /// </summary>
+        /// <param name="parentCategoryId">The ID of the parent category.</param>
+        /// <param name="cancellationToken">Cancellation token for the request.</param>
+        /// <returns>A list of categories under the specified parent category.</returns>
         [HttpGet("GetCategoriesByParentCategory")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategoriesByParentId([FromQuery] int? parentCategoryId, CancellationToken cancellationToken)
@@ -35,6 +52,12 @@ namespace ECommerceNetApp.Api.Controllers
             return Ok(categories);
         }
 
+        /// <summary>
+        /// Retrieves a category by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the category.</param>
+        /// <param name="cancellationToken">Cancellation token for the request.</param>
+        /// <returns>The category with the specified ID.</returns>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -48,25 +71,21 @@ namespace ECommerceNetApp.Api.Controllers
 
             var linkedResource = new LinkedResourceDto<CategoryDetailDto>(category);
 
-            // Add self link
             linkedResource.AddLink(new LinkDto(
                 Url.Action(nameof(GetCategoryById), "Category", new { id }, Request.Scheme)!,
                 "self",
                 "GET"));
 
-            // Add update link
             linkedResource.AddLink(new LinkDto(
                 Url.Action(nameof(UpdateCategory), "Category", new { id }, Request.Scheme)!,
                 "update_category",
                 "PUT"));
 
-            // Add delete link
             linkedResource.AddLink(new LinkDto(
                 Url.Action(nameof(DeleteCategory), "Category", new { id }, Request.Scheme)!,
                 "delete_category",
                 "DELETE"));
 
-            // Add link to related products
             linkedResource.AddLink(new LinkDto(
                 Url.Action(nameof(ProductController.GetProductsByCategoryId), "Product", new { categoryId = id }, Request.Scheme)!,
                 "products",
@@ -75,6 +94,12 @@ namespace ECommerceNetApp.Api.Controllers
             return Ok(linkedResource);
         }
 
+        /// <summary>
+        /// Creates a new category.
+        /// </summary>
+        /// <param name="categoryDto">The category data to create.</param>
+        /// <param name="cancellationToken">Cancellation token for the request.</param>
+        /// <returns>The ID of the created category.</returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -91,6 +116,13 @@ namespace ECommerceNetApp.Api.Controllers
             return CreatedAtAction(nameof(GetCategoryById), new { id = createdCategoryId }, createdCategoryId);
         }
 
+        /// <summary>
+        /// Updates an existing category.
+        /// </summary>
+        /// <param name="id">The ID of the category to update.</param>
+        /// <param name="categoryDto">The updated category data.</param>
+        /// <param name="cancellationToken">Cancellation token for the request.</param>
+        /// <returns>No content if the update is successful.</returns>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -113,6 +145,12 @@ namespace ECommerceNetApp.Api.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Deletes a category by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the category to delete.</param>
+        /// <param name="cancellationToken">Cancellation token for the request.</param>
+        /// <returns>OK if the deletion is successful.</returns>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
