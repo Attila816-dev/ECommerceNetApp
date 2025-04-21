@@ -78,7 +78,7 @@ namespace ECommerceNetApp.Api.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<int>> CreateCategory([FromBody] CategoryDto categoryDto, CancellationToken cancellationToken)
+        public async Task<ActionResult<int>> CreateCategory([FromBody] CreateCategoryDto categoryDto, CancellationToken cancellationToken)
         {
             if (categoryDto == null)
             {
@@ -95,7 +95,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryDto categoryDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryDto categoryDto, CancellationToken cancellationToken)
         {
             if (categoryDto == null)
             {

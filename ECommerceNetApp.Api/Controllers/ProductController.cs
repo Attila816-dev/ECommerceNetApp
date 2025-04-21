@@ -122,7 +122,7 @@ namespace ECommerceNetApp.Api.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateProduct([FromBody] ProductDto productDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto productDto, CancellationToken cancellationToken)
         {
             if (productDto == null)
             {
@@ -146,7 +146,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductDto productDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto productDto, CancellationToken cancellationToken)
         {
             if (productDto == null)
             {

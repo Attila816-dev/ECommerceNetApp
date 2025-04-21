@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Api.HealthCheck;
 using ECommerceNetApp.Domain.Options;
@@ -109,6 +110,14 @@ namespace ECommerceNetApp.Api
                     Version = "v1",
                     Description = "API for ECommerceNetApp",
                 });
+
+                // Include XML comments if available
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    c.IncludeXmlComments(xmlPath);
+                }
             });
         }
 
