@@ -3,8 +3,6 @@ using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Cart;
-using FluentValidation;
-using FluentValidation.Results;
 using Moq;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
@@ -14,7 +12,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
         private readonly UpdateCartItemQuantityCommandHandler _commandHandler;
         private readonly Mock<ICartRepository> _mockRepository;
         private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
-        private readonly Mock<IValidator<UpdateCartItemQuantityCommand>> _mockValidator;
 
         public UpdateCartItemQuantityCommandHandlerTest()
         {
@@ -22,10 +19,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
             _mockRepository = new Mock<ICartRepository>();
             _mockUnitOfWork = new Mock<ICartUnitOfWork>();
             _mockUnitOfWork.Setup(u => u.CartRepository).Returns(_mockRepository.Object);
-            _mockValidator = new Mock<IValidator<UpdateCartItemQuantityCommand>>();
-            _mockValidator.Setup(x => x.ValidateAsync(It.IsAny<UpdateCartItemQuantityCommand>(), CancellationToken.None))
-                .ReturnsAsync(new ValidationResult());
-            _commandHandler = new UpdateCartItemQuantityCommandHandler(_mockUnitOfWork.Object, _mockValidator.Object);
+            _commandHandler = new UpdateCartItemQuantityCommandHandler(_mockUnitOfWork.Object);
         }
 
         [Fact]

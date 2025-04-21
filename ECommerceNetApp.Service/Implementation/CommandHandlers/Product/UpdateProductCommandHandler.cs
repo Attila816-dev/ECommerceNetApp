@@ -1,18 +1,15 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
-using FluentValidation;
 using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
 {
     public class UpdateProductCommandHandler(
-        IProductCatalogUnitOfWork productCatalogUnitOfWork,
-        IValidator<UpdateProductCommand> validator)
+        IProductCatalogUnitOfWork productCatalogUnitOfWork)
         : IRequestHandler<UpdateProductCommand>
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
-        private readonly IValidator<UpdateProductCommand> _validator = validator;
 
         public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
         {
@@ -25,12 +22,6 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
             if (product == null)
             {
                 throw new InvalidOperationException($"Product with id {request.Id} not found");
-            }
-
-            var validationResult = await _validator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
-            if (!validationResult.IsValid)
-            {
-                throw new ValidationException(validationResult.Errors);
             }
 
             product.UpdateName(request.Name);

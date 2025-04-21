@@ -3,8 +3,6 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Category;
-using FluentValidation;
-using FluentValidation.Results;
 using Moq;
 using Shouldly;
 
@@ -15,7 +13,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
         private readonly UpdateCategoryCommandHandler _commandHandler;
         private readonly Mock<ICategoryRepository> _mockRepository;
         private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
-        private readonly Mock<IValidator<UpdateCategoryCommand>> _mockValidator;
 
         public UpdateCategoryCommandHandlerTest()
         {
@@ -23,12 +20,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             _mockRepository = new Mock<ICategoryRepository>();
             _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
             _mockUnitOfWork.Setup(u => u.CategoryRepository).Returns(_mockRepository.Object);
-
-            _mockValidator = new Mock<IValidator<UpdateCategoryCommand>>();
-            _mockValidator.Setup(c => c.ValidateAsync(It.IsAny<UpdateCategoryCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult());
-
-            _commandHandler = new UpdateCategoryCommandHandler(_mockUnitOfWork.Object, _mockValidator.Object);
+            _commandHandler = new UpdateCategoryCommandHandler(_mockUnitOfWork.Object);
         }
 
         [Fact]

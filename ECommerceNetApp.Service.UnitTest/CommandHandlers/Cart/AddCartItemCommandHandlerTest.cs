@@ -5,8 +5,6 @@ using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Cart;
 using ECommerceNetApp.Service.Implementation.Mappers.Cart;
-using FluentValidation;
-using FluentValidation.Results;
 using Moq;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
@@ -17,7 +15,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
         private readonly Mock<ICartRepository> _mockRepository;
         private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
         private readonly CartItemMapper _cartItemMapper;
-        private readonly Mock<IValidator<AddCartItemCommand>> _mockValidator;
 
         public AddCartItemCommandHandlerTest()
         {
@@ -26,10 +23,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
             _mockUnitOfWork = new Mock<ICartUnitOfWork>();
             _mockUnitOfWork.Setup(u => u.CartRepository).Returns(_mockRepository.Object);
             _cartItemMapper = new CartItemMapper();
-            _mockValidator = new Mock<IValidator<AddCartItemCommand>>();
-            _mockValidator.Setup(x => x.ValidateAsync(It.IsAny<AddCartItemCommand>(), CancellationToken.None))
-                .ReturnsAsync(new ValidationResult());
-            _commandHandler = new AddCartItemCommandHandler(_mockUnitOfWork.Object, _cartItemMapper, _mockValidator.Object);
+            _commandHandler = new AddCartItemCommandHandler(_mockUnitOfWork.Object, _cartItemMapper);
         }
 
         [Fact]

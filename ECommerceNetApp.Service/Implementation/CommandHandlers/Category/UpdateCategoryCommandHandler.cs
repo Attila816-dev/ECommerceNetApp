@@ -1,28 +1,19 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
-using FluentValidation;
 using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
     public class UpdateCategoryCommandHandler(
-            IProductCatalogUnitOfWork productCatalogUnitOfWork,
-            IValidator<UpdateCategoryCommand> validator)
+            IProductCatalogUnitOfWork productCatalogUnitOfWork)
         : IRequestHandler<UpdateCategoryCommand>
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
-        private readonly IValidator<UpdateCategoryCommand> _validator = validator;
 
         public async Task Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
-
-            var validationResult = await _validator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
-            if (!validationResult.IsValid)
-            {
-                throw new ValidationException(validationResult.Errors);
-            }
 
             var existingCategory = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (existingCategory == null)
