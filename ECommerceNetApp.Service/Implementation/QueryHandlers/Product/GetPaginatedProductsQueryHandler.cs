@@ -4,7 +4,7 @@ using ECommerceNetApp.Service.Interfaces.Mappers.Product;
 using ECommerceNetApp.Service.Queries.Product;
 using MediatR;
 
-namespace ECommerceNetApp.Service.Implementation.QueryHandlers
+namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
 {
     public class GetPaginatedProductsQueryHandler(
         IProductCatalogUnitOfWork productCatalogUnitOfWork,

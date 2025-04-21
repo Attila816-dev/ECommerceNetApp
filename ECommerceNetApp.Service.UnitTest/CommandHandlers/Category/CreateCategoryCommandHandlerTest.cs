@@ -59,5 +59,67 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
                 r => r.CommitAsync(CancellationToken.None),
                 Times.Once);
         }
+
+        [Fact]
+        public async Task Handle_InvalidCommand_ThrowsValidationException()
+        {
+            // Arrange
+            var command = new CreateCategoryCommand(string.Empty, null, null);
+            var validationFailures = new List<ValidationFailure>
+            {
+                new ValidationFailure("Name", "Name is required"),
+            };
+
+            _mockValidator
+                .Setup(v => v.ValidateAsync(command, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult(validationFailures));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ValidationException>(
+                () => _commandHandler.Handle(command, CancellationToken.None));
+
+            _mockUnitOfWork.Verify(u => u.CategoryRepository.AddAsync(It.IsAny<CategoryEntity>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockUnitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Handle_WithParentCategory_CorrectlyAssignsParent()
+        {
+            // Arrange
+            var parentCategoryId = 42;
+            var command = new CreateCategoryCommand("Test Category", "image.jpg", parentCategoryId);
+            var parentCategory = new CategoryEntity(parentCategoryId, "Parent Category", "parent.jpg");
+            var categoryEntity = new CategoryEntity(123, "Test Category", "image.jpg", parentCategory);
+
+            _mockValidator
+                .Setup(v => v.ValidateAsync(command, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
+
+            _mockUnitOfWork
+                .Setup(u => u.CategoryRepository.GetByIdAsync(parentCategoryId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(parentCategory);
+
+            _mockUnitOfWork
+                .Setup(u => u.CategoryRepository.AddAsync(categoryEntity, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            _mockUnitOfWork
+                .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            // Act
+            var result = await _commandHandler.Handle(command, CancellationToken.None);
+
+            // Assert
+            _mockUnitOfWork.Verify(u => u.CategoryRepository.GetByIdAsync(parentCategoryId, It.IsAny<CancellationToken>()), Times.Once);
+
+            _mockUnitOfWork.Verify(
+                u => u.CategoryRepository.AddAsync(
+                    It.Is<CategoryEntity>(c => c.Name == command.Name && c.ParentCategory == parentCategory),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
     }
 }

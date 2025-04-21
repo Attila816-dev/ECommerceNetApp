@@ -47,7 +47,34 @@ namespace ECommerceNetApp.Api.Controllers
                 return NotFound();
             }
 
-            return Ok(product);
+            // Create linked resource for HATEOAS
+            var linkedResource = new LinkedResourceDto<ProductDto>(product);
+
+            // Add self link
+            linkedResource.AddLink(new LinkDto(
+                Url.Action(nameof(GetProductById), null, new { id }, Request.Scheme)!,
+                "self",
+                "GET"));
+
+            // Add update link
+            linkedResource.AddLink(new LinkDto(
+                Url.Action(nameof(UpdateProduct), null, new { id }, Request.Scheme)!,
+                "update_product",
+                "PUT"));
+
+            // Add delete link
+            linkedResource.AddLink(new LinkDto(
+                Url.Action(nameof(DeleteProduct), null, new { id }, Request.Scheme)!,
+                "delete_product",
+                "DELETE"));
+
+            // Add link to category
+            linkedResource.AddLink(new LinkDto(
+                Url.Action("GetCategoryById", "Category", new { id = product.CategoryId }, Request.Scheme)!,
+                "category",
+                "GET"));
+
+            return Ok(linkedResource);
         }
 
         [HttpGet("paginated")]
@@ -60,6 +87,37 @@ namespace ECommerceNetApp.Api.Controllers
         {
             var query = new GetPaginatedProductsQuery(pageNumber, pageSize, categoryId);
             var result = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
+
+            // Add HATEOAS links to response
+            var links = new List<LinkDto>
+            {
+                CreatePaginatedLink(pageNumber, pageSize, categoryId, "self"),
+            };
+
+            // Add next page link if available
+            if (result.HasNextPage)
+            {
+                links.Add(CreatePaginatedLink(pageNumber + 1, pageSize, categoryId, "next_page"));
+            }
+
+            // Add previous page link if available
+            if (result.HasPreviousPage)
+            {
+                links.Add(CreatePaginatedLink(pageNumber - 1, pageSize, categoryId, "previous_page"));
+            }
+
+            var response = new
+            {
+                result.PageSize,
+                result.PageNumber,
+                result.TotalCount,
+                result.TotalPages,
+                result.HasNextPage,
+                result.HasPreviousPage,
+                Items = result.Items,
+                Links = links,
+            };
+
             return Ok(result);
         }
 
@@ -124,6 +182,18 @@ namespace ECommerceNetApp.Api.Controllers
         {
             await _mediator.Send(new DeleteProductCommand(id), cancellationToken).ConfigureAwait(false);
             return Ok();
+        }
+
+        private LinkDto CreatePaginatedLink(int pageNumber, int pageSize, int? categoryId, string rel)
+        {
+            return new LinkDto(
+                Url.Action(
+                    nameof(GetPaginatedProducts),
+                    null,
+                    new { pageNumber, pageSize, categoryId },
+                    Request.Scheme)!,
+                rel,
+                "GET");
         }
     }
 }

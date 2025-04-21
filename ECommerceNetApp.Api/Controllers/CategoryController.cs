@@ -37,7 +37,7 @@ namespace ECommerceNetApp.Api.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<CategoryDetailDto>> GetCategoryById(int id, CancellationToken cancellationToken)
+        public async Task<ActionResult<LinkedResourceDto<CategoryDetailDto>>> GetCategoryById(int id, CancellationToken cancellationToken)
         {
             var category = await _mediator.Send(new GetCategoryByIdQuery(id), cancellationToken).ConfigureAwait(false);
             if (category == null)
@@ -45,7 +45,33 @@ namespace ECommerceNetApp.Api.Controllers
                 return NotFound();
             }
 
-            return Ok(category);
+            var linkedResource = new LinkedResourceDto<CategoryDetailDto>(category);
+
+            // Add self link
+            linkedResource.AddLink(new LinkDto(
+                Url.Action(nameof(GetCategoryById), "Category", new { id }, Request.Scheme)!,
+                "self",
+                "GET"));
+
+            // Add update link
+            linkedResource.AddLink(new LinkDto(
+                Url.Action(nameof(UpdateCategory), "Category", new { id }, Request.Scheme)!,
+                "update_category",
+                "PUT"));
+
+            // Add delete link
+            linkedResource.AddLink(new LinkDto(
+                Url.Action(nameof(DeleteCategory), "Category", new { id }, Request.Scheme)!,
+                "delete_category",
+                "DELETE"));
+
+            // Add link to related products
+            linkedResource.AddLink(new LinkDto(
+                Url.Action(nameof(ProductController.GetProductsByCategoryId), "Product", new { categoryId = id }, Request.Scheme)!,
+                "products",
+                "GET"));
+
+            return Ok(linkedResource);
         }
 
         [HttpPost]
