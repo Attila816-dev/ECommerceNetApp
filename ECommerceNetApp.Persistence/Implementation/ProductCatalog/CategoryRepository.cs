@@ -8,31 +8,29 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
         ProductCatalogDbContext dbContext)
         : BaseRepository<CategoryEntity, int>(dbContext), ICategoryRepository
     {
-        private readonly ProductCatalogDbContext _dbContext = dbContext;
-
-        public override async Task<IEnumerable<CategoryEntity>> GetAllAsync(CancellationToken cancellationToken)
+        public Task<IEnumerable<CategoryEntity>> GetAllAsync(CancellationToken cancellationToken)
         {
-            return await _dbContext.Categories
-                .Include(c => c.ParentCategory)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+            return GetAllAsync(
+                include: query => query.Include(c => c.ParentCategory),
+                cancellationToken: cancellationToken);
         }
 
-        public override async Task<CategoryEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
+        public Task<CategoryEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
-            return await _dbContext.Categories
-                .Include(c => c.ParentCategory)
-                .FirstOrDefaultAsync(c => c.Id == id, cancellationToken)
-                .ConfigureAwait(false);
+            return GetByIdAsync(id, include: query => query.Include(c => c.ParentCategory), cancellationToken);
         }
 
-        public async Task<IEnumerable<CategoryEntity>> GetByParentCategoryIdAsync(int? parentCategoryId, CancellationToken cancellationToken)
+        public Task<IEnumerable<CategoryEntity>> GetByParentCategoryIdAsync(int? parentCategoryId, CancellationToken cancellationToken)
         {
-            return await _dbContext.Categories
-                .Include(c => c.ParentCategory)
-                .Where(c => (parentCategoryId == null && c.ParentCategoryId == null) || (parentCategoryId != null && c.ParentCategoryId == parentCategoryId))
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+            return GetAllAsync(
+                filter: c => (parentCategoryId == null && c.ParentCategoryId == null) || (parentCategoryId != null && c.ParentCategoryId == parentCategoryId),
+                include: query => query.Include(c => c.ParentCategory),
+                cancellationToken: cancellationToken);
+        }
+
+        public Task<bool> ExistsAsync(int id, CancellationToken cancellationToken)
+        {
+            return ExistsAsync(p => p.Id == id, cancellationToken);
         }
     }
 }

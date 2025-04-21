@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Service.Commands.Product;
+﻿using ECommerceNetApp.Api.Model;
+using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Queries.Product;
 using MediatR;
@@ -37,7 +38,7 @@ namespace ECommerceNetApp.Api.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ProductDto>> GetProductById(int id, CancellationToken cancellationToken)
+        public async Task<ActionResult<LinkedResourceDto<ProductDto>>> GetProductById(int id, CancellationToken cancellationToken)
         {
             var query = new GetProductByIdQuery(id);
             var product = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
@@ -79,7 +80,7 @@ namespace ECommerceNetApp.Api.Controllers
 
         [HttpGet("paginated")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<PaginationResult<ProductDto>>> GetPaginatedProducts(
+        public async Task<ActionResult<PaginationWithHateoas<ProductDto>>> GetPaginatedProducts(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] int? categoryId = null,
@@ -106,19 +107,16 @@ namespace ECommerceNetApp.Api.Controllers
                 links.Add(CreatePaginatedLink(pageNumber - 1, pageSize, categoryId, "previous_page"));
             }
 
-            var response = new
-            {
-                result.PageSize,
-                result.PageNumber,
-                result.TotalCount,
-                result.TotalPages,
-                result.HasNextPage,
-                result.HasPreviousPage,
-                Items = result.Items,
-                Links = links,
-            };
+            // Add link to get all products
+            links.Add(new LinkDto(
+                Url.Action(nameof(GetAllProducts), null, null, Request.Scheme)!,
+                "all_products",
+                "GET"));
 
-            return Ok(result);
+            // Convert to HATEOAS result
+            var hateoasResult = PaginationWithHateoas<ProductDto>.FromPaginationResult(result, links);
+
+            return Ok(hateoasResult);
         }
 
         [HttpPost]

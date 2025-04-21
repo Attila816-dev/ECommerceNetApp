@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Service.Commands.Category;
+﻿using ECommerceNetApp.Api.Model;
+using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Queries.Category;
 using MediatR;

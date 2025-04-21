@@ -1,4 +1,4 @@
-﻿namespace ECommerceNetApp.Service.DTO
+﻿namespace ECommerceNetApp.Api.Model
 {
     public class LinkedResourceDto<T>(T resource)
     {

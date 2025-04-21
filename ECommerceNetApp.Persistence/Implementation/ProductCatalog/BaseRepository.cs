@@ -12,25 +12,74 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 
         protected DbSet<TEntity> DbSet { get; } = dbContext.Set<TEntity>();
 
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken)
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(
+            Expression<Func<TEntity, bool>>? filter = null,
+            Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
+            CancellationToken cancellationToken = default)
         {
-            return await DbSet.ToListAsync(cancellationToken).ConfigureAwait(false);
+            IQueryable<TEntity> query = DbSet.AsNoTracking();
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return await query.ToListAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public virtual async Task<TEntity?> GetByIdAsync(TId id, CancellationToken cancellationToken)
+        public virtual async Task<(IEnumerable<TEntity> Items, int TotalCount)> GetPaginatedEntitiesAsync(
+            int pageNumber,
+            int pageSize,
+            Expression<Func<TEntity, bool>>? filter = null,
+            Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
+            CancellationToken cancellationToken = default)
         {
-            return await DbSet.FindAsync([id], cancellationToken).ConfigureAwait(false);
+            IQueryable<TEntity> query = DbSet.AsNoTracking();
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            int totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return (items, totalCount);
         }
 
-        public virtual async Task<bool> ExistsAsync(TId id, CancellationToken cancellationToken)
+        public virtual async Task<TEntity?> GetByIdAsync(
+            TId id,
+            Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
+            CancellationToken cancellationToken = default)
         {
-            var parameter = Expression.Parameter(typeof(TEntity), "e");
-            var property = Expression.Property(parameter, "Id");
-            var constant = Expression.Constant(id);
-            var equality = Expression.Equal(property, constant);
-            var lambda = Expression.Lambda<Func<TEntity, bool>>(equality, parameter);
+            IQueryable<TEntity> query = DbSet;
 
-            return await DbSet.AnyAsync(lambda, cancellationToken).ConfigureAwait(false);
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return await query.FirstOrDefaultAsync(entity => EqualityComparer<TId>.Default.Equals(entity.Id, id), cancellationToken).ConfigureAwait(false);
+        }
+
+        public virtual async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
+        {
+            return await DbSet.AsNoTracking().AnyAsync(predicate, cancellationToken).ConfigureAwait(false);
         }
 
         public virtual async Task AddAsync(TEntity entity, CancellationToken cancellationToken)
