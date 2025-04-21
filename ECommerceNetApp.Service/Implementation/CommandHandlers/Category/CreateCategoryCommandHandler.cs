@@ -29,7 +29,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
             CategoryEntity? parentCategory = null;
             if (request.ParentCategoryId.HasValue)
             {
-                parentCategory = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.ParentCategoryId.Value, cancellationToken).ConfigureAwait(false);
+                parentCategory = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.ParentCategoryId.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (parentCategory == null)
                 {
                     throw new InvalidOperationException($"Parent category with id {request.ParentCategoryId.Value} not found");

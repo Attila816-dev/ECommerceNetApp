@@ -33,7 +33,10 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
             var product = new ProductEntity(1, "Laptop", null, null, category, 999.99m, 10);
 
             _mockRepository
-                .Setup(r => r.GetByIdAsync(product.Id, CancellationToken.None))
+                .Setup(r => r.GetByIdAsync(
+                    product.Id,
+                    It.IsAny<Func<IQueryable<ProductEntity>, IQueryable<ProductEntity>>?>(),
+                    CancellationToken.None))
                 .ReturnsAsync(product);
 
             // Act

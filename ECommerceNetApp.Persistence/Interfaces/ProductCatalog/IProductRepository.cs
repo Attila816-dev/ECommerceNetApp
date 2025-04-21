@@ -2,10 +2,8 @@
 
 namespace ECommerceNetApp.Persistence.Interfaces.ProductCatalog
 {
-    public interface IProductRepository
+    public interface IProductRepository : IRepository<ProductEntity, int>
     {
-        Task<IEnumerable<ProductEntity>> GetAllAsync(CancellationToken cancellationToken);
-
         Task<IEnumerable<ProductEntity>> GetProductsByCategoryIdAsync(int categoryId, CancellationToken cancellationToken);
 
         Task<(IEnumerable<ProductEntity> Products, int TotalCount)> GetPaginatedProductsAsync(
@@ -14,16 +12,8 @@ namespace ECommerceNetApp.Persistence.Interfaces.ProductCatalog
             int? categoryId,
             CancellationToken cancellationToken);
 
-        Task<ProductEntity?> GetByIdAsync(int id, CancellationToken cancellationToken);
-
         Task<bool> ExistsAsync(int id, CancellationToken cancellationToken);
 
         Task<bool> ExistsAnyProductWithCategoryIdAsync(int categoryId, CancellationToken cancellationToken);
-
-        Task AddAsync(ProductEntity product, CancellationToken cancellationToken);
-
-        void Update(ProductEntity product);
-
-        Task DeleteAsync(int id, CancellationToken cancellationToken);
     }
 }

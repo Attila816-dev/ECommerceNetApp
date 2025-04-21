@@ -37,7 +37,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             // Arrange
             var categoryDto = new CategoryDto { Id = 1, Name = "Electronics Updated" };
 
-            _mockRepository.Setup(repo => repo.GetByIdAsync(It.Is<int>(id => id == 1), It.IsAny<CancellationToken>()))
+            _mockRepository.Setup(repo => repo.GetByIdAsync(
+                It.Is<int>(id => id == 1),
+                It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CategoryEntity(categoryDto.Id, "Electronics"));
 
             _mockRepository.Setup(c => c.Update(It.Is<CategoryEntity>(c => c.Name == categoryDto.Name && c.Id == 1)))
@@ -65,7 +68,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             // Arrange
             var categoryDto = new CategoryDto { Id = 99, Name = "Electronics Updated" };
 
-            _mockRepository.Setup(repo => repo.GetByIdAsync(It.Is<int>(id => id == 1), It.IsAny<CancellationToken>()))
+            _mockRepository.Setup(repo => repo.GetByIdAsync(
+                It.Is<int>(id => id == 1),
+                It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CategoryEntity(categoryDto.Id, "Electronics"));
 
             _mockRepository.Setup(c => c.Update(It.Is<CategoryEntity>(c => c.Name == categoryDto.Name && c.Id == 1)))

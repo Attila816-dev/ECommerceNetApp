@@ -19,7 +19,7 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
         {
             ArgumentNullException.ThrowIfNull(request);
             IEnumerable<ProductEntity> products = await _productCatalogUnitOfWork.ProductRepository
-                .GetAllAsync(cancellationToken).ConfigureAwait(false);
+                .GetAllAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             return products.Select(_productMapper.MapToProductDto).ToList();
         }
     }

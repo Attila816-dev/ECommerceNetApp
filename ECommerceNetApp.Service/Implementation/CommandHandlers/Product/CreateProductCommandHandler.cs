@@ -25,7 +25,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
                 throw new ValidationException(validationResult.Errors);
             }
 
-            var category = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.CategoryId, cancellationToken).ConfigureAwait(false);
+            var category = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.CategoryId, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (category == null)
             {
                 throw new InvalidOperationException($"Category with id {request.CategoryId} not found");

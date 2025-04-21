@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Domain.Entities;
+﻿using System.Linq.Expressions;
+using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Implementation.Mappers.Product;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Product;
@@ -37,7 +38,10 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
                 new ProductEntity(2, "Smartphone", null, null, category, 499.99m, 20),
             };
             _mockRepository
-                .Setup(r => r.GetAllAsync(CancellationToken.None))
+                .Setup(r => r.GetAllAsync(
+                    It.IsAny<Expression<Func<ProductEntity, bool>>?>(),
+                    It.IsAny<Func<IQueryable<ProductEntity>, IQueryable<ProductEntity>>?>(),
+                    CancellationToken.None))
                 .ReturnsAsync(products);
 
             // Act

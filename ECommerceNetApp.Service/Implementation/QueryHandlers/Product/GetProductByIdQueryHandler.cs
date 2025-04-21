@@ -18,7 +18,10 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
             ArgumentNullException.ThrowIfNull(request);
 
             var product = await _productCatalogUnitOfWork.ProductRepository
-                .GetByIdAsync(request.Id, cancellationToken).ConfigureAwait(false);
+                .GetByIdAsync(
+                    request.Id,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
 
             if (product == null)
             {

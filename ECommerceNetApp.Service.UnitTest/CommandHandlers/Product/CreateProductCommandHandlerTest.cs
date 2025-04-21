@@ -52,7 +52,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             var category = new CategoryEntity(1, "Electronics");
             var product = new ProductEntity(1, "Laptop", null, null, category, 999.99m, 10);
 
-            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(category.Id, CancellationToken.None))
+            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(
+                category.Id,
+                It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                CancellationToken.None))
                 .ReturnsAsync(category);
 
             _mockProductRepository.Setup(repo => repo.AddAsync(It.Is<ProductEntity>(p => p.Name == productDto.Name), CancellationToken.None))
@@ -92,7 +95,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 CategoryId = 999, // Non-existing category ID
             };
 
-            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(999, CancellationToken.None))
+            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(
+                999,
+                It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                CancellationToken.None))
                 .ReturnsAsync((CategoryEntity?)null);
 
             // Act & Assert

@@ -96,7 +96,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
                 .ReturnsAsync(new ValidationResult());
 
             _mockUnitOfWork
-                .Setup(u => u.CategoryRepository.GetByIdAsync(parentCategoryId, It.IsAny<CancellationToken>()))
+                .Setup(u => u.CategoryRepository.GetByIdAsync(
+                    parentCategoryId,
+                    It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(parentCategory);
 
             _mockUnitOfWork
@@ -113,7 +116,12 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             var result = await _commandHandler.Handle(command, CancellationToken.None);
 
             // Assert
-            _mockUnitOfWork.Verify(u => u.CategoryRepository.GetByIdAsync(parentCategoryId, It.IsAny<CancellationToken>()), Times.Once);
+            _mockUnitOfWork.Verify(
+                u => u.CategoryRepository.GetByIdAsync(
+                    parentCategoryId,
+                    It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
 
             _mockUnitOfWork.Verify(
                 u => u.CategoryRepository.AddAsync(

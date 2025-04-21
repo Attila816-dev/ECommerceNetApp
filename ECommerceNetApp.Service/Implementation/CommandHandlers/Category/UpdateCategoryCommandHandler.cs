@@ -24,7 +24,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
                 throw new ValidationException(validationResult.Errors);
             }
 
-            var existingCategory = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            var existingCategory = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (existingCategory == null)
             {
                 throw new InvalidOperationException($"Category with Id {request.Id} not found");
@@ -45,7 +45,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
                 if (request.ParentCategoryId.HasValue)
                 {
                     parentCategory = await _productCatalogUnitOfWork.CategoryRepository
-                        .GetByIdAsync(request.ParentCategoryId.Value, cancellationToken).ConfigureAwait(false);
+                        .GetByIdAsync(request.ParentCategoryId.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
                     if (parentCategory == null)
                     {
                         throw new InvalidOperationException($"Parent category with id {request.ParentCategoryId.Value} not found");

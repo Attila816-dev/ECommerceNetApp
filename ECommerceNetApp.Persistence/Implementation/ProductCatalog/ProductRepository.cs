@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Domain.Entities;
+﻿using System.Linq.Expressions;
+using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,11 +8,24 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
     internal class ProductRepository(ProductCatalogDbContext dbContext)
         : BaseRepository<ProductEntity, int>(dbContext), IProductRepository
     {
-        public Task<IEnumerable<ProductEntity>> GetAllAsync(CancellationToken cancellationToken)
+        public override Task<IEnumerable<ProductEntity>> GetAllAsync(Expression<Func<ProductEntity, bool>>? filter = null, Func<IQueryable<ProductEntity>, IQueryable<ProductEntity>>? include = null, CancellationToken cancellationToken = default)
         {
-            return GetAllAsync(
-                include: query => query.Include(p => p.Category),
-                cancellationToken: cancellationToken);
+            if (include == null)
+            {
+                include = query => query.Include(p => p.Category);
+            }
+
+            return base.GetAllAsync(filter, include, cancellationToken);
+        }
+
+        public override Task<ProductEntity?> GetByIdAsync(int id, Func<IQueryable<ProductEntity>, IQueryable<ProductEntity>>? include = null, CancellationToken cancellationToken = default)
+        {
+            if (include == null)
+            {
+                include = query => query.Include(p => p.Category);
+            }
+
+            return base.GetByIdAsync(id, include, cancellationToken);
         }
 
         public Task<IEnumerable<ProductEntity>> GetProductsByCategoryIdAsync(int categoryId, CancellationToken cancellationToken)
@@ -20,11 +34,6 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
                 filter: p => p.CategoryId == categoryId,
                 include: query => query.Include(p => p.Category),
                 cancellationToken: cancellationToken);
-        }
-
-        public Task<ProductEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
-        {
-            return GetByIdAsync(id, include: query => query.Include(p => p.Category), cancellationToken);
         }
 
         public Task<(IEnumerable<ProductEntity> Products, int TotalCount)> GetPaginatedProductsAsync(

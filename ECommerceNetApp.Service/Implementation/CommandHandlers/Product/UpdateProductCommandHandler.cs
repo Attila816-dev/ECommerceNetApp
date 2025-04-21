@@ -18,7 +18,10 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            var product = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            var product = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(
+                request.Id,
+                cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
             if (product == null)
             {
                 throw new InvalidOperationException($"Product with id {request.Id} not found");
@@ -45,7 +48,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
         {
             if (command.CategoryId != product.CategoryId)
             {
-                var category = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(command.CategoryId, cancellationToken).ConfigureAwait(false);
+                var category = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(command.CategoryId, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (category == null)
                 {
                     throw new InvalidOperationException($"Category with id {command.CategoryId} not found");
