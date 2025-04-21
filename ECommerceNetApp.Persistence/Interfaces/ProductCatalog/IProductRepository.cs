@@ -8,6 +8,12 @@ namespace ECommerceNetApp.Persistence.Interfaces.ProductCatalog
 
         Task<IEnumerable<ProductEntity>> GetProductsByCategoryIdAsync(int categoryId, CancellationToken cancellationToken);
 
+        Task<(IEnumerable<ProductEntity> Products, int TotalCount)> GetPaginatedProductsAsync(
+            int pageNumber,
+            int pageSize,
+            int? categoryId,
+            CancellationToken cancellationToken);
+
         Task<ProductEntity?> GetByIdAsync(int id, CancellationToken cancellationToken);
 
         Task<bool> ExistsAsync(int id, CancellationToken cancellationToken);

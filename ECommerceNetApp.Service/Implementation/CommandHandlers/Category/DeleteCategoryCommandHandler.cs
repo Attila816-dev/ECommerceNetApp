@@ -23,6 +23,19 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
                 throw new ValidationException(validationResult.Errors);
             }
 
+            // Get all products related to this category
+            var products = await _productCatalogUnitOfWork.ProductRepository
+                .GetProductsByCategoryIdAsync(request.Id, cancellationToken)
+                .ConfigureAwait(false);
+
+            // Delete all related products first
+            foreach (var product in products)
+            {
+                await _productCatalogUnitOfWork.ProductRepository
+                    .DeleteAsync(product.Id, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             await _productCatalogUnitOfWork.CategoryRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);
             await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }

@@ -50,6 +50,19 @@ namespace ECommerceNetApp.Api.Controllers
             return Ok(product);
         }
 
+        [HttpGet("paginated")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<PaginationResult<ProductDto>>> GetPaginatedProducts(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] int? categoryId = null,
+            CancellationToken cancellationToken = default)
+        {
+            var query = new GetPaginatedProductsQuery(pageNumber, pageSize, categoryId);
+            var result = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
+            return Ok(result);
+        }
+
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

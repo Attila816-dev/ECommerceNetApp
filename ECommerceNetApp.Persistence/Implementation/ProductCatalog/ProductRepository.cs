@@ -36,5 +36,29 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
         {
             return await DbSet.AnyAsync(c => c.CategoryId == categoryId, cancellationToken).ConfigureAwait(false);
         }
+
+        public async Task<(IEnumerable<ProductEntity> Products, int TotalCount)> GetPaginatedProductsAsync(
+            int pageNumber,
+            int pageSize,
+            int? categoryId,
+            CancellationToken cancellationToken)
+        {
+            IQueryable<ProductEntity> query = DbSet.Include(p => p.Category);
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            int totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
+
+            var products = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return (products, totalCount);
+        }
     }
 }
