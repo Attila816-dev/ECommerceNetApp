@@ -12,6 +12,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
     {
         private readonly DeleteCategoryCommandHandler _commandHandler;
         private readonly Mock<ICategoryRepository> _mockCategoryRepository;
+        private readonly Mock<IProductRepository> _mockProductRepository;
         private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
         private readonly Mock<IValidator<DeleteCategoryCommand>> _mockValidator;
 
@@ -19,8 +20,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
         {
             // Initialize the command handler with necessary dependencies
             _mockCategoryRepository = new Mock<ICategoryRepository>();
+            _mockProductRepository = new Mock<IProductRepository>();
             _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
             _mockUnitOfWork.Setup(u => u.CategoryRepository).Returns(_mockCategoryRepository.Object);
+            _mockUnitOfWork.Setup(u => u.ProductRepository).Returns(_mockProductRepository.Object);
 
             _mockValidator = new Mock<IValidator<DeleteCategoryCommand>>();
             _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<DeleteCategoryCommand>(), CancellationToken.None))
