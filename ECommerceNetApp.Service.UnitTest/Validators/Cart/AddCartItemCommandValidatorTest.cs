@@ -133,7 +133,7 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.Item.Price)
-                .WithErrorMessage("Cart item price must be greater than zero.");
+                .WithErrorMessage("Cart item price must be greater than or equal to zero.");
         }
     }
 }

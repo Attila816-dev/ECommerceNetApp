@@ -49,7 +49,7 @@ namespace ECommerceNetApp.Domain.Exceptions.Product
             return new InvalidProductException("Amount must be a positive integer");
         }
 
-        public static InvalidProductException NotFound(Guid id)
+        public static InvalidProductException NotFound(int id)
         {
             return new InvalidProductException($"Product with id {id} not found", HttpStatusCode.NotFound);
         }

@@ -32,6 +32,11 @@
             ArgumentNullException.ThrowIfNull(left);
             ArgumentNullException.ThrowIfNull(right);
 
+            if (!left.Currency.Equals(right.Currency, StringComparison.Ordinal))
+            {
+                throw new ArgumentException("Currencies must match for addition");
+            }
+
             return new Money(left.Amount + right.Amount, left.Currency);
         }
 
@@ -83,7 +88,7 @@
 
         public override string ToString()
         {
-            return $"{Amount} {Currency}";
+            return $"{Amount:C} {Currency}";
         }
     }
 }

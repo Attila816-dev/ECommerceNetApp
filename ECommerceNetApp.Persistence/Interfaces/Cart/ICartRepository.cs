@@ -9,5 +9,7 @@ namespace ECommerceNetApp.Persistence.Interfaces.Cart
         Task SaveAsync(CartEntity cart, CancellationToken cancellationToken);
 
         Task DeleteAsync(string cartId, CancellationToken cancellationToken);
+
+        Task<bool> ExistsAsync(string cartId, CancellationToken cancellationToken);
     }
 }

@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+﻿using ECommerceNetApp.Domain.Exceptions.Product;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using MediatR;
 
@@ -14,7 +15,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
             var exists = await _productCatalogUnitOfWork.ProductRepository.ExistsAsync(request.Id, cancellationToken).ConfigureAwait(false);
             if (!exists)
             {
-                throw new InvalidOperationException($"Product with id {request.Id} not found");
+                throw InvalidProductException.NotFound(request.Id);
             }
 
             await _productCatalogUnitOfWork.ProductRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);

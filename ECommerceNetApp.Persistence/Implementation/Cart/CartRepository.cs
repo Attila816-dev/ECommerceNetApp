@@ -45,5 +45,13 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             // Track the modified entity
             _cartUnitOfWork.TrackEntity(cart);
         }
+
+        public async Task<bool> ExistsAsync(string cartId, CancellationToken cancellationToken)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
+
+            var collection = _cartDbContext.GetCollection<CartEntity>();
+            return await collection.ExistsAsync(x => x.Id == cartId).ConfigureAwait(false);
+        }
     }
 }
