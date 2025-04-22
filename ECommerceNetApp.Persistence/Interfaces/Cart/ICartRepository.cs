@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 
 namespace ECommerceNetApp.Persistence.Interfaces.Cart
 {
@@ -11,5 +12,14 @@ namespace ECommerceNetApp.Persistence.Interfaces.Cart
         Task DeleteAsync(string cartId, CancellationToken cancellationToken);
 
         Task<bool> ExistsAsync(string cartId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets a specific item from the cart.
+        /// </summary>
+        /// <param name="cartId">The ID of the cart.</param>
+        /// <param name="itemId">The ID of the item.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The cart item if found, otherwise null.</returns>
+        Task<CartItem?> GetCartItemAsync(string cartId, int itemId, CancellationToken cancellationToken);
     }
 }
