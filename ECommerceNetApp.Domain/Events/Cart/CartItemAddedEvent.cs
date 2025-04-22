@@ -1,7 +1,8 @@
-﻿using ECommerceNetApp.Domain.ValueObjects;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Domain.ValueObjects;
 
 namespace ECommerceNetApp.Domain.Events.Cart
 {
     public record CartItemAddedEvent(string CartId, CartItem CartItem)
-        : DomainEvent;
+        : DomainEvent, IEventBusMessage;
 }

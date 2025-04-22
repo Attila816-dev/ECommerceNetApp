@@ -1,4 +1,6 @@
-﻿namespace ECommerceNetApp.Domain.Events.Product
+﻿using ECommerceNetApp.Domain.Interfaces;
+
+namespace ECommerceNetApp.Domain.Events.Product
 {
     public record ProductCreatedEvent(int ProductId,
         string Name,
@@ -9,5 +11,5 @@
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         decimal Price,
         int Amount)
-        : DomainEvent;
+        : DomainEvent, IEventBusMessage;
 }

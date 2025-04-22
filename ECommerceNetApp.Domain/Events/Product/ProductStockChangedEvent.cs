@@ -1,5 +1,7 @@
-﻿namespace ECommerceNetApp.Domain.Events.Product
+﻿using ECommerceNetApp.Domain.Interfaces;
+
+namespace ECommerceNetApp.Domain.Events.Product
 {
     public record ProductStockChangedEvent(int ProductId, int NewAmount, int OldAmount)
-        : DomainEvent;
+        : DomainEvent, IEventBusMessage;
 }

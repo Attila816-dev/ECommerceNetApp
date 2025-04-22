@@ -11,7 +11,9 @@ using ECommerceNetApp.Persistence.Implementation.Cart;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.Extensions;
+using ECommerceNetApp.Service.Implementation;
 using ECommerceNetApp.Service.Implementation.Behaviors;
+using ECommerceNetApp.Service.Implementation.Listener;
 using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
 using MediatR;
@@ -26,12 +28,6 @@ namespace ECommerceNetApp.Api
     [SuppressMessage("Design", "CA1052:Type 'Program' is a static holder type but is neither static nor NotInheritable", Justification = "Required for partial class usage in integration tests.")]
     public partial class Program
     {
-        private static Action<Microsoft.Extensions.Logging.ILogger, Exception> _logSeedDatabaseErrorAction =
-            LoggerMessage.Define(
-                LogLevel.Error,
-                new EventId(0, nameof(InitializeAndSeedDatabasesAsync)),
-                "An error occurred while migrating or seeding the database.");
-
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -226,7 +222,7 @@ namespace ECommerceNetApp.Api
             catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                _logSeedDatabaseErrorAction.Invoke(logger, ex);
+                logger.LogSeedDatabaseError(ex);
             }
         }
 
@@ -234,6 +230,21 @@ namespace ECommerceNetApp.Api
         {
             try
             {
+                var listener = app.Services.GetRequiredService<ServiceBusListener>();
+                var mediator = app.Services.GetRequiredService<IMediator>();
+                var logger = app.Services.GetRequiredService<ILogger<ProductCatalogUpdateHandler>>();
+
+                listener.StartListening(
+                    async message =>
+                    {
+                        await new ProductCatalogUpdateHandler(mediator, logger).HandleMessageAsync(message).ConfigureAwait(false);
+                    },
+                    error =>
+                    {
+                        logger.LogUnexpectedEventBusListeningError(error.Exception);
+                        return Task.CompletedTask;
+                    });
+
                 Log.Information("Starting web host");
                 await app.RunAsync().ConfigureAwait(false);
             }

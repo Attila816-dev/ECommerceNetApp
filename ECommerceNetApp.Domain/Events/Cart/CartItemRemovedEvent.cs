@@ -1,4 +1,6 @@
-﻿namespace ECommerceNetApp.Domain.Events.Cart
+﻿using ECommerceNetApp.Domain.Interfaces;
+
+namespace ECommerceNetApp.Domain.Events.Cart
 {
-    public record CartItemRemovedEvent(string CartId, int CartItemId) : DomainEvent;
+    public record CartItemRemovedEvent(string CartId, int CartItemId) : DomainEvent, IEventBusMessage;
 }

@@ -7,18 +7,12 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Category
     public class CategoryDeletedNotificationHandler(ILogger<CategoryDeletedNotificationHandler> logger)
         : INotificationHandler<CategoryDeletedEvent>
     {
-        private static readonly Action<ILogger, int, Exception?> LogCategoryDeleted =
-            LoggerMessage.Define<int>(
-                LogLevel.Information,
-                new EventId(1, nameof(CategoryDeletedNotificationHandler)),
-                "Category deleted: {CategoryId}.");
-
         private readonly ILogger<CategoryDeletedNotificationHandler> _logger = logger;
 
         public Task Handle(CategoryDeletedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);
-            LogCategoryDeleted(_logger, notification.CategoryId, null);
+            _logger.LogCategoryDeleted(notification.CategoryId);
 
             // Add any business logic that should happen when a category is deleted
             return Task.CompletedTask;
