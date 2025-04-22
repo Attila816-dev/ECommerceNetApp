@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Api.Services;
 using ECommerceNetApp.Service.Commands.Cart;
@@ -6,12 +7,13 @@ using ECommerceNetApp.Service.Queries.Cart;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ECommerceNetApp.Api.Controllers
+namespace ECommerceNetApp.Api.Controllers.V2
 {
     /// <summary>
-    /// Controller for managing shopping carts in the E-commerce application.
+    /// Controller for managing shopping carts in the E-commerce application (API Version 1).
     /// </summary>
-    [Route("api/carts")]
+    [ApiVersion("2.0")]
+    [Route("api/v{version:apiVersion}/carts")]
     public class CartController(IMediator mediator, IHateoasLinkService linkService)
         : BaseApiController(linkService, mediator)
     {
@@ -21,7 +23,8 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cartId">The ID of the cart.</param>
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>A list of cart items with HATEOAS links.</returns>
-        [HttpGet("{cartId}/items")]
+        [HttpGet("{cartId}")]
+        [MapToApiVersion("2.0")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CollectionLinkedResourceDto<CartItemDto>>> GetCartItems(
@@ -52,6 +55,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>The created resource with links.</returns>
         [HttpPost("{cartId}/items")]
+        [MapToApiVersion("2.0")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<LinkedResourceDto<string>>> AddItemToCart(
@@ -74,7 +78,7 @@ namespace ECommerceNetApp.Api.Controllers
 
             var resource = CreateResource(cartId, links);
 
-            return CreatedAtAction(nameof(GetCartItems), new { cartId }, resource);
+            return CreatedAtAction(nameof(GetCartItems), new { cartId, version = "2.0" }, resource);
         }
 
         /// <summary>
@@ -85,6 +89,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>No content if the deletion is successful.</returns>
         [HttpDelete("{cartId}/items/{itemId}")]
+        [MapToApiVersion("2.0")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> RemoveItemFromCart(
@@ -105,6 +110,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>No content if the update is successful.</returns>
         [HttpPut("{cartId}/items/{itemId}")]
+        [MapToApiVersion("2.0")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> UpdateItemQuantity(
@@ -124,6 +130,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>The cart total with links.</returns>
         [HttpGet("{cartId}/total")]
+        [MapToApiVersion("2.0")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<LinkedResourceDto<decimal>>> GetCartTotal(
@@ -153,6 +160,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>The cart item with links.</returns>
         [HttpGet("{cartId}/items/{itemId}")]
+        [MapToApiVersion("2.0")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<LinkedResourceDto<CartItemDto>>> GetCartItem(

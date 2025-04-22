@@ -65,13 +65,14 @@ namespace ECommerceNetApp.IntegrationTests
             }
 
             // Act
-            var response = await _client.GetAsync($"/api/carts/{cartId}/items");
+            var response = await _client.GetAsync($"/api/v1/carts/{cartId}");
 
             // Assert
             response.EnsureSuccessStatusCode();
-            var cartItems = await response.Content.ReadFromJsonAsync<CollectionLinkedResourceDto<CartItemDto>>();
+            var cartWithLinks = await response.Content.ReadFromJsonAsync<LinkedResourceDto<CartDto>>();
 
-            cartItems.ShouldNotBeNull();
+            cartWithLinks.ShouldNotBeNull();
+            cartWithLinks.Resource.ShouldNotBeNull();
         }
 
         [Fact]
@@ -79,7 +80,7 @@ namespace ECommerceNetApp.IntegrationTests
         {
             // Act
             var cartId = "invalid-cart-id-1";
-            var response = await _client.GetAsync($"/api/carts/{cartId}/items");
+            var response = await _client.GetAsync($"/api/v1/carts/{cartId}");
 
             // Assert
             response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -106,11 +107,11 @@ namespace ECommerceNetApp.IntegrationTests
                 "application/json");
 
             // Act
-            var response = await _client.PostAsync($"/api/carts/{cartId}/items", content);
+            var response = await _client.PostAsync($"/api/v1/carts/{cartId}/items", content);
 
             // Assert
             response.EnsureSuccessStatusCode();
-            var itemsResponse = await _client.GetAsync($"/api/carts/{cartId}/items/{1}");
+            var itemsResponse = await _client.GetAsync($"/api/v2/carts/{cartId}/items/{1}");
             var itemWithLinks = await itemsResponse.Content.ReadFromJsonAsync<LinkedResourceDto<CartItemDto>>();
 
             itemWithLinks.ShouldNotBeNull();
@@ -140,7 +141,7 @@ namespace ECommerceNetApp.IntegrationTests
                 Encoding.UTF8,
                 "application/json");
 
-            await _client.PostAsync($"/api/carts/{cartId}/items", addContent);
+            await _client.PostAsync($"/api/v2/carts/{cartId}/items", addContent);
 
             var updateQuantity = 5;
             using var updateContent = new StringContent(
@@ -149,11 +150,11 @@ namespace ECommerceNetApp.IntegrationTests
                 "application/json");
 
             // Act
-            var updateResponse = await _client.PutAsync($"/api/carts/{cartId}/items/{newItem.Id}", updateContent);
+            var updateResponse = await _client.PutAsync($"/api/v2/carts/{cartId}/items/{newItem.Id}", updateContent);
 
             // Assert
             updateResponse.EnsureSuccessStatusCode();
-            var itemsResponse = await _client.GetAsync($"/api/carts/{cartId}/items/{newItem.Id}");
+            var itemsResponse = await _client.GetAsync($"/api/v2/carts/{cartId}/items/{newItem.Id}");
             var itemWithLinks = await itemsResponse.Content.ReadFromJsonAsync<LinkedResourceDto<CartItemDto>>();
 
             itemWithLinks.ShouldNotBeNull();
@@ -180,10 +181,10 @@ namespace ECommerceNetApp.IntegrationTests
                 Encoding.UTF8,
                 "application/json");
 
-            await _client.PostAsync($"/api/carts/{cartId}/items", addContent);
+            await _client.PostAsync($"/api/v2/carts/{cartId}/items", addContent);
 
             // Act
-            var deleteResponse = await _client.DeleteAsync($"/api/carts/{cartId}/items/1");
+            var deleteResponse = await _client.DeleteAsync($"/api/v2/carts/{cartId}/items/1");
 
             // Assert
             deleteResponse.EnsureSuccessStatusCode();
@@ -209,10 +210,10 @@ namespace ECommerceNetApp.IntegrationTests
                 Encoding.UTF8,
                 "application/json");
 
-            await _client.PostAsync($"/api/carts/{cartId}/items", addContent);
+            await _client.PostAsync($"/api/v2/carts/{cartId}/items", addContent);
 
             // Act
-            var totalResponse = await _client.GetAsync($"/api/carts/{cartId}/total");
+            var totalResponse = await _client.GetAsync($"/api/v1/carts/{cartId}/total");
 
             // Assert
             totalResponse.EnsureSuccessStatusCode();
