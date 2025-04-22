@@ -1,6 +1,6 @@
 ﻿namespace ECommerceNetApp.Domain.ValueObjects
 {
-    public class Money : IEquatable<Money>
+    public record Money
     {
         private const string DefaultCurrency = "EUR";
 
@@ -21,16 +21,23 @@
         /// </summary>
         private Money()
         {
+            Amount = 0;
+            Currency = DefaultCurrency;
         }
 
-        public decimal Amount { get; }
+        public decimal Amount { get; init; }
 
-        public string Currency { get; } = DefaultCurrency; // Default currency
+        public string Currency { get; init; } = DefaultCurrency;
 
         public static Money operator +(Money left, Money right)
         {
             ArgumentNullException.ThrowIfNull(left);
             ArgumentNullException.ThrowIfNull(right);
+
+            if (!left.Currency.Equals(right.Currency, StringComparison.Ordinal))
+            {
+                throw new ArgumentException("Currencies must match for addition");
+            }
 
             return new Money(left.Amount + right.Amount, left.Currency);
         }
@@ -56,34 +63,10 @@
 
         public static Money From(decimal amount) => new Money(amount);
 
-        public bool Equals(Money? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return Amount == other.Amount && Currency == other.Currency;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as Money);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Amount, Currency);
-        }
-
+        // With records, .Equals, GetHashCode are automatically implemented
         public override string ToString()
         {
-            return $"{Amount} {Currency}";
+            return $"{Amount:C} {Currency}";
         }
     }
 }

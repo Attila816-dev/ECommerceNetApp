@@ -1,13 +1,15 @@
-﻿namespace ECommerceNetApp.Domain.Events.Product
+﻿using ECommerceNetApp.Domain.ValueObjects;
+
+namespace ECommerceNetApp.Domain.Events.Product
 {
     public record ProductCreatedEvent(int ProductId,
         string Name,
         string? Description,
         int CategoryId,
 #pragma warning disable CA1054 // URI-like parameters should not be strings
-        string? ImageUrl,
+        ImageInfo? ImageUrl,
 #pragma warning restore CA1054 // URI-like parameters should not be strings
-        decimal Price,
+        Money Price,
         int Amount)
         : DomainEvent;
 }

@@ -1,5 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,7 +77,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             // Assert
             result.ShouldNotBeNull();
             result.Name.ShouldBe("Laptop");
-            result.Price.ShouldBe(999.99m);
+            result.Price.Amount.ShouldBe(999.99m);
         }
 
         [Fact]
@@ -93,7 +94,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task AddProductAsync_ShouldAddNewProduct()
         {
             // Arrange
-            var newProduct = new ProductEntity("Tablet", "Compact tablet", null, _electronicsCategory, 299.99m, 15);
+            var newProduct = new ProductEntity("Tablet", "Compact tablet", null, _electronicsCategory, new Money(299.99m, null), 15);
 
             // Act
             await _productCatalogUnitOfWork.ProductRepository.AddAsync(newProduct, CancellationToken.None);
@@ -103,7 +104,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var productInDb = await _dbContext.Products.FirstAsync(p => p.Name == newProduct.Name);
             productInDb.ShouldNotBeNull();
             productInDb.Description.ShouldBe(newProduct.Description);
-            productInDb.Price.ShouldBe(299.99m);
+            productInDb.Price.Amount.ShouldBe(299.99m);
         }
 
         [Fact]
@@ -113,7 +114,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var product = await _dbContext.Products.FindAsync(_laptopProduct!.Id);
             product.ShouldNotBeNull();
             product.UpdateName("Updated Laptop");
-            product.UpdatePrice(1099.99m);
+            product.UpdatePrice(new Money(1099.99m, "EUR"));
 
             // Act
             _productCatalogUnitOfWork.ProductRepository.Update(product);
@@ -123,7 +124,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var updatedProduct = await _dbContext.Products.FindAsync(1);
             updatedProduct.ShouldNotBeNull();
             updatedProduct.Name.ShouldBe("Updated Laptop");
-            updatedProduct.Price.ShouldBe(1099.99m);
+            updatedProduct.Price.Amount.ShouldBe(1099.99m);
         }
 
         [Fact]
@@ -188,13 +189,13 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             _dbContext.SaveChanges();
 
             // Add products
-            _laptopProduct = new ProductEntity("Laptop", "Powerful laptop", null, _electronicsCategory, 999.99m, 10);
-            _smartPhoneProduct = new ProductEntity("Smartphone", "Latest model", null, _electronicsCategory, 499.99m, 20);
+            _laptopProduct = new ProductEntity("Laptop", "Powerful laptop", null, _electronicsCategory, new Money(999.99m, null), 10);
+            _smartPhoneProduct = new ProductEntity("Smartphone", "Latest model", null, _electronicsCategory, new Money(499.99m, null), 20);
 
             _dbContext.Products.Add(_laptopProduct);
             _dbContext.Products.Add(_smartPhoneProduct);
 
-            _bookProduct = new ProductEntity("Programming Book", "Learn to code", null, _booksCategory, 39.99m, 50);
+            _bookProduct = new ProductEntity("Programming Book", "Learn to code", null, _booksCategory, new Money(39.99m, null), 50);
             _dbContext.Products.Add(_bookProduct);
 
             _dbContext.SaveChanges();

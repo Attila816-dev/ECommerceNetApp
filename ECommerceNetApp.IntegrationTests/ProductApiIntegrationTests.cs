@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using ECommerceNetApp.Api;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.Cart;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.DTO;
@@ -60,7 +61,7 @@ namespace ECommerceNetApp.IntegrationTests
 
             await dbContext.SaveChangesAsync();
 
-            var product = new ProductEntity("Sample Product", null, null, category, 10.99m, 5);
+            var product = new ProductEntity("Sample Product", null, null, category, new Money(10.99m, null), 5);
 
             await dbContext.Products.AddAsync(product);
 

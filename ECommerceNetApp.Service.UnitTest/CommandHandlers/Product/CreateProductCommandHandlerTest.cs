@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
@@ -50,7 +51,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             };
 
             var category = new CategoryEntity(1, "Electronics");
-            var product = new ProductEntity(1, "Laptop", null, null, category, 999.99m, 10);
+            var product = new ProductEntity(1, "Laptop", null, null, category, new Money(999.99m), 10);
 
             _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(category.Id, CancellationToken.None))
                 .ReturnsAsync(category);
@@ -69,6 +70,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.ImageUrl,
                 productDto.CategoryId,
                 productDto.Price,
+                null,
                 productDto.Amount);
             var result = await _commandHandler.Handle(command, CancellationToken.None);
 
@@ -102,6 +104,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.ImageUrl,
                 productDto.CategoryId,
                 productDto.Price,
+                null,
                 productDto.Amount);
             var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
                 _commandHandler.Handle(command, CancellationToken.None));

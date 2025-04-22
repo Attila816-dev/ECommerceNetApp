@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Implementation.Mappers.Product;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Product;
@@ -33,8 +34,8 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
             // Arrange
             var products = new List<ProductEntity>
             {
-                new ProductEntity(1, "Laptop", null, null, category, 999.99m, 10),
-                new ProductEntity(2, "Smartphone", null, null, category, 499.99m, 20),
+                new ProductEntity(1, "Laptop", null, null, category, new Money(999.99m), 10),
+                new ProductEntity(2, "Smartphone", null, null, category, new Money(499.99m), 20),
             };
             _mockRepository
                 .Setup(r => r.GetAllAsync(CancellationToken.None))

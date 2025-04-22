@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using FluentValidation;
@@ -32,8 +33,8 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
 
             product.UpdateName(request.Name);
             product.UpdateDescription(request.Description);
-            product.UpdateImage(request.ImageUrl);
-            product.UpdatePrice(request.Price);
+            product.UpdateImage(request.ImageUrl != null ? new ImageInfo(request.ImageUrl, null) : null);
+            product.UpdatePrice(new Money(request.Price, request.Currency));
             product.UpdateAmount(request.Amount);
             await UpdateProductCategoryAsync(request, product, cancellationToken).ConfigureAwait(false);
 

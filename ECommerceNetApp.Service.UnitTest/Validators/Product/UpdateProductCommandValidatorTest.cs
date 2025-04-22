@@ -18,7 +18,7 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
         public void Validate_WithValidData_ShouldPassValidation()
         {
             // Arrange
-            var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 1, 100.0m, 10);
+            var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 1, 100.0m, null, 10);
 
             // Act
             var result = _validator.TestValidate(command);
@@ -31,7 +31,7 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
         public void Validate_WithEmptyName_ShouldFailValidation()
         {
             // Arrange
-            var command = new UpdateProductCommand(1, string.Empty, null, null, 1, 100.0m, 10);
+            var command = new UpdateProductCommand(1, string.Empty, null, null, 1, 100.0m, null, 10);
 
             // Act
             var result = _validator.TestValidate(command);
@@ -46,7 +46,7 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
         {
             // Arrange
             var productName = new string('A', ProductEntity.MaxProductNameLength + 1);
-            var command = new UpdateProductCommand(1, productName, null, null, 1, 100.0m, 10);
+            var command = new UpdateProductCommand(1, productName, null, null, 1, 100.0m, null, 10);
 
             // Act
             var result = _validator.TestValidate(command);
@@ -60,7 +60,7 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
         public void Validate_WithNonPositivePrice_ShouldFailValidation()
         {
             // Arrange
-            var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 1, 0, 10);
+            var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 1, 0, null, 10);
 
             // Act
             var result = _validator.TestValidate(command);
@@ -74,7 +74,7 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
         public void Validate_WithNonPositiveAmount_ShouldFailValidation()
         {
             // Arrange
-            var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 1, 100.0m, 0);
+            var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 1, 100.0m, null, 0);
 
             // Act
             var result = _validator.TestValidate(command);
@@ -88,7 +88,7 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
         public void Validate_WithInvalidCategoryId_ShouldFailValidation()
         {
             // Arrange
-            var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 0, 100.0m, 10);
+            var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 0, 100.0m, null, 10);
 
             // Act
             var result = _validator.TestValidate(command);

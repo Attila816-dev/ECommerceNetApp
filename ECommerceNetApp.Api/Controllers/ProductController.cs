@@ -66,6 +66,7 @@ namespace ECommerceNetApp.Api.Controllers
                 productDto.ImageUrl,
                 productDto.CategoryId,
                 productDto.Price,
+                productDto.Currency,
                 productDto.Amount);
 
             var createdProductId = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
@@ -96,6 +97,7 @@ namespace ECommerceNetApp.Api.Controllers
                 productDto.ImageUrl,
                 productDto.CategoryId,
                 productDto.Price,
+                productDto.Currency,
                 productDto.Amount);
 
             await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
