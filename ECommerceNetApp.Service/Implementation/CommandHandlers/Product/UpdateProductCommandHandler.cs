@@ -1,5 +1,4 @@
-﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.ValueObjects;
+﻿using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using FluentValidation;
@@ -31,29 +30,18 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
                 throw new ValidationException(validationResult.Errors);
             }
 
-            product.UpdateName(request.Name);
-            product.UpdateDescription(request.Description);
-            product.UpdateImage(request.ImageUrl != null ? new ImageInfo(request.ImageUrl, null) : null);
-            product.UpdatePrice(new Money(request.Price, request.Currency));
-            product.UpdateAmount(request.Amount);
-            await UpdateProductCategoryAsync(request, product, cancellationToken).ConfigureAwait(false);
+            var category = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.CategoryId, cancellationToken).ConfigureAwait(false);
+            if (category == null)
+            {
+                throw new ArgumentException($"Category with id {request.CategoryId} not found");
+            }
 
+            var imageInfo = request.ImageUrl != null ? new ImageInfo(request.ImageUrl, null) : null;
+            var money = new Money(request.Price, request.Currency);
+
+            product.Update(request.Name, request.Description, imageInfo, category, money, request.Amount);
             _productCatalogUnitOfWork.ProductRepository.Update(product);
             await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task UpdateProductCategoryAsync(UpdateProductCommand command, ProductEntity product, CancellationToken cancellationToken)
-        {
-            if (command.CategoryId != product.CategoryId)
-            {
-                var category = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(command.CategoryId, cancellationToken).ConfigureAwait(false);
-                if (category == null)
-                {
-                    throw new InvalidOperationException($"Category with id {command.CategoryId} not found");
-                }
-
-                product.UpdateCategory(category);
-            }
         }
     }
 }

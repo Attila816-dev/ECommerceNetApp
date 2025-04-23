@@ -31,30 +31,27 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
                 throw new InvalidOperationException($"Category with Id {request.Id} not found");
             }
 
-            existingCategory.UpdateName(request.Name);
-            existingCategory.UpdateImage(request.ImageUrl != null ? new ImageInfo(request.ImageUrl, null) : null);
-            await UpdateParentCategoryAsync(request, existingCategory, cancellationToken).ConfigureAwait(false);
+            var imageInfo = request.ImageUrl != null ? new ImageInfo(request.ImageUrl, null) : null;
+            var parentCategory = await GetParentCategoryAsync(request, existingCategory, cancellationToken).ConfigureAwait(false);
+            existingCategory.Update(request.Name, imageInfo, parentCategory);
             _productCatalogUnitOfWork.CategoryRepository.Update(existingCategory);
             await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task UpdateParentCategoryAsync(UpdateCategoryCommand request, CategoryEntity category, CancellationToken cancellationToken)
+        private async Task<CategoryEntity?> GetParentCategoryAsync(UpdateCategoryCommand request, CategoryEntity category, CancellationToken cancellationToken)
         {
-            if (request.ParentCategoryId != category.ParentCategoryId)
+            CategoryEntity? parentCategory = null;
+            if (request.ParentCategoryId.HasValue)
             {
-                CategoryEntity? parentCategory = null;
-                if (request.ParentCategoryId.HasValue)
+                parentCategory = await _productCatalogUnitOfWork.CategoryRepository
+                    .GetByIdAsync(request.ParentCategoryId.Value, cancellationToken).ConfigureAwait(false);
+                if (parentCategory == null)
                 {
-                    parentCategory = await _productCatalogUnitOfWork.CategoryRepository
-                        .GetByIdAsync(request.ParentCategoryId.Value, cancellationToken).ConfigureAwait(false);
-                    if (parentCategory == null)
-                    {
-                        throw new InvalidOperationException($"Parent category with id {request.ParentCategoryId.Value} not found");
-                    }
+                    throw new InvalidOperationException($"Parent category with id {request.ParentCategoryId.Value} not found");
                 }
-
-                category.UpdateParentCategory(parentCategory);
             }
+
+            return parentCategory;
         }
     }
 }
