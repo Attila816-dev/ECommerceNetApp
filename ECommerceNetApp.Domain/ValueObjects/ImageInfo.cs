@@ -1,9 +1,9 @@
 ﻿namespace ECommerceNetApp.Domain.ValueObjects
 {
-    public class ImageInfo : IEquatable<ImageInfo>
+    public record ImageInfo
     {
 #pragma warning disable CA1054 // URI-like parameters should not be strings
-        public ImageInfo(string url, string? altText)
+        public ImageInfo(string url, string? altText = null)
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(url);
@@ -18,35 +18,12 @@
         /// </summary>
         private ImageInfo()
         {
+            Url = string.Empty;
+            AltText = string.Empty;
         }
 
-        public string? Url { get; }
+        public string Url { get; init; }
 
-        public string? AltText { get; }
-
-        public bool Equals(ImageInfo? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return Url == other.Url && AltText == other.AltText;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as ImageInfo);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Url, AltText);
-        }
+        public string AltText { get; init; }
     }
 }

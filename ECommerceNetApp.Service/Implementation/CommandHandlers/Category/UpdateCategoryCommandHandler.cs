@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using MediatR;
@@ -22,7 +23,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
             }
 
             existingCategory.UpdateName(request.Name);
-            existingCategory.UpdateImage(request.ImageUrl);
+            existingCategory.UpdateImage(request.ImageUrl != null ? new ImageInfo(request.ImageUrl, null) : null);
             await UpdateParentCategoryAsync(request, existingCategory, cancellationToken).ConfigureAwait(false);
             _productCatalogUnitOfWork.CategoryRepository.Update(existingCategory);
             await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);

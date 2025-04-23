@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Domain.ValueObjects;
 
 namespace ECommerceNetApp.Domain.Events.Product
 {
@@ -7,9 +8,9 @@ namespace ECommerceNetApp.Domain.Events.Product
         string? Description,
         int CategoryId,
 #pragma warning disable CA1054 // URI-like parameters should not be strings
-        string? ImageUrl,
+        ImageInfo? ImageUrl,
 #pragma warning restore CA1054 // URI-like parameters should not be strings
-        decimal Price,
+        Money Price,
         int Amount)
         : DomainEvent, IEventBusMessage;
 }

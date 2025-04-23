@@ -1,5 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Exceptions.Product;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
@@ -28,7 +29,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         {
             // Arrange
             var category = new CategoryEntity(1, "test-category");
-            var product = new ProductEntity(1, "test-product", null, null, category, 10, 2);
+            var product = new ProductEntity(1, "test-product", null, null, category, new Money(10, null), 2);
 
             _mockRepository.Setup(r => r.ExistsAsync(product.Id, CancellationToken.None))
                 .ReturnsAsync(true);
