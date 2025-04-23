@@ -1,12 +1,11 @@
 ﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Domain.ValueObjects;
 
 namespace ECommerceNetApp.Domain.Events.Category
 {
     public record CategoryUpdatedEvent(
         int CategoryId,
         string Name,
-#pragma warning disable CA1054 // URI-like parameters should not be strings
-        string? ImageUrl,
-#pragma warning restore CA1054 // URI-like parameters should not be strings
+        ImageInfo? Image,
         int? ParentCategoryId) : DomainEvent, IEventBusMessage;
 }

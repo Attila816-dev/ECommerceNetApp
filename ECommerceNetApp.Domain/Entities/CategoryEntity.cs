@@ -17,21 +17,12 @@ namespace ECommerceNetApp.Domain.Entities
         {
             UpdateName(name);
             UpdateImage(image);
-
-            if (parentCategory != null)
-            {
-                UpdateParentCategory(parentCategory);
-            }
-            else
-            {
-                ParentCategory = null;
-                ParentCategoryId = null;
-            }
+            UpdateParentCategory(parentCategory);
 
             if (raiseDomainEvent)
             {
                 ClearDomainEvents();
-                AddDomainEvent(new CategoryCreatedEvent(Id, Name, Image?.Url, ParentCategoryId));
+                AddDomainEvent(new CategoryCreatedEvent(Id, Name, Image, ParentCategoryId));
             }
         }
 
@@ -41,7 +32,7 @@ namespace ECommerceNetApp.Domain.Entities
             Id = id;
 
             ClearDomainEvents();
-            AddDomainEvent(new CategoryCreatedEvent(Id, Name, Image?.Url, ParentCategoryId));
+            AddDomainEvent(new CategoryCreatedEvent(Id, Name, Image, ParentCategoryId));
         }
 
         // For EF Core
@@ -62,7 +53,23 @@ namespace ECommerceNetApp.Domain.Entities
 
         public virtual ICollection<ProductEntity> Products { get; private set; } = new List<ProductEntity>();
 
-        public void UpdateName(string name)
+        public void Update(
+            string name,
+            ImageInfo? image,
+            CategoryEntity? parentCategory)
+        {
+            UpdateName(name);
+            UpdateImage(image);
+            UpdateParentCategory(parentCategory);
+            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, Image, ParentCategoryId));
+        }
+
+        public override void MarkAsDeleted()
+        {
+            AddDomainEvent(new CategoryDeletedEvent(Id));
+        }
+
+        internal void UpdateName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -80,10 +87,9 @@ namespace ECommerceNetApp.Domain.Entities
             }
 
             Name = name;
-            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, Image?.Url, ParentCategoryId));
         }
 
-        public void UpdateImage(ImageInfo? image)
+        internal void UpdateImage(ImageInfo? image)
         {
             if ((image == null && Image == null) ||
                 (image != null && Image != null && image.Equals(Image)))
@@ -92,10 +98,9 @@ namespace ECommerceNetApp.Domain.Entities
             }
 
             Image = image;
-            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, Image?.Url, ParentCategoryId));
         }
 
-        public void UpdateParentCategory(CategoryEntity? parentCategory)
+        internal void UpdateParentCategory(CategoryEntity? parentCategory)
         {
             // Check for circular reference
             if (parentCategory != null)
@@ -110,16 +115,15 @@ namespace ECommerceNetApp.Domain.Entities
 
                     parent = parent.ParentCategory;
                 }
+
+                ParentCategory = parentCategory;
+                ParentCategoryId = parentCategory!.Id;
             }
-
-            ParentCategory = parentCategory;
-            ParentCategoryId = parentCategory?.Id;
-            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, Image?.Url, ParentCategoryId));
-        }
-
-        public override void MarkAsDeleted()
-        {
-            AddDomainEvent(new CategoryDeletedEvent(Id));
+            else
+            {
+                ParentCategory = null;
+                ParentCategoryId = null;
+            }
         }
     }
 }

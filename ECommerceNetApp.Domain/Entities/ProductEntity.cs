@@ -27,7 +27,6 @@ namespace ECommerceNetApp.Domain.Entities
 
             if (raiseDomainEvent)
             {
-                ClearDomainEvents();
                 AddDomainEvent(new ProductCreatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
             }
         }
@@ -43,8 +42,6 @@ namespace ECommerceNetApp.Domain.Entities
             : this(name, description, image, category, price, amount, raiseDomainEvent: false)
         {
             Id = id;
-
-            ClearDomainEvents();
             AddDomainEvent(new ProductCreatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
@@ -68,7 +65,29 @@ namespace ECommerceNetApp.Domain.Entities
 
         public int Amount { get; private set; }
 
-        public void UpdateName(string name)
+        public override void MarkAsDeleted()
+        {
+            AddDomainEvent(new ProductDeletedEvent(Id));
+        }
+
+        public void Update(
+            string name,
+            string? description,
+            ImageInfo? image,
+            CategoryEntity category,
+            Money price,
+            int amount)
+        {
+            UpdateName(name);
+            UpdateDescription(description);
+            UpdateImage(image);
+            UpdateCategory(category);
+            UpdatePrice(price);
+            UpdateAmount(amount);
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
+        }
+
+        internal void UpdateName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -86,10 +105,9 @@ namespace ECommerceNetApp.Domain.Entities
             }
 
             Name = name;
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
-        public void UpdateDescription(string? description)
+        internal void UpdateDescription(string? description)
         {
             if ((string.IsNullOrEmpty(description) && string.IsNullOrEmpty(Description))
                 || (!string.IsNullOrEmpty(description) && description.Equals(Description, StringComparison.Ordinal)))
@@ -98,10 +116,9 @@ namespace ECommerceNetApp.Domain.Entities
             }
 
             Description = description;
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
-        public void UpdateImage(ImageInfo? image)
+        internal void UpdateImage(ImageInfo? image)
         {
             if ((image == null && Image == null) ||
                 (image != null && Image != null && image.Equals(Image)))
@@ -110,17 +127,21 @@ namespace ECommerceNetApp.Domain.Entities
             }
 
             Image = image;
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
-        public void UpdateCategory(CategoryEntity category)
+        internal void UpdateCategory(CategoryEntity category)
         {
-            Category = category ?? throw InvalidProductException.CategoryRequired();
+            ArgumentNullException.ThrowIfNull(category, "Category");
+            if (CategoryId == category.Id)
+            {
+                return;
+            }
+
+            Category = category;
             CategoryId = category.Id;
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
-        public void UpdatePrice(Money price)
+        internal void UpdatePrice(Money price)
         {
             ArgumentNullException.ThrowIfNull(price);
 
@@ -130,10 +151,9 @@ namespace ECommerceNetApp.Domain.Entities
             }
 
             Price = price;
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
-        public void UpdateAmount(int amount)
+        internal void UpdateAmount(int amount)
         {
             if (amount < 0)
             {
@@ -143,17 +163,10 @@ namespace ECommerceNetApp.Domain.Entities
             int oldAmount = Amount;
             Amount = amount;
 
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
-
             if (oldAmount != amount)
             {
                 AddDomainEvent(new ProductStockChangedEvent(Id, amount, oldAmount));
             }
-        }
-
-        public override void MarkAsDeleted()
-        {
-            AddDomainEvent(new ProductDeletedEvent(Id));
         }
     }
 }
