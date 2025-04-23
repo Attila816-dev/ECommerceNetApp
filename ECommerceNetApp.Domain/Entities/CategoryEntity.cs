@@ -1,5 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Events.Category;
 using ECommerceNetApp.Domain.Exceptions.Category;
+using ECommerceNetApp.Domain.ValueObjects;
 
 namespace ECommerceNetApp.Domain.Entities
 {
@@ -9,15 +10,13 @@ namespace ECommerceNetApp.Domain.Entities
 
         public CategoryEntity(
             string name,
-#pragma warning disable CA1054 // URI-like parameters should not be strings
-            string? imageUrl = null,
-#pragma warning restore CA1054 // URI-like parameters should not be strings
+            ImageInfo? image = null,
             CategoryEntity? parentCategory = null,
             bool raiseDomainEvent = true)
             : base(default)
         {
             UpdateName(name);
-            UpdateImage(imageUrl);
+            UpdateImage(image);
 
             if (parentCategory != null)
             {
@@ -32,19 +31,17 @@ namespace ECommerceNetApp.Domain.Entities
             if (raiseDomainEvent)
             {
                 ClearDomainEvents();
-                AddDomainEvent(new CategoryCreatedEvent(Id, Name, ImageUrl, ParentCategoryId));
+                AddDomainEvent(new CategoryCreatedEvent(Id, Name, Image?.Url, ParentCategoryId));
             }
         }
 
-#pragma warning disable CA1054 // URI-like parameters should not be strings
-        public CategoryEntity(int id, string name, string? imageUrl = null, CategoryEntity? parentCategory = null)
-#pragma warning restore CA1054 // URI-like parameters should not be strings
-            : this(name, imageUrl, parentCategory, raiseDomainEvent: false)
+        public CategoryEntity(int id, string name, ImageInfo? image = null, CategoryEntity? parentCategory = null)
+            : this(name, image, parentCategory, raiseDomainEvent: false)
         {
             Id = id;
 
             ClearDomainEvents();
-            AddDomainEvent(new CategoryCreatedEvent(Id, Name, ImageUrl, ParentCategoryId));
+            AddDomainEvent(new CategoryCreatedEvent(Id, Name, Image?.Url, ParentCategoryId));
         }
 
         // For EF Core
@@ -55,7 +52,7 @@ namespace ECommerceNetApp.Domain.Entities
 
         public string Name { get; private set; } = string.Empty;
 
-        public string? ImageUrl { get; private set; }
+        public ImageInfo? Image { get; private set; }
 
         public int? ParentCategoryId { get; private set; }
 
@@ -83,21 +80,19 @@ namespace ECommerceNetApp.Domain.Entities
             }
 
             Name = name;
-            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, ImageUrl, ParentCategoryId));
+            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, Image?.Url, ParentCategoryId));
         }
 
-#pragma warning disable CA1054 // URI-like parameters should not be strings
-        public void UpdateImage(string? imageUrl)
-#pragma warning restore CA1054 // URI-like parameters should not be strings
+        public void UpdateImage(ImageInfo? image)
         {
-            if ((string.IsNullOrEmpty(imageUrl) && string.IsNullOrEmpty(ImageUrl))
-                || (!string.IsNullOrEmpty(imageUrl) && !imageUrl.Equals(ImageUrl, StringComparison.Ordinal)))
+            if ((image == null && Image == null) ||
+                (image != null && Image != null && image.Equals(Image)))
             {
                 return;
             }
 
-            ImageUrl = imageUrl;
-            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, ImageUrl, ParentCategoryId));
+            Image = image;
+            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, Image?.Url, ParentCategoryId));
         }
 
         public void UpdateParentCategory(CategoryEntity? parentCategory)
@@ -119,7 +114,7 @@ namespace ECommerceNetApp.Domain.Entities
 
             ParentCategory = parentCategory;
             ParentCategoryId = parentCategory?.Id;
-            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, ImageUrl, ParentCategoryId));
+            AddDomainEvent(new CategoryUpdatedEvent(Id, Name, Image?.Url, ParentCategoryId));
         }
 
         public override void MarkAsDeleted()

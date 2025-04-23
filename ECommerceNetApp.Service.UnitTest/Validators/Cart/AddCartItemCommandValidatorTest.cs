@@ -63,6 +63,7 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
                 Id = 1,
                 Price = 15.99m,
                 Quantity = 1,
+                Name = string.Empty,
             };
 
             // Act

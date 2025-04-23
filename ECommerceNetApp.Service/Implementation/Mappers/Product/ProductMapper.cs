@@ -1,4 +1,5 @@
 using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces.Mappers.Product;
@@ -14,9 +15,9 @@ namespace ECommerceNetApp.Service.Implementation.Mappers.Product
             var product = new ProductEntity(
                 command.Name,
                 command.Description,
-                command.ImageUrl,
+                command.ImageUrl != null ? new ImageInfo(command.ImageUrl, null) : null,
                 category!,
-                command.Price,
+                new Money(command.Price, command.Currency),
                 command.Amount);
             return product;
         }
@@ -30,10 +31,11 @@ namespace ECommerceNetApp.Service.Implementation.Mappers.Product
                 Id = product.Id,
                 Name = product.Name,
                 Description = product.Description,
-                ImageUrl = product.ImageUrl,
+                ImageUrl = product.Image?.Url,
                 CategoryId = product.CategoryId,
                 CategoryName = product.Category?.Name,
-                Price = product.Price,
+                Price = product.Price.Amount,
+                Currency = product.Price.Currency,
                 Amount = product.Amount,
             };
         }

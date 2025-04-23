@@ -1,4 +1,5 @@
 using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces.Mappers.Category;
@@ -15,7 +16,7 @@ namespace ECommerceNetApp.Service.Implementation.Mappers.Category
             {
                 Id = category.Id,
                 Name = category.Name,
-                ImageUrl = category.ImageUrl,
+                ImageUrl = category.Image?.Url,
                 ParentCategoryId = category.ParentCategoryId,
                 ParentCategoryName = category.ParentCategory?.Name,
             };
@@ -24,7 +25,8 @@ namespace ECommerceNetApp.Service.Implementation.Mappers.Category
         public CategoryEntity MapToEntity(CreateCategoryCommand command, CategoryEntity? parentCategory)
         {
             ArgumentNullException.ThrowIfNull(command);
-            return new CategoryEntity(command.Name, command.ImageUrl, parentCategory);
+            var imageInfo = command.ImageUrl != null ? new ImageInfo(command.ImageUrl, null) : null;
+            return new CategoryEntity(command.Name, imageInfo, parentCategory);
         }
 
         public CategoryDetailDto MapToCategoryDetailDto(CategoryEntity category, IEnumerable<CategoryEntity> subcategories, IEnumerable<ProductEntity> products)
@@ -37,7 +39,7 @@ namespace ECommerceNetApp.Service.Implementation.Mappers.Category
             {
                 Id = category.Id,
                 Name = category.Name,
-                ImageUrl = category.ImageUrl,
+                ImageUrl = category.Image?.Url,
                 ParentCategoryId = category.ParentCategoryId,
                 ParentCategoryName = category.ParentCategory?.Name,
                 Subcategories = subcategories?.Select(c => MapSubCategory(c, category)),
@@ -51,7 +53,7 @@ namespace ECommerceNetApp.Service.Implementation.Mappers.Category
             {
                 Id = category.Id,
                 Name = category.Name,
-                ImageUrl = category.ImageUrl,
+                ImageUrl = category.Image?.Url,
                 ParentCategoryId = category.ParentCategoryId,
                 ParentCategoryName = parentCategory.Name,
             };
@@ -64,10 +66,11 @@ namespace ECommerceNetApp.Service.Implementation.Mappers.Category
                 Id = product.Id,
                 Name = product.Name,
                 Description = product.Description,
-                ImageUrl = product.ImageUrl,
+                ImageUrl = product.Image?.Url,
                 CategoryId = product.CategoryId,
                 CategoryName = category.Name,
-                Price = product.Price,
+                Price = product.Price.Amount,
+                Currency = product.Price.Currency,
                 Amount = product.Amount,
             };
         }

@@ -18,6 +18,8 @@ namespace ECommerceNetApp.Api.Model
         [Range(0.01, 1000000)]
         public decimal Price { get; set; }
 
+        public string? Currency { get; set; }
+
         [Required]
         [Range(1, 1000000)]
         public int Amount { get; set; }

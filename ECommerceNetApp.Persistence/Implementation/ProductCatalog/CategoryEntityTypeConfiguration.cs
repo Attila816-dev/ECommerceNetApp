@@ -17,8 +17,12 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
                    .IsRequired()
                    .HasMaxLength(CategoryEntity.MaxCategoryNameLength);
 
-            builder.Property(c => c.ImageUrl)
-                   .IsRequired(false);
+            // Configure ImageInfo as owned entity
+            builder.OwnsOne(c => c.Image, imageBuilder =>
+            {
+                imageBuilder.Property(i => i.Url).HasColumnName("ImageUrl");
+                imageBuilder.Property(i => i.AltText).HasColumnName("ImageAltText");
+            });
 
             builder.Ignore(c => c.DomainEvents);
 

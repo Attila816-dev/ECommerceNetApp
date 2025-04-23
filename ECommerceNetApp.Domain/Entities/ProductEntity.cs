@@ -1,5 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Events.Product;
 using ECommerceNetApp.Domain.Exceptions.Product;
+using ECommerceNetApp.Domain.ValueObjects;
 
 namespace ECommerceNetApp.Domain.Entities
 {
@@ -10,18 +11,16 @@ namespace ECommerceNetApp.Domain.Entities
         public ProductEntity(
             string name,
             string? description,
-#pragma warning disable CA1054 // URI-like parameters should not be strings
-            string? imageUrl,
-#pragma warning restore CA1054 // URI-like parameters should not be strings
+            ImageInfo? image,
             CategoryEntity category,
-            decimal price,
+            Money price,
             int amount,
             bool raiseDomainEvent = true)
             : base(default)
         {
             UpdateName(name);
             UpdateDescription(description);
-            UpdateImage(imageUrl);
+            UpdateImage(image);
             UpdateCategory(category);
             UpdatePrice(price);
             UpdateAmount(amount);
@@ -29,7 +28,7 @@ namespace ECommerceNetApp.Domain.Entities
             if (raiseDomainEvent)
             {
                 ClearDomainEvents();
-                AddDomainEvent(new ProductCreatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
+                AddDomainEvent(new ProductCreatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
             }
         }
 
@@ -37,18 +36,16 @@ namespace ECommerceNetApp.Domain.Entities
             int id,
             string name,
             string? description,
-#pragma warning disable CA1054 // URI-like parameters should not be strings
-            string? imageUrl,
-#pragma warning restore CA1054 // URI-like parameters should not be strings
+            ImageInfo? image,
             CategoryEntity category,
-            decimal price,
+            Money price,
             int amount)
-            : this(name, description, imageUrl, category, price, amount, raiseDomainEvent: false)
+            : this(name, description, image, category, price, amount, raiseDomainEvent: false)
         {
             Id = id;
 
             ClearDomainEvents();
-            AddDomainEvent(new ProductCreatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
+            AddDomainEvent(new ProductCreatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
         // For EF Core
@@ -61,13 +58,13 @@ namespace ECommerceNetApp.Domain.Entities
 
         public string? Description { get; private set; }
 
-        public string? ImageUrl { get; private set; }
+        public ImageInfo? Image { get; private set; }
 
         public int CategoryId { get; private set; }
 
         public virtual CategoryEntity? Category { get; private set; }
 
-        public decimal Price { get; private set; }
+        public Money Price { get; private set; } = Money.From(0);
 
         public int Amount { get; private set; }
 
@@ -89,7 +86,7 @@ namespace ECommerceNetApp.Domain.Entities
             }
 
             Name = name;
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
         public void UpdateDescription(string? description)
@@ -101,39 +98,39 @@ namespace ECommerceNetApp.Domain.Entities
             }
 
             Description = description;
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
-#pragma warning disable CA1054 // URI-like parameters should not be strings
-        public void UpdateImage(string? imageUrl)
-#pragma warning restore CA1054 // URI-like parameters should not be strings
+        public void UpdateImage(ImageInfo? image)
         {
-            if ((string.IsNullOrEmpty(imageUrl) && string.IsNullOrEmpty(ImageUrl)) ||
-                (!string.IsNullOrEmpty(imageUrl) && !imageUrl.Equals(ImageUrl, StringComparison.Ordinal)))
+            if ((image == null && Image == null) ||
+                (image != null && Image != null && image.Equals(Image)))
             {
                 return;
             }
 
-            ImageUrl = imageUrl;
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
+            Image = image;
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
         public void UpdateCategory(CategoryEntity category)
         {
             Category = category ?? throw InvalidProductException.CategoryRequired();
             CategoryId = category.Id;
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
-        public void UpdatePrice(decimal price)
+        public void UpdatePrice(Money price)
         {
-            if (price < 0)
+            ArgumentNullException.ThrowIfNull(price);
+
+            if (price.Equals(Price))
             {
-                throw InvalidProductException.InvalidPrice();
+                return;
             }
 
             Price = price;
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
         }
 
         public void UpdateAmount(int amount)
@@ -146,7 +143,7 @@ namespace ECommerceNetApp.Domain.Entities
             int oldAmount = Amount;
             Amount = amount;
 
-            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, ImageUrl, Price, Amount));
+            AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
 
             if (oldAmount != amount)
             {

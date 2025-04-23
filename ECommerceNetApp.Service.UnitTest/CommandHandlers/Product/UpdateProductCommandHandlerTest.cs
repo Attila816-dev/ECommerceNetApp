@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.Exceptions.Product;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
@@ -46,7 +46,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 It.Is<int>(id => id == productDto.Id),
                 It.IsAny<Func<IQueryable<ProductEntity>, IQueryable<ProductEntity>>?>(),
                 It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ProductEntity(productDto.Id, "Laptop", null, null, category, 10m, 2));
+                .ReturnsAsync(new ProductEntity(productDto.Id, "Laptop", null, null, category, new Money(10m, null), 2));
 
             _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(
                 It.Is<int>(id => id == category.Id),
@@ -69,6 +69,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.ImageUrl,
                 productDto.CategoryId,
                 productDto.Price,
+                null,
                 productDto.Amount);
             await _commandHandler.Handle(updateProductCommand, CancellationToken.None);
 
@@ -116,6 +117,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.ImageUrl,
                 productDto.CategoryId,
                 productDto.Price,
+                null,
                 productDto.Amount);
             await Should.ThrowAsync<InvalidOperationException>(() =>
                 _commandHandler.Handle(command, CancellationToken.None));
@@ -146,7 +148,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 1,
                 It.IsAny<Func<IQueryable<ProductEntity>, IQueryable<ProductEntity>>?>(),
                 CancellationToken.None))
-                .ReturnsAsync(new ProductEntity(1, "Laptop", null, null, category, 10.0m, 10));
+                .ReturnsAsync(new ProductEntity(1, "Laptop", null, null, category, new Money(10.0m, null), 10));
 
             // Act & Assert
             var command = new UpdateProductCommand(
@@ -156,9 +158,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.ImageUrl,
                 productDto.CategoryId,
                 productDto.Price,
+                null,
                 productDto.Amount);
 
-            var exception = await Should.ThrowAsync<InvalidProductException>(() =>
+            var exception = await Should.ThrowAsync<ArgumentException>(() =>
                 _commandHandler.Handle(command, CancellationToken.None));
 
             exception.Message.ShouldContain("Price cannot be negative");
