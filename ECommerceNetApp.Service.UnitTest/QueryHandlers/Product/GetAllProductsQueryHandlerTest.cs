@@ -29,13 +29,13 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
         [Fact]
         public async Task GetAllCategories_ReturnsCategories()
         {
-            var category = new CategoryEntity(1, "Electronics");
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
 
             // Arrange
             var products = new List<ProductEntity>
             {
-                new ProductEntity(1, "Laptop", null, null, category, new Money(999.99m), 10),
-                new ProductEntity(2, "Smartphone", null, null, category, new Money(499.99m), 20),
+                ProductEntity.Create("Laptop", null, null, category, new Money(999.99m), 10, 1),
+                ProductEntity.Create("Smartphone", null, null, category, new Money(499.99m), 20, 2),
             };
             _mockRepository
                 .Setup(r => r.GetAllAsync(CancellationToken.None))

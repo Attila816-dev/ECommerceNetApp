@@ -2,7 +2,7 @@
 
 namespace ECommerceNetApp.Domain.Events.Category
 {
-    public record CategoryCreatedEvent(int CategoryId,
+    public record CategoryCreatedEvent(
         string Name,
         ImageInfo? Image,
         int? ParentCategoryId) : DomainEvent;

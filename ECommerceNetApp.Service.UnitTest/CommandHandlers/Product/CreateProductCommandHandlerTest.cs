@@ -50,8 +50,8 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 CategoryId = 1,
             };
 
-            var category = new CategoryEntity(1, "Electronics");
-            var product = new ProductEntity(1, "Laptop", null, null, category, new Money(999.99m), 10);
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
+            var product = ProductEntity.Create("Laptop", null, null, category, new Money(999.99m), 10, 1);
 
             _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(category.Id, CancellationToken.None))
                 .ReturnsAsync(category);

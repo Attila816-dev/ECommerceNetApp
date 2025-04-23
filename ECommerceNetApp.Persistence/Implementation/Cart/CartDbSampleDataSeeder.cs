@@ -29,14 +29,14 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             if (await cartCollection.CountAsync().ConfigureAwait(false) == 0)
             {
                 // Create a sample cart
-                var sampleCart = new CartEntity("sample-cart-1");
+                var sampleCart = CartEntity.Create("sample-cart-1");
 
                 // Add sample items
-                var cartImageInfo1 = new ImageInfo("https://example.com/product1.jpg", "Sample Product 1 Image");
-                sampleCart.AddItem(new CartItem(1, "Sample Product 1", new Money(19.99m), 1, cartImageInfo1));
+                var cartImageInfo1 = ImageInfo.Create("https://example.com/product1.jpg", "Sample Product 1 Image");
+                sampleCart.AddItem(1, "Sample Product 1", new Money(19.99m), 1, cartImageInfo1);
 
-                var cartImageInfo2 = new ImageInfo("https://example.com/product2.jpg", "Sample Product 2 Image");
-                sampleCart.AddItem(new CartItem(2, "Sample Product 2", new Money(29.99m), 2, cartImageInfo2));
+                var cartImageInfo2 = ImageInfo.Create("https://example.com/product2.jpg", "Sample Product 2 Image");
+                sampleCart.AddItem(2, "Sample Product 2", new Money(29.99m), 2, cartImageInfo2);
 
                 // Save to database
                 await cartCollection.InsertAsync(sampleCart).ConfigureAwait(false);

@@ -8,14 +8,9 @@ namespace ECommerceNetApp.Domain.Entities
     {
         private readonly List<CartItem> _items = new List<CartItem>();
 
-        public CartEntity(string id)
+        internal CartEntity(string id)
             : base(id)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw InvalidCartException.InvalidCartId();
-            }
-
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = CreatedAt;
         }
@@ -36,16 +31,26 @@ namespace ECommerceNetApp.Domain.Entities
         // Expose items as read-only collection
         public IReadOnlyCollection<CartItem> Items => _items.AsReadOnly();
 
-        public void AddItem(CartItem item)
+        public static CartEntity Create(string id)
         {
-            ArgumentNullException.ThrowIfNull(item);
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw InvalidCartException.InvalidCartId();
+            }
 
-            var itemIndex = _items.FindIndex(i => i.Id == item.Id);
+            return new CartEntity(id);
+        }
+
+        public void AddItem(int id, string name, Money price, int quantity, ImageInfo? image = null)
+        {
+            var cartItem = CartItem.Create(id, name, price, quantity, image);
+
+            var itemIndex = _items.FindIndex(i => i.Id == cartItem.Id);
             if (itemIndex < 0)
             {
                 // Add new item
-                _items.Add(item);
-                AddDomainEvent(new CartItemAddedEvent(Id, item));
+                _items.Add(cartItem);
+                AddDomainEvent(new CartItemAddedEvent(Id, cartItem));
             }
             else
             {
@@ -54,10 +59,10 @@ namespace ECommerceNetApp.Domain.Entities
                 int oldQuantity = existingItem.Quantity;
 
                 // Replace with new immutable item
-                var updatedItem = existingItem.WithIncreasedQuantity(item.Quantity);
+                var updatedItem = existingItem.WithIncreasedQuantity(cartItem.Quantity);
                 _items[itemIndex] = updatedItem;
 
-                AddDomainEvent(new CartItemQuantityUpdatedEvent(Id, item.Id, oldQuantity, existingItem.Quantity));
+                AddDomainEvent(new CartItemQuantityUpdatedEvent(Id, cartItem.Id, oldQuantity, existingItem.Quantity));
             }
 
             UpdatedAt = DateTime.UtcNow;

@@ -4,25 +4,8 @@ namespace ECommerceNetApp.Domain.ValueObjects
 {
     public record CartItem
     {
-        public CartItem(int id, string name, Money price, int quantity, ImageInfo? image = null)
+        internal CartItem(int id, string name, Money price, int quantity, ImageInfo? image = null)
         {
-            if (id <= 0)
-            {
-                throw new DomainException("Item ID must be positive");
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new DomainException("Item name cannot be empty");
-            }
-
-            if (quantity <= 0)
-            {
-                throw new DomainException("Item quantity must be positive");
-            }
-
-            ArgumentNullException.ThrowIfNull(price, nameof(price));
-
             Id = id;
             Name = name;
             Price = price;
@@ -53,6 +36,28 @@ namespace ECommerceNetApp.Domain.ValueObjects
         public int Quantity { get; private set; }
 
         public Money TotalPrice => Price * Quantity;
+
+        internal static CartItem Create(int id, string name, Money price, int quantity, ImageInfo? image = null)
+        {
+            if (id <= 0)
+            {
+                throw new DomainException("Item ID must be positive");
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new DomainException("Item name cannot be empty");
+            }
+
+            if (quantity <= 0)
+            {
+                throw new DomainException("Item quantity must be positive");
+            }
+
+            ArgumentNullException.ThrowIfNull(price, nameof(price));
+
+            return new CartItem(id, name, price, quantity, image);
+        }
 
         // Since we need to modify Quantity, we can't make it init-only
         // Instead, we need methods to create a new instance with updated values

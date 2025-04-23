@@ -29,7 +29,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
         public async Task GetCategoryByParentCategoryId_ReturnsCategory()
         {
             // Arrange
-            var category = new CategoryEntity(1, "Test Category");
+            var category = CategoryEntity.Create("Test Category", null, null, 1);
 
             _mockRepository
                 .Setup(r => r.GetByParentCategoryIdAsync(category.Id, CancellationToken.None))

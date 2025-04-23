@@ -32,8 +32,8 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
             // Arrange
             var categories = new List<CategoryEntity>
             {
-                new CategoryEntity(1, "Electronics"),
-                new CategoryEntity(2, "Books"),
+                CategoryEntity.Create("Electronics", null, null, 1),
+                CategoryEntity.Create("Books", null, null, 2),
             };
             _mockRepository
                 .Setup(r => r.GetAllAsync(CancellationToken.None))

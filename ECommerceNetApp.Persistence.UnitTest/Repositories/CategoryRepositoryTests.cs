@@ -62,7 +62,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task AddAsync_ShouldAddNewCategory()
         {
             // Arrange
-            var newCategory = new CategoryEntity("Toys");
+            var newCategory = CategoryEntity.Create("Toys", null, null);
 
             // Act
             await _productCatalogUnitOfWork.CategoryRepository.AddAsync(newCategory, CancellationToken.None);

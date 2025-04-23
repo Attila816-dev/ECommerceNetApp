@@ -32,7 +32,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
         public async Task DeleteExistingCategory_RemovesCategory()
         {
             // Arrange
-            var category = new CategoryEntity(1, "test-category");
+            var category = CategoryEntity.Create("test-category", null, null, 1);
 
             _mockCategoryRepository.Setup(r => r.ExistsAsync(category.Id, CancellationToken.None))
                 .ReturnsAsync(true);

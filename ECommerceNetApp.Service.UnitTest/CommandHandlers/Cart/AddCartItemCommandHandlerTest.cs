@@ -4,7 +4,6 @@ using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Cart;
-using ECommerceNetApp.Service.Implementation.Mappers.Cart;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
@@ -16,7 +15,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
         private readonly AddCartItemCommandHandler _commandHandler;
         private readonly Mock<ICartRepository> _mockRepository;
         private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
-        private readonly CartItemMapper _cartItemMapper;
         private readonly Mock<IValidator<AddCartItemCommand>> _mockValidator;
 
         public AddCartItemCommandHandlerTest()
@@ -25,11 +23,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
             _mockRepository = new Mock<ICartRepository>();
             _mockUnitOfWork = new Mock<ICartUnitOfWork>();
             _mockUnitOfWork.Setup(u => u.CartRepository).Returns(_mockRepository.Object);
-            _cartItemMapper = new CartItemMapper();
             _mockValidator = new Mock<IValidator<AddCartItemCommand>>();
             _mockValidator.Setup(x => x.ValidateAsync(It.IsAny<AddCartItemCommand>(), CancellationToken.None))
                 .ReturnsAsync(new ValidationResult());
-            _commandHandler = new AddCartItemCommandHandler(_mockUnitOfWork.Object, _cartItemMapper, _mockValidator.Object);
+            _commandHandler = new AddCartItemCommandHandler(_mockUnitOfWork.Object, _mockValidator.Object);
         }
 
         [Fact]
@@ -71,7 +68,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
             string testCartId = "test-cart-123";
             var cart = CreateTestCart(testCartId);
 
-            cart.AddItem(new CartItem(1, "Existing Item", new Money(15.99m), 1));
+            cart.AddItem(1, "Existing Item", new Money(15.99m), 1);
             SetupMockRepository(cart);
 
             _mockUnitOfWork.Setup(x => x.CommitAsync(CancellationToken.None)).Returns(Task.CompletedTask).Verifiable();
@@ -98,7 +95,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
         }
 
         private static CartEntity CreateTestCart(string cartId)
-            => new CartEntity(cartId);
+            => CartEntity.Create(cartId);
 
         private void SetupMockRepository(CartEntity cart)
         {

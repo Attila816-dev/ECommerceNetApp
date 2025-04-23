@@ -68,7 +68,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
                 },
                 deserialize: (bson) => bson == null
                     ? null
-                    : new ImageInfo(bson["Url"].AsString, bson["AltText"].AsString));
+                    : ImageInfo.Create(bson["Url"].AsString, bson["AltText"].AsString));
 
             // Register custom Cart serialization
             mapper.RegisterType(
@@ -96,7 +96,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
                 deserialize: (bson) =>
                 {
                     // Use Cart's constructor with id
-                    var cart = new CartEntity(bson["_id"].AsString);
+                    var cart = CartEntity.Create(bson["_id"].AsString);
 
                     // Set the readonly properties using reflection if needed
                     typeof(CartEntity).GetProperty(nameof(CartEntity.CreatedAt))?.SetValue(cart, bson["CreatedAt"].AsDateTime);
@@ -108,9 +108,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
                         foreach (var itemBson in bson["Items"].AsArray)
                         {
                             var item = mapper.Deserialize<CartItem>(itemBson.AsDocument);
-
-                            // Use reflection or a method to add the item
-                            cart.AddItem(item);
+                            cart.AddItem(item.Id, item.Name, item.Price, item.Quantity, item.Image);
                         }
                     }
 

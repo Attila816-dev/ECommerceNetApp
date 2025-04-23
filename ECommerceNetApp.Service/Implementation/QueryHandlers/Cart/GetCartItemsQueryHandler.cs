@@ -1,6 +1,6 @@
-﻿using ECommerceNetApp.Persistence.Interfaces.Cart;
+﻿using ECommerceNetApp.Domain.ValueObjects;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.DTO;
-using ECommerceNetApp.Service.Interfaces.Mappers.Cart;
 using ECommerceNetApp.Service.Queries.Cart;
 using LiteDB;
 using MediatR;
@@ -8,12 +8,10 @@ using MediatR;
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
 {
     public class GetCartItemsQueryHandler(
-        ICartUnitOfWork cartUnitOfWork,
-        ICartItemMapper cartItemMapper)
+        ICartUnitOfWork cartUnitOfWork)
         : IRequestHandler<GetCartItemsQuery, List<CartItemDto>?>
     {
         private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
-        private readonly ICartItemMapper _cartItemMapper = cartItemMapper;
 
         public async Task<List<CartItemDto>?> Handle(GetCartItemsQuery request, CancellationToken cancellationToken)
         {
@@ -27,7 +25,23 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
                 return null;
             }
 
-            return cart.Items.Select(_cartItemMapper.MapToDto).ToList();
+            return cart.Items.Select(MapToDto).ToList();
+        }
+
+        private static CartItemDto MapToDto(CartItem item)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+
+            return new CartItemDto
+            {
+                Id = item.Id,
+                Name = item.Name,
+                ImageUrl = item.Image?.Url,
+                ImageAltText = item.Image?.AltText,
+                Price = item.Price?.Amount ?? 0,
+                Currency = item.Price?.Currency,
+                Quantity = item.Quantity,
+            };
         }
     }
 }
