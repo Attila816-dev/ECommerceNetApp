@@ -37,7 +37,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
             }
 
             var imageInfo = request.ImageUrl != null ? ImageInfo.Create(request.ImageUrl) : null;
-            var money = new Money(request.Price, request.Currency);
+            var money = Money.Create(request.Price, request.Currency);
 
             product.Update(request.Name, request.Description, imageInfo, category, money, request.Amount);
             _productCatalogUnitOfWork.ProductRepository.Update(product);

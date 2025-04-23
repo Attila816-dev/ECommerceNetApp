@@ -4,13 +4,8 @@
     {
         private const string DefaultCurrency = "EUR";
 
-        public Money(decimal amount, string? currency = null)
+        private Money(decimal amount, string? currency = null)
         {
-            if (amount < 0)
-            {
-                throw new ArgumentException("Price cannot be negative", nameof(amount));
-            }
-
             Amount = amount;
             Currency = currency ?? DefaultCurrency;
         }
@@ -20,9 +15,8 @@
         /// Default constructor for ORM purposes.
         /// </summary>
         private Money()
+            : this(0)
         {
-            Amount = 0;
-            Currency = DefaultCurrency;
         }
 
         public decimal Amount { get; init; }
@@ -39,13 +33,23 @@
                 throw new ArgumentException("Currencies must match for addition");
             }
 
-            return new Money(left.Amount + right.Amount, left.Currency);
+            return Create(left.Amount + right.Amount, left.Currency);
         }
 
         public static Money operator *(Money money, int multiplier)
         {
             ArgumentNullException.ThrowIfNull(money);
-            return new Money(money.Amount * multiplier, money.Currency);
+            return Create(money.Amount * multiplier, money.Currency);
+        }
+
+        public static Money Create(decimal amount, string? currency = null)
+        {
+            if (amount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Price cannot be negative");
+            }
+
+            return new Money(amount, currency);
         }
 
         public static Money Add(Money left, Money right)
@@ -61,7 +65,8 @@
             return money * multiplier;
         }
 
-        public static Money From(decimal amount) => new Money(amount);
+        public static Money From(decimal amount)
+            => Create(amount);
 
         // With records, .Equals, GetHashCode are automatically implemented
         public override string ToString()

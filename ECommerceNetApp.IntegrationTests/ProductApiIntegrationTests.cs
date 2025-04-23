@@ -61,7 +61,7 @@ namespace ECommerceNetApp.IntegrationTests
 
             await dbContext.SaveChangesAsync();
 
-            var product = ProductEntity.Create("Sample Product", null, null, category, new Money(10.99m, null), 5);
+            var product = ProductEntity.Create("Sample Product", null, null, category, Money.From(10.99m), 5);
 
             await dbContext.Products.AddAsync(product);
 

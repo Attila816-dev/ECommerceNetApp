@@ -35,7 +35,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
             cart.AddItem(
                 request.Item.Id,
                 request.Item.Name,
-                new Money(request.Item.Price, request.Item.Currency),
+                Money.Create(request.Item.Price, request.Item.Currency),
                 request.Item.Quantity,
                 string.IsNullOrEmpty(request.Item.ImageUrl) ? null : ImageInfo.Create(request.Item.ImageUrl, request.Item.ImageAltText));
 

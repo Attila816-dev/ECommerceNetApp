@@ -35,7 +35,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
             string testCartId = "test-cart-123";
             var cart = CartEntity.Create(testCartId);
 
-            cart.AddItem(1, "Test Item", new Money(10.99m), 1);
+            cart.AddItem(1, "Test Item", Money.From(10.99m), 1);
 
             _mockRepository.Setup(r => r.GetByIdAsync(testCartId, CancellationToken.None))
                 .ReturnsAsync(cart);

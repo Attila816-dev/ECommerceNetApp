@@ -28,7 +28,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         {
             // Arrange
             var category = CategoryEntity.Create("test-category", null, null, 1);
-            var product = ProductEntity.Create("test-product", null, null, category, new Money(10, null), 2, 1);
+            var product = ProductEntity.Create("test-product", null, null, category, Money.From(10), 2, 1);
 
             _mockRepository.Setup(r => r.ExistsAsync(product.Id, CancellationToken.None))
                 .ReturnsAsync(true);

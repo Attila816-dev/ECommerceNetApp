@@ -56,9 +56,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
                     ["Amount"] = money.Amount,
                     ["Currency"] = money.Currency,
                 },
-                deserialize: (bson) => new Money(
-                    bson["Amount"].AsDecimal,
-                    bson["Currency"].AsString));
+                deserialize: (bson) => Money.Create(bson["Amount"].AsDecimal, bson["Currency"].AsString));
 
             mapper.RegisterType(
                 serialize: (imageInfo) => imageInfo == null ? null : new BsonDocument
@@ -66,9 +64,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
                     ["Url"] = imageInfo.Url,
                     ["AltText"] = imageInfo.AltText,
                 },
-                deserialize: (bson) => bson == null
-                    ? null
-                    : ImageInfo.Create(bson["Url"].AsString, bson["AltText"].AsString));
+                deserialize: (bson) => bson == null ? null : ImageInfo.Create(bson["Url"].AsString, bson["AltText"].AsString));
 
             // Register custom Cart serialization
             mapper.RegisterType(

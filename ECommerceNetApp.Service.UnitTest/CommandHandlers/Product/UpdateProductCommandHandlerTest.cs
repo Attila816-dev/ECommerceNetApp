@@ -50,7 +50,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             };
 
             _mockProductRepository.Setup(repo => repo.GetByIdAsync(It.Is<int>(id => id == productDto.Id), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(ProductEntity.Create("Laptop", null, null, category, new Money(10m, null), 2, productDto.Id));
+                .ReturnsAsync(ProductEntity.Create("Laptop", null, null, category, Money.From(10m), 2, productDto.Id));
 
             _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(It.Is<int>(id => id == category.Id), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(category);
@@ -136,7 +136,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(1, CancellationToken.None)).ReturnsAsync(category);
 
             _mockProductRepository.Setup(repo => repo.GetByIdAsync(1, CancellationToken.None))
-                           .ReturnsAsync(ProductEntity.Create("Laptop", null, null, category, new Money(10.0m, null), 10, 1));
+                           .ReturnsAsync(ProductEntity.Create("Laptop", null, null, category, Money.From(10.0m), 10, 1));
 
             // Act & Assert
             var command = new UpdateProductCommand(

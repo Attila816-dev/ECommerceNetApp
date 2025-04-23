@@ -33,10 +33,10 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
                 // Add sample items
                 var cartImageInfo1 = ImageInfo.Create("https://example.com/product1.jpg", "Sample Product 1 Image");
-                sampleCart.AddItem(1, "Sample Product 1", new Money(19.99m), 1, cartImageInfo1);
+                sampleCart.AddItem(1, "Sample Product 1", Money.From(19.99m), 1, cartImageInfo1);
 
                 var cartImageInfo2 = ImageInfo.Create("https://example.com/product2.jpg", "Sample Product 2 Image");
-                sampleCart.AddItem(2, "Sample Product 2", new Money(29.99m), 2, cartImageInfo2);
+                sampleCart.AddItem(2, "Sample Product 2", Money.From(29.99m), 2, cartImageInfo2);
 
                 // Save to database
                 await cartCollection.InsertAsync(sampleCart).ConfigureAwait(false);

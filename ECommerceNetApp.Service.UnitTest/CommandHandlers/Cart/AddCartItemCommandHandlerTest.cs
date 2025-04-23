@@ -68,7 +68,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
             string testCartId = "test-cart-123";
             var cart = CreateTestCart(testCartId);
 
-            cart.AddItem(1, "Existing Item", new Money(15.99m), 1);
+            cart.AddItem(1, "Existing Item", Money.From(15.99m), 1);
             SetupMockRepository(cart);
 
             _mockUnitOfWork.Setup(x => x.CommitAsync(CancellationToken.None)).Returns(Task.CompletedTask).Verifiable();

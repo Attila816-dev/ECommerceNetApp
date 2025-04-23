@@ -4,7 +4,7 @@ namespace ECommerceNetApp.Domain.ValueObjects
 {
     public record CartItem
     {
-        internal CartItem(int id, string name, Money price, int quantity, ImageInfo? image = null)
+        private CartItem(int id, string name, Money price, int quantity, ImageInfo? image = null)
         {
             Id = id;
             Name = name;
@@ -18,11 +18,8 @@ namespace ECommerceNetApp.Domain.ValueObjects
         /// Default constructor for ORM purposes.
         /// </summary>
         private CartItem()
+            : this(default, string.Empty, Money.From(0), 0)
         {
-            Id = default;
-            Name = string.Empty;
-            Price = Money.From(0);
-            Quantity = 0;
         }
 
         public int Id { get; init; }

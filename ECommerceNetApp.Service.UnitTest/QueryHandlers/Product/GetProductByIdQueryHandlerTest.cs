@@ -31,7 +31,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
         {
             // Arrange
             var category = CategoryEntity.Create("Electronics", null, null, 1);
-            var product = ProductEntity.Create("Laptop", null, null, category, new Money(999.99m, null), 10, 1);
+            var product = ProductEntity.Create("Laptop", null, null, category, Money.From(999.99m), 10, 1);
 
             _mockRepository
                 .Setup(r => r.GetByIdAsync(product.Id, CancellationToken.None))

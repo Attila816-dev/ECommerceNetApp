@@ -17,7 +17,7 @@ namespace ECommerceNetApp.Service.Implementation.Mappers.Product
                 command.Description,
                 command.ImageUrl != null ? ImageInfo.Create(command.ImageUrl) : null,
                 category!,
-                new Money(command.Price, command.Currency),
+                Money.Create(command.Price, command.Currency),
                 command.Amount);
             return product;
         }

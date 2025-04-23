@@ -34,8 +34,8 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
             // Arrange
             var products = new List<ProductEntity>
             {
-                ProductEntity.Create("Laptop", null, null, category, new Money(999.99m), 10, 1),
-                ProductEntity.Create("Smartphone", null, null, category, new Money(499.99m), 20, 2),
+                ProductEntity.Create("Laptop", null, null, category, Money.From(999.99m), 10, 1),
+                ProductEntity.Create("Smartphone", null, null, category, Money.From(499.99m), 20, 2),
             };
             _mockRepository
                 .Setup(r => r.GetAllAsync(CancellationToken.None))

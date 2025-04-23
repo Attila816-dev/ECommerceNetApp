@@ -30,8 +30,8 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
 
             var cart = CartEntity.Create(testCartId);
 
-            cart.AddItem(1, "Item 1", new Money(10.99m), 1);
-            cart.AddItem(2, "Item 2", new Money(20.99m), 2);
+            cart.AddItem(1, "Item 1", Money.From(10.99m), 1);
+            cart.AddItem(2, "Item 2", Money.From(20.99m), 2);
 
             _mockRepository.Setup(r => r.GetByIdAsync(testCartId, CancellationToken.None))
                 .ReturnsAsync(cart);
