@@ -8,41 +8,27 @@ namespace ECommerceNetApp.Domain.Entities
     {
         public const int MaxProductNameLength = 50;
 
-        public ProductEntity(
-            string name,
-            string? description,
-            ImageInfo? image,
-            CategoryEntity category,
-            Money price,
-            int amount,
-            bool raiseDomainEvent = true)
-            : base(default)
-        {
-            UpdateName(name);
-            UpdateDescription(description);
-            UpdateImage(image);
-            UpdateCategory(category);
-            UpdatePrice(price);
-            UpdateAmount(amount);
-
-            if (raiseDomainEvent)
-            {
-                AddDomainEvent(new ProductCreatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
-            }
-        }
-
-        public ProductEntity(
-            int id,
+        internal ProductEntity(
+            int? id,
             string name,
             string? description,
             ImageInfo? image,
             CategoryEntity category,
             Money price,
             int amount)
-            : this(name, description, image, category, price, amount, raiseDomainEvent: false)
+            : base(default)
         {
-            Id = id;
-            AddDomainEvent(new ProductCreatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
+            if (id.HasValue)
+            {
+                Id = id.Value;
+            }
+
+            UpdateName(name);
+            UpdateDescription(description);
+            UpdateImage(image);
+            UpdateCategory(category);
+            UpdatePrice(price);
+            UpdateAmount(amount);
         }
 
         // For EF Core
@@ -65,9 +51,25 @@ namespace ECommerceNetApp.Domain.Entities
 
         public int Amount { get; private set; }
 
-        public override void MarkAsDeleted()
+        public static ProductEntity Create(
+            string name,
+            string? description,
+            ImageInfo? image,
+            CategoryEntity category,
+            Money price,
+            int amount,
+            int? id = null)
         {
-            AddDomainEvent(new ProductDeletedEvent(Id));
+            var product = new ProductEntity(id, name, description, image, category, price, amount);
+            product.AddDomainEvent(new ProductCreatedEvent(
+                product.Name,
+                product.Description,
+                product.CategoryId,
+                product.Image,
+                product.Price,
+                product.Amount));
+
+            return product;
         }
 
         public void Update(
@@ -85,6 +87,11 @@ namespace ECommerceNetApp.Domain.Entities
             UpdatePrice(price);
             UpdateAmount(amount);
             AddDomainEvent(new ProductUpdatedEvent(Id, Name, Description, CategoryId, Image, Price, Amount));
+        }
+
+        public override void MarkAsDeleted()
+        {
+            AddDomainEvent(new ProductDeletedEvent(Id));
         }
 
         internal void UpdateName(string name)

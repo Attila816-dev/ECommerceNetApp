@@ -30,8 +30,8 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
         public async Task GetProductById_ReturnsProduct()
         {
             // Arrange
-            var category = new CategoryEntity(1, "Electronics");
-            var product = new ProductEntity(1, "Laptop", null, null, category, new Money(999.99m, null), 10);
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
+            var product = ProductEntity.Create("Laptop", null, null, category, Money.From(999.99m), 10, 1);
 
             _mockRepository
                 .Setup(r => r.GetByIdAsync(

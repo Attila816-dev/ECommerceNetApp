@@ -31,11 +31,11 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
         public async Task GetProductsByCategoryIdAsync_ShouldReturnProductsInCategory()
         {
             // Arrange
-            var category = new CategoryEntity(1, "Electronics");
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
             var products = new List<ProductEntity>
             {
-                new ProductEntity(1, "Laptop", null, null, category, new Money(999.99m, null), 10),
-                new ProductEntity(2, "Smartphone", null, null, category, new Money(499.99m, null), 20),
+                ProductEntity.Create("Laptop", null, null, category, Money.From(999.99m), 10, 1),
+                ProductEntity.Create("Smartphone", null, null, category, Money.From(499.99m), 20, 2),
             };
 
             _mockRepository.Setup(repo => repo.GetProductsByCategoryIdAsync(category.Id, CancellationToken.None))

@@ -61,8 +61,8 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             // Arrange
             var parentCategoryId = 42;
             var command = new CreateCategoryCommand("Test Category", "image.jpg", parentCategoryId);
-            var parentCategory = new CategoryEntity(parentCategoryId, "Parent Category", new ImageInfo("parent.jpg"));
-            var categoryEntity = new CategoryEntity(123, "Test Category", new ImageInfo("image.jpg"), parentCategory);
+            var parentCategory = CategoryEntity.Create("Parent Category", ImageInfo.Create("parent.jpg"), null, parentCategoryId);
+            var categoryEntity = CategoryEntity.Create("Test Category", ImageInfo.Create("image.jpg"), parentCategory, 123);
 
             _mockUnitOfWork
                 .Setup(u => u.CategoryRepository.GetByIdAsync(

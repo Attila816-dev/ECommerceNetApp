@@ -89,7 +89,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         {
             // Arrange
             var cart = new CartEntity("integration-test-cart");
-            cart.AddItem(new CartItem(1, "Test Item", Money.From(10.99m), 2));
+            cart.AddItem(1, "Test Item", Money.From(10.99m), 2);
 
             // Act
             await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
@@ -111,7 +111,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         {
             // Arrange
             var cart = new CartEntity("cart-to-delete");
-            cart.AddItem(new CartItem(1, "Item to delete", Money.From(15.99m), 1));
+            cart.AddItem(1, "Item to delete", Money.From(15.99m), 1);
 
             await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
 
@@ -166,7 +166,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var price = Money.From(10);
 
             // Act
-            cart.AddItem(new CartItem(1, "High Quantity Item", price, quantity));
+            cart.AddItem(1, "High Quantity Item", price, quantity);
             await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
             var retrievedCart = await _unitOfWork.CartRepository.GetByIdAsync(cart.Id, CancellationToken.None);
 
@@ -189,7 +189,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var price = Money.From(int.MaxValue);
 
             // Act
-            cart.AddItem(new CartItem(1, "High Quantity Item", price, quantity));
+            cart.AddItem(1, "High Quantity Item", price, quantity);
             await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
             var retrievedCart = await _unitOfWork.CartRepository.GetByIdAsync(cart.Id, CancellationToken.None);
 
@@ -211,7 +211,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var specialName = "Item@#%&*()!";
 
             // Act
-            cart.AddItem(new CartItem(1, specialName, Money.From(19.99m), 1));
+            cart.AddItem(1, specialName, Money.From(19.99m), 1);
             await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
             var retrievedCart = await _unitOfWork.CartRepository.GetByIdAsync(cart.Id, CancellationToken.None);
 
@@ -233,7 +233,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var cart = new CartEntity(nonexistentCartId);
 
             // Act
-            cart.AddItem(new CartItem(1, "Test Item", Money.From(10.99m), 1));
+            cart.AddItem(1, "Test Item", Money.From(10.99m), 1);
             await _unitOfWork.CartRepository.SaveAsync(cart, CancellationToken.None);
 
             // Assert

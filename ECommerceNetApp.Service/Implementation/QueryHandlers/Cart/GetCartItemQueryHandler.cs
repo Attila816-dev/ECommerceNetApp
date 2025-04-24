@@ -1,18 +1,14 @@
 ﻿using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.DTO;
-using ECommerceNetApp.Service.Interfaces.Mappers.Cart;
 using ECommerceNetApp.Service.Queries.Cart;
 using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
 {
-    public class GetCartItemQueryHandler(
-        ICartUnitOfWork cartUnitOfWork,
-        ICartItemMapper cartItemMapper)
+    public class GetCartItemQueryHandler(ICartUnitOfWork cartUnitOfWork)
         : IRequestHandler<GetCartItemQuery, CartItemDto?>
     {
         private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
-        private readonly ICartItemMapper _cartItemMapper = cartItemMapper;
 
         public async Task<CartItemDto?> Handle(GetCartItemQuery request, CancellationToken cancellationToken)
         {
@@ -26,7 +22,7 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
                 return null;
             }
 
-            return _cartItemMapper.MapToDto(cartItem);
+            return CartItemDto.Create(cartItem);
         }
     }
 }

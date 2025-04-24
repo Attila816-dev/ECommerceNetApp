@@ -9,22 +9,22 @@ namespace ECommerceNetApp.Domain.Entities
         public IReadOnlyCollection<DomainEvent> DomainEvents
             => _domainEvents.AsReadOnly();
 
-        public void AddDomainEvent(DomainEvent domainEvent)
-        {
-            _domainEvents.Add(domainEvent);
-        }
-
-        public void RemoveDomainEvent(DomainEvent domainEvent)
-        {
-            _domainEvents.Remove(domainEvent);
-        }
-
         public void ClearDomainEvents()
         {
             _domainEvents.Clear();
         }
 
         public abstract void MarkAsDeleted();
+
+        protected void AddDomainEvent(DomainEvent domainEvent)
+        {
+            _domainEvents.Add(domainEvent);
+        }
+
+        protected void RemoveDomainEvent(DomainEvent domainEvent)
+        {
+            _domainEvents.Remove(domainEvent);
+        }
     }
 
 #pragma warning disable SA1402 // File may only contain a single type

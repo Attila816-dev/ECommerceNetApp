@@ -4,7 +4,6 @@ using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Cart;
-using ECommerceNetApp.Service.Implementation.Mappers.Cart;
 using Moq;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
@@ -14,16 +13,14 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
         private readonly AddCartItemCommandHandler _commandHandler;
         private readonly Mock<ICartRepository> _mockRepository;
         private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
-        private readonly CartItemMapper _cartItemMapper;
 
         public AddCartItemCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICartRepository>();
             _mockUnitOfWork = new Mock<ICartUnitOfWork>();
-            _mockUnitOfWork.Setup(u => u.CartRepository).Returns(_mockRepository.Object);
-            _cartItemMapper = new CartItemMapper();
-            _commandHandler = new AddCartItemCommandHandler(_mockUnitOfWork.Object, _cartItemMapper);
+            _mockUnitOfWork.SetupGet(u => u.CartRepository).Returns(_mockRepository.Object);
+            _commandHandler = new AddCartItemCommandHandler(_mockUnitOfWork.Object);
         }
 
         [Fact]
@@ -65,7 +62,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
             string testCartId = "test-cart-123";
             var cart = CreateTestCart(testCartId);
 
-            cart.AddItem(new CartItem(1, "Existing Item", new Money(15.99m), 1));
+            cart.AddItem(1, "Existing Item", Money.From(15.99m), 1);
             SetupMockRepository(cart);
 
             _mockUnitOfWork.Setup(x => x.CommitAsync(CancellationToken.None)).Returns(Task.CompletedTask).Verifiable();
@@ -92,7 +89,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
         }
 
         private static CartEntity CreateTestCart(string cartId)
-            => new CartEntity(cartId);
+            => CartEntity.Create(cartId);
 
         private void SetupMockRepository(CartEntity cart)
         {

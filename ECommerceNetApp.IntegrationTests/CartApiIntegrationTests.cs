@@ -61,7 +61,7 @@ namespace ECommerceNetApp.IntegrationTests
             {
                 var cartDbContext = scope.ServiceProvider.GetService<CartDbContext>();
                 cartDbContext!.CreateCollection<CartEntity>();
-                await cartDbContext.GetCollection<CartEntity>().InsertAsync(new CartEntity(cartId));
+                await cartDbContext.GetCollection<CartEntity>().InsertAsync(CartEntity.Create(cartId));
             }
 
             // Act

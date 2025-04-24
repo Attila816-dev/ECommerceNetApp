@@ -22,7 +22,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
                 throw new InvalidOperationException($"Category with Id {request.Id} not found");
             }
 
-            var imageInfo = request.ImageUrl != null ? new ImageInfo(request.ImageUrl, null) : null;
+            var imageInfo = request.ImageUrl != null ? ImageInfo.Create(request.ImageUrl) : null;
             var parentCategory = await GetParentCategoryAsync(request, existingCategory, cancellationToken).ConfigureAwait(false);
             existingCategory.Update(request.Name, imageInfo, parentCategory);
             _productCatalogUnitOfWork.CategoryRepository.Update(existingCategory);

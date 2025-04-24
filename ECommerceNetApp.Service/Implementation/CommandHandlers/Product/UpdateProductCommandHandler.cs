@@ -31,8 +31,8 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
                 throw new ArgumentException($"Category with id {request.CategoryId} not found");
             }
 
-            var imageInfo = request.ImageUrl != null ? new ImageInfo(request.ImageUrl, null) : null;
-            var money = new Money(request.Price, request.Currency);
+            var imageInfo = request.ImageUrl != null ? ImageInfo.Create(request.ImageUrl) : null;
+            var money = Money.Create(request.Price, request.Currency);
 
             product.Update(request.Name, request.Description, imageInfo, category, money, request.Amount);
             _productCatalogUnitOfWork.ProductRepository.Update(product);

@@ -1,6 +1,5 @@
 ﻿using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.DTO;
-using ECommerceNetApp.Service.Interfaces.Mappers.Cart;
 using ECommerceNetApp.Service.Queries.Cart;
 using LiteDB;
 using MediatR;
@@ -8,12 +7,10 @@ using MediatR;
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
 {
     public class GetCartQueryHandler(
-        ICartUnitOfWork cartUnitOfWork,
-        ICartItemMapper cartItemMapper)
+        ICartUnitOfWork cartUnitOfWork)
         : IRequestHandler<GetCartQuery, CartDto?>
     {
         private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
-        private readonly ICartItemMapper _cartItemMapper = cartItemMapper;
 
         public async Task<CartDto?> Handle(GetCartQuery request, CancellationToken cancellationToken)
         {
@@ -29,7 +26,7 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
 
             var cartDto = new CartDto(
                 cart.Id,
-                cart.Items.Select(_cartItemMapper.MapToDto).ToList());
+                cart.Items.Select(CartItemDto.Create).ToList());
             return cartDto;
         }
     }

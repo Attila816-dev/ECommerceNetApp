@@ -28,8 +28,8 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         public async Task DeleteExistingProduct_RemovesProduct()
         {
             // Arrange
-            var category = new CategoryEntity(1, "test-category");
-            var product = new ProductEntity(1, "test-product", null, null, category, new Money(10, null), 2);
+            var category = CategoryEntity.Create("test-category", null, null, 1);
+            var product = ProductEntity.Create("test-product", null, null, category, Money.From(10), 2, 1);
 
             _mockRepository.Setup(r => r.ExistsAsync(product.Id, CancellationToken.None))
                 .ReturnsAsync(true);

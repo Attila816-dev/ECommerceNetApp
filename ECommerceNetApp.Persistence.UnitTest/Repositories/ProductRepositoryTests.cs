@@ -18,8 +18,8 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         private readonly Mock<IDomainEventService> _mockDomainEventService;
 
         private bool disposedValue;
-        private CategoryEntity _electronicsCategory = new CategoryEntity("Electronics", null, null);
-        private CategoryEntity _booksCategory = new CategoryEntity("Books", null, null);
+        private CategoryEntity _electronicsCategory = CategoryEntity.Create("Electronics", null, null);
+        private CategoryEntity _booksCategory = CategoryEntity.Create("Books", null, null);
         private ProductEntity? _laptopProduct;
         private ProductEntity? _smartPhoneProduct;
         private ProductEntity? _bookProduct;
@@ -94,7 +94,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task AddProductAsync_ShouldAddNewProduct()
         {
             // Arrange
-            var newProduct = new ProductEntity("Tablet", "Compact tablet", null, _electronicsCategory, new Money(299.99m, null), 15);
+            var newProduct = ProductEntity.Create("Tablet", "Compact tablet", null, _electronicsCategory, Money.From(299.99m), 15);
 
             // Act
             await _productCatalogUnitOfWork.ProductRepository.AddAsync(newProduct, CancellationToken.None);
@@ -114,7 +114,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var product = await _dbContext.Products.FindAsync(_laptopProduct!.Id);
             product.ShouldNotBeNull();
             product.UpdateName("Updated Laptop");
-            product.UpdatePrice(new Money(1099.99m, "EUR"));
+            product.UpdatePrice(Money.From(1099.99m));
 
             // Act
             _productCatalogUnitOfWork.ProductRepository.Update(product);
@@ -189,13 +189,13 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             _dbContext.SaveChanges();
 
             // Add products
-            _laptopProduct = new ProductEntity("Laptop", "Powerful laptop", null, _electronicsCategory, new Money(999.99m, null), 10);
-            _smartPhoneProduct = new ProductEntity("Smartphone", "Latest model", null, _electronicsCategory, new Money(499.99m, null), 20);
+            _laptopProduct = ProductEntity.Create("Laptop", "Powerful laptop", null, _electronicsCategory, Money.From(999.99m), 10);
+            _smartPhoneProduct = ProductEntity.Create("Smartphone", "Latest model", null, _electronicsCategory, Money.From(499.99m), 20);
 
             _dbContext.Products.Add(_laptopProduct);
             _dbContext.Products.Add(_smartPhoneProduct);
 
-            _bookProduct = new ProductEntity("Programming Book", "Learn to code", null, _booksCategory, new Money(39.99m, null), 50);
+            _bookProduct = ProductEntity.Create("Programming Book", "Learn to code", null, _booksCategory, Money.From(39.99m), 50);
             _dbContext.Products.Add(_bookProduct);
 
             _dbContext.SaveChanges();

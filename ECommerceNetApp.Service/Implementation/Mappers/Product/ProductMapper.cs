@@ -12,12 +12,12 @@ namespace ECommerceNetApp.Service.Implementation.Mappers.Product
         {
             ArgumentNullException.ThrowIfNull(command);
 
-            var product = new ProductEntity(
+            var product = ProductEntity.Create(
                 command.Name,
                 command.Description,
-                command.ImageUrl != null ? new ImageInfo(command.ImageUrl, null) : null,
+                command.ImageUrl != null ? ImageInfo.Create(command.ImageUrl) : null,
                 category!,
-                new Money(command.Price, command.Currency),
+                Money.Create(command.Price, command.Currency),
                 command.Amount);
             return product;
         }

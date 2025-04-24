@@ -25,8 +25,8 @@ namespace ECommerceNetApp.Service.Implementation.Mappers.Category
         public CategoryEntity MapToEntity(CreateCategoryCommand command, CategoryEntity? parentCategory)
         {
             ArgumentNullException.ThrowIfNull(command);
-            var imageInfo = command.ImageUrl != null ? new ImageInfo(command.ImageUrl, null) : null;
-            return new CategoryEntity(command.Name, imageInfo, parentCategory);
+            var imageInfo = command.ImageUrl != null ? ImageInfo.Create(command.ImageUrl, null) : null;
+            return CategoryEntity.Create(command.Name, imageInfo, parentCategory);
         }
 
         public CategoryDetailDto MapToCategoryDetailDto(CategoryEntity category, IEnumerable<CategoryEntity> subcategories, IEnumerable<ProductEntity> products)

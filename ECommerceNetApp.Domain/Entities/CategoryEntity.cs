@@ -8,31 +8,21 @@ namespace ECommerceNetApp.Domain.Entities
     {
         public const int MaxCategoryNameLength = 50;
 
-        public CategoryEntity(
+        internal CategoryEntity(
+            int? id,
             string name,
             ImageInfo? image = null,
-            CategoryEntity? parentCategory = null,
-            bool raiseDomainEvent = true)
+            CategoryEntity? parentCategory = null)
             : base(default)
         {
+            if (id.HasValue)
+            {
+                Id = id.Value;
+            }
+
             UpdateName(name);
             UpdateImage(image);
             UpdateParentCategory(parentCategory);
-
-            if (raiseDomainEvent)
-            {
-                ClearDomainEvents();
-                AddDomainEvent(new CategoryCreatedEvent(Id, Name, Image, ParentCategoryId));
-            }
-        }
-
-        public CategoryEntity(int id, string name, ImageInfo? image = null, CategoryEntity? parentCategory = null)
-            : this(name, image, parentCategory, raiseDomainEvent: false)
-        {
-            Id = id;
-
-            ClearDomainEvents();
-            AddDomainEvent(new CategoryCreatedEvent(Id, Name, Image, ParentCategoryId));
         }
 
         // For EF Core
@@ -52,6 +42,17 @@ namespace ECommerceNetApp.Domain.Entities
         public virtual ICollection<CategoryEntity> SubCategories { get; private set; } = new List<CategoryEntity>();
 
         public virtual ICollection<ProductEntity> Products { get; private set; } = new List<ProductEntity>();
+
+        public static CategoryEntity Create(
+            string name,
+            ImageInfo? image,
+            CategoryEntity? parentCategory,
+            int? id = null)
+        {
+            var category = new CategoryEntity(id, name, image, parentCategory);
+            category.AddDomainEvent(new CategoryCreatedEvent(category.Name, category.Image, category.ParentCategoryId));
+            return category;
+        }
 
         public void Update(
             string name,

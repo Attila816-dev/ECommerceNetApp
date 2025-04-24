@@ -33,7 +33,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
                 It.Is<int>(id => id == 1),
                 It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
                 It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new CategoryEntity(categoryDto.Id, "Electronics"));
+                .ReturnsAsync(CategoryEntity.Create("Electronics", null, null, categoryDto.Id));
 
             _mockRepository.Setup(c => c.Update(It.Is<CategoryEntity>(c => c.Name == categoryDto.Name && c.Id == 1)))
                 .Verifiable();
@@ -64,7 +64,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
                 It.Is<int>(id => id == 1),
                 It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
                 It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new CategoryEntity(categoryDto.Id, "Electronics"));
+                .ReturnsAsync(CategoryEntity.Create("Electronics", null, null, categoryDto.Id));
 
             _mockRepository.Setup(c => c.Update(It.Is<CategoryEntity>(c => c.Name == categoryDto.Name && c.Id == 1)))
                 .Verifiable();

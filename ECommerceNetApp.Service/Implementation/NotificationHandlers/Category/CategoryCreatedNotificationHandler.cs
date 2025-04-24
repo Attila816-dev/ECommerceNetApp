@@ -9,23 +9,18 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Category
         : INotificationHandler<CategoryCreatedEvent>
     {
         // Define a static LoggerMessage delegate for improved performance and consistent templates
-        private static readonly Action<ILogger, int, string, Exception?> LogCategoryCreated =
-            LoggerMessage.Define<int, string>(
+        private static readonly Action<ILogger, string, Exception?> LogCategoryCreated =
+            LoggerMessage.Define<string>(
                 LogLevel.Information,
                 new EventId(1, nameof(CategoryCreatedNotificationHandler)),
-                "Category {CategoryId} created with Properties: {SerializedNotification}");
+                "Category created with Properties: {SerializedNotification}");
 
         private readonly ILogger<CategoryCreatedNotificationHandler> _logger = logger;
 
         public Task Handle(CategoryCreatedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);
-
-            LogCategoryCreated(
-                _logger,
-                notification.CategoryId,
-                JsonSerializer.Serialize(notification),
-                null);
+            LogCategoryCreated(_logger, JsonSerializer.Serialize(notification), null);
 
             // Add any business logic that should happen when a category is created
             // For example, you could send an email to administrators, update search indexes, etc.

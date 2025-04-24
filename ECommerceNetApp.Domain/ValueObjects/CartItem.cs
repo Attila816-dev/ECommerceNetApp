@@ -4,7 +4,37 @@ namespace ECommerceNetApp.Domain.ValueObjects
 {
     public record CartItem
     {
-        public CartItem(int id, string name, Money price, int quantity, ImageInfo? image = null)
+        private CartItem(int id, string name, Money price, int quantity, ImageInfo? image = null)
+        {
+            Id = id;
+            Name = name;
+            Price = price;
+            Quantity = quantity;
+            Image = image;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CartItem"/> class.
+        /// Default constructor for ORM purposes.
+        /// </summary>
+        private CartItem()
+            : this(default, string.Empty, Money.From(0), 0)
+        {
+        }
+
+        public int Id { get; init; }
+
+        public string Name { get; init; }
+
+        public ImageInfo? Image { get; init; }
+
+        public Money Price { get; init; }
+
+        public int Quantity { get; private set; }
+
+        public Money TotalPrice => Price * Quantity;
+
+        internal static CartItem Create(int id, string name, Money price, int quantity, ImageInfo? image = null)
         {
             if (id <= 0)
             {
@@ -23,36 +53,8 @@ namespace ECommerceNetApp.Domain.ValueObjects
 
             ArgumentNullException.ThrowIfNull(price, nameof(price));
 
-            Id = id;
-            Name = name;
-            Price = price;
-            Quantity = quantity;
-            Image = image;
+            return new CartItem(id, name, price, quantity, image);
         }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CartItem"/> class.
-        /// Default constructor for ORM purposes.
-        /// </summary>
-        private CartItem()
-        {
-            Id = default;
-            Name = string.Empty;
-            Price = Money.From(0);
-            Quantity = 0;
-        }
-
-        public int Id { get; init; }
-
-        public string Name { get; init; }
-
-        public ImageInfo? Image { get; init; }
-
-        public Money Price { get; init; }
-
-        public int Quantity { get; private set; }
-
-        public Money TotalPrice => Price * Quantity;
 
         // Since we need to modify Quantity, we can't make it init-only
         // Instead, we need methods to create a new instance with updated values
