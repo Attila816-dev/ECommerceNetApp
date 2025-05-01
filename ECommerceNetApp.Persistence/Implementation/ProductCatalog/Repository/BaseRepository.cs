@@ -2,7 +2,7 @@
 using ECommerceNetApp.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
+namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.Repository
 {
     internal abstract class BaseRepository<TEntity, TId>(ProductCatalogDbContext dbContext)
         where TEntity : BaseEntity<TId>

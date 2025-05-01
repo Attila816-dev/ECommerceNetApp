@@ -7,8 +7,6 @@ using ECommerceNetApp.Api.HealthCheck;
 using ECommerceNetApp.Api.Services;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
-using ECommerceNetApp.Persistence.Implementation.Cart;
-using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.Extensions;
 using ECommerceNetApp.Service.Implementation.Behaviors;
@@ -26,12 +24,6 @@ namespace ECommerceNetApp.Api
     [SuppressMessage("Design", "CA1052:Type 'Program' is a static holder type but is neither static nor NotInheritable", Justification = "Required for partial class usage in integration tests.")]
     public partial class Program
     {
-        private static Action<Microsoft.Extensions.Logging.ILogger, Exception> _logSeedDatabaseErrorAction =
-            LoggerMessage.Define(
-                LogLevel.Error,
-                new EventId(0, nameof(InitializeAndSeedDatabasesAsync)),
-                "An error occurred while migrating or seeding the database.");
-
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -65,9 +57,6 @@ namespace ECommerceNetApp.Api
             app.UseAuthorization();
             app.MapControllers();
 
-            // Initialize and seed databases
-            await InitializeAndSeedDatabasesAsync(app).ConfigureAwait(false);
-
             // Run the application
             await RunApplicationAsync(app).ConfigureAwait(false);
         }
@@ -98,6 +87,7 @@ namespace ECommerceNetApp.Api
             builder.Services.AddProductCatalogDb(builder.Configuration);
             builder.Services.AddValidatorsFromAssemblyContaining<AddCartItemCommandValidator>();
             builder.Services.AddECommerceServices();
+            builder.Services.AddHostedService<DatabaseInitializer>();
             ConfigureHealthCheck(builder);
         }
 
@@ -203,30 +193,6 @@ namespace ECommerceNetApp.Api
 
                 // The default HSTS value is 30 days. You may want to change this for production scenarios.
                 app.UseHsts();
-            }
-        }
-
-        private static async Task InitializeAndSeedDatabasesAsync(WebApplication app, CancellationToken cancellationToken = default)
-        {
-            using var scope = app.Services.CreateScope();
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-            try
-            {
-                var initializer = scope.ServiceProvider.GetRequiredService<CartDbInitializer>();
-                await initializer.InitializeDatabaseAsync(cancellationToken).ConfigureAwait(false);
-
-                var cartDbSeeder = scope.ServiceProvider.GetRequiredService<CartDbSampleDataSeeder>();
-                await cartDbSeeder.SeedSampleDataAsync(cancellationToken).ConfigureAwait(false);
-
-                var productCatalogDbSeeder = scope.ServiceProvider.GetRequiredService<ProductCatalogDbSampleDataSeeder>();
-                await productCatalogDbSeeder.SeedSampleDataAsync(cancellationToken).ConfigureAwait(false);
-            }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception ex)
-#pragma warning restore CA1031 // Do not catch general exception types
-            {
-                _logSeedDatabaseErrorAction.Invoke(logger, ex);
             }
         }
 

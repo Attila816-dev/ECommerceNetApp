@@ -3,7 +3,7 @@ using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
+namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.Repository
 {
     internal class CategoryRepository(
         ProductCatalogDbContext dbContext)

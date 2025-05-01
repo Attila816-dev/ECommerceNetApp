@@ -5,18 +5,18 @@ using Microsoft.Extensions.Options;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
-    public class CartDbSampleDataSeeder
+    public class CartSeeder
     {
         private readonly CartDbContext _dbContext;
         private readonly CartDbOptions _cartDbOptions;
 
-        public CartDbSampleDataSeeder(CartDbContext dbContext, IOptions<CartDbOptions> cartDbOptions)
+        public CartSeeder(CartDbContext dbContext, IOptions<CartDbOptions> cartDbOptions)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _cartDbOptions = cartDbOptions?.Value ?? throw new ArgumentNullException(nameof(cartDbOptions));
         }
 
-        public async Task SeedSampleDataAsync(CancellationToken cancellationToken = default)
+        public async Task SeedAsync(CancellationToken cancellationToken = default)
         {
             if (!_cartDbOptions.SeedSampleData)
             {
