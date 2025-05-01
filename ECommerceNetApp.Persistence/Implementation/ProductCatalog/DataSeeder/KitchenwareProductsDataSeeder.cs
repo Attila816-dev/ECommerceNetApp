@@ -1,21 +1,17 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class KitchenwareProductsDataSeeder(ProductCatalogDbContext dbContext) : IProductDataSeeder
+    internal class KitchenwareProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork) : IProductDataSeeder
     {
-        private readonly ProductCatalogDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-
         public async Task SeedProductsAsync(CancellationToken cancellationToken = default)
         {
-            var category = await _dbContext.Categories.FirstOrDefaultAsync(c => c.Name == ProductCatalogConstants.KitchenwareSubCategoryName, cancellationToken).ConfigureAwait(false);
-            if (category == null)
-            {
-                throw new InvalidOperationException(ProductCatalogConstants.KitchenwareSubCategoryName + " category not found.");
-            }
+            var category = await productCatalogUnitOfWork.CategoryRepository.FirstOrDefaultAsync(
+                c => c.Name == ProductCatalogConstants.KitchenwareSubCategoryName,
+                cancellationToken: cancellationToken)
+                .ConfigureAwait(false) ?? throw new InvalidOperationException(ProductCatalogConstants.KitchenwareSubCategoryName + " category not found.");
 
             var pan = ProductEntity.Create(
                 "Non-Stick Frying Pan 28cm",
@@ -25,8 +21,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
                 Money.From(15.99m),
                 10);
 
-            await _dbContext.Products.AddRangeAsync(pan).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await productCatalogUnitOfWork.ProductRepository.AddAsync(pan, cancellationToken).ConfigureAwait(false);
+            await productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

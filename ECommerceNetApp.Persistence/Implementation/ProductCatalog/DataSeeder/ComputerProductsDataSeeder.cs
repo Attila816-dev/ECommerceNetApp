@@ -1,21 +1,16 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class ComputerProductsDataSeeder(ProductCatalogDbContext dbContext) : IProductDataSeeder
+    internal class ComputerProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork) : IProductDataSeeder
     {
-        private readonly ProductCatalogDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-
         public async Task SeedProductsAsync(CancellationToken cancellationToken = default)
         {
-            var category = await _dbContext.Categories.FirstOrDefaultAsync(c => c.Name == ProductCatalogConstants.ComputersSubCategoryName, cancellationToken).ConfigureAwait(false);
-            if (category == null)
-            {
-                throw new InvalidOperationException(ProductCatalogConstants.ComputersSubCategoryName + " category not found.");
-            }
+            var category = await productCatalogUnitOfWork.CategoryRepository
+                .FirstOrDefaultAsync(c => c.Name == ProductCatalogConstants.ComputersSubCategoryName, cancellationToken: cancellationToken).ConfigureAwait(false)
+                ?? throw new InvalidOperationException(ProductCatalogConstants.ComputersSubCategoryName + " category not found.");
 
             var laptop = ProductEntity.Create(
                 "15.6\" Laptop",
@@ -25,8 +20,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
                 Money.From(499.99m),
                 3);
 
-            await _dbContext.Products.AddRangeAsync(laptop).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await productCatalogUnitOfWork.ProductRepository.AddAsync(laptop, cancellationToken).ConfigureAwait(false);
+            await productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -1,18 +1,34 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
-using ECommerceNetApp.Domain.ValueObjects;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
     public class CartSeeder
     {
+        private static readonly Action<ILogger, string, Exception?> LogCartCreated =
+            LoggerMessage.Define<string>(LogLevel.Information, new EventId(1, nameof(LogCartCreated)), "Created cart with ID: {CartId}");
+
         private readonly CartDbContext _dbContext;
+        private readonly ICartUnitOfWork _cartUnitOfWork;
+        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork;
+        private readonly ILogger<CartSeeder> _logger;
         private readonly CartDbOptions _cartDbOptions;
 
-        public CartSeeder(CartDbContext dbContext, IOptions<CartDbOptions> cartDbOptions)
+        public CartSeeder(
+            CartDbContext dbContext,
+            ICartUnitOfWork cartUnitOfWork,
+            IProductCatalogUnitOfWork productCatalogUnitOfWork,
+            IOptions<CartDbOptions> cartDbOptions,
+            ILogger<CartSeeder> logger)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _cartUnitOfWork = cartUnitOfWork ?? throw new ArgumentNullException(nameof(cartUnitOfWork));
+            _productCatalogUnitOfWork = productCatalogUnitOfWork ?? throw new ArgumentNullException(nameof(productCatalogUnitOfWork));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cartDbOptions = cartDbOptions?.Value ?? throw new ArgumentNullException(nameof(cartDbOptions));
         }
 
@@ -28,19 +44,50 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             // Only seed if collection is empty
             if (await cartCollection.CountAsync().ConfigureAwait(false) == 0)
             {
-                // Create a sample cart
-                var sampleCart = CartEntity.Create("sample-cart-1");
+                // Demo cart 1 - Guest user
+                string guestCartId = "guest-cart-12345";
+                bool guestCartExists = await cartCollection.ExistsAsync(guestCartId).ConfigureAwait(false);
 
-                // Add sample items
-                var cartImageInfo1 = ImageInfo.Create("https://example.com/product1.jpg", "Sample Product 1 Image");
-                sampleCart.AddItem(1, "Sample Product 1", Money.From(19.99m), 1, cartImageInfo1);
+                if (!guestCartExists)
+                {
+                    var guestCart = CartEntity.Create(guestCartId);
 
-                var cartImageInfo2 = ImageInfo.Create("https://example.com/product2.jpg", "Sample Product 2 Image");
-                sampleCart.AddItem(2, "Sample Product 2", Money.From(29.99m), 2, cartImageInfo2);
+                    // Add some sample items to the guest cart
+                    await AddProductToCartAsync(guestCart, "Gala Apples 1kg", 2, cancellationToken).ConfigureAwait(false);
+                    await AddProductToCartAsync(guestCart, "Semi-Skimmed Milk 2L", 1, cancellationToken).ConfigureAwait(false);
 
-                // Save to database
-                await cartCollection.InsertAsync(sampleCart).ConfigureAwait(false);
+                    await _cartUnitOfWork.CartRepository.SaveAsync(guestCart, CancellationToken.None).ConfigureAwait(false);
+                    await _cartUnitOfWork.CommitAsync(CancellationToken.None).ConfigureAwait(false);
+                    LogCartCreated.Invoke(_logger, guestCartId, null);
+                }
+
+                // Demo cart 2 - Registered user
+                string userCartId = "user-cart-67890";
+                bool userCartExists = await _cartUnitOfWork.CartRepository.ExistsAsync(userCartId, CancellationToken.None).ConfigureAwait(false);
+
+                if (!userCartExists)
+                {
+                    var userCart = CartEntity.Create(userCartId);
+
+                    // Add some sample items to the user cart
+                    await AddProductToCartAsync(userCart, "Free Range Eggs 12pk", 1, cancellationToken).ConfigureAwait(false);
+                    await AddProductToCartAsync(userCart, "Chicken Breast Fillets 500g", 2, cancellationToken).ConfigureAwait(false);
+                    await AddProductToCartAsync(userCart, "Wholemeal Bread 800g", 1, cancellationToken).ConfigureAwait(false);
+
+                    await _cartUnitOfWork.CartRepository.SaveAsync(userCart, CancellationToken.None).ConfigureAwait(false);
+                    await _cartUnitOfWork.CommitAsync(CancellationToken.None).ConfigureAwait(false);
+
+                    LogCartCreated.Invoke(_logger, userCartId, null);
+                }
             }
+        }
+
+        private async Task AddProductToCartAsync(CartEntity userCart, string productName, int quantity, CancellationToken cancellationToken)
+        {
+            var bread = (await _productCatalogUnitOfWork.ProductRepository
+                .FirstOrDefaultAsync(p => p.Name == productName, cancellationToken: cancellationToken)
+                .ConfigureAwait(false)) ?? throw new InvalidOperationException(productName + " product not found.");
+            userCart.AddItem(bread, quantity);
         }
     }
 }

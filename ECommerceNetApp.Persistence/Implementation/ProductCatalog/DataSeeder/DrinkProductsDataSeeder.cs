@@ -1,21 +1,17 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class DrinkProductsDataSeeder(ProductCatalogDbContext dbContext) : IProductDataSeeder
+    internal class DrinkProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork) : IProductDataSeeder
     {
-        private readonly ProductCatalogDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-
         public async Task SeedProductsAsync(CancellationToken cancellationToken = default)
         {
-            var category = await _dbContext.Categories.FirstOrDefaultAsync(c => c.Name == ProductCatalogConstants.DrinksSubCategoryName, cancellationToken).ConfigureAwait(false);
-            if (category == null)
-            {
-                throw new InvalidOperationException(ProductCatalogConstants.DrinksSubCategoryName + " category not found.");
-            }
+            var category = await productCatalogUnitOfWork.CategoryRepository.FirstOrDefaultAsync(
+                c => c.Name == ProductCatalogConstants.DrinksSubCategoryName,
+                cancellationToken: cancellationToken).ConfigureAwait(false)
+                ?? throw new InvalidOperationException(ProductCatalogConstants.DrinksSubCategoryName + " category not found.");
 
             var water = ProductEntity.Create(
                 "Spring Water 6x1.5L",
@@ -25,6 +21,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
                 Money.From(2.75m),
                 40);
 
+            await productCatalogUnitOfWork.ProductRepository.AddAsync(water, cancellationToken).ConfigureAwait(false);
+
             var cola = ProductEntity.Create(
                 "Cola 2L",
                 "Classic cola soft drink.",
@@ -33,8 +31,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
                 Money.From(1.95m),
                 35);
 
-            await _dbContext.Products.AddRangeAsync(water, cola).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await productCatalogUnitOfWork.ProductRepository.AddAsync(cola, cancellationToken).ConfigureAwait(false);
+            await productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

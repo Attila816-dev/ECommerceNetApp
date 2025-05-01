@@ -1,22 +1,16 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class FruitProductsDataSeeder(ProductCatalogDbContext dbContext) : IProductDataSeeder
+    internal class FruitProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork) : IProductDataSeeder
     {
-        private readonly ProductCatalogDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-
         public async Task SeedProductsAsync(CancellationToken cancellationToken = default)
         {
-            var category = await _dbContext.Categories.FirstOrDefaultAsync(c => c.Name == ProductCatalogConstants.FruitsAndVegetablesSubCategoryName, cancellationToken).ConfigureAwait(false);
-
-            if (category == null)
-            {
-                throw new InvalidOperationException(ProductCatalogConstants.FruitsAndVegetablesSubCategoryName + " category not found.");
-            }
+            var category = await productCatalogUnitOfWork.CategoryRepository
+                .FirstOrDefaultAsync(c => c.Name == ProductCatalogConstants.FruitsAndVegetablesSubCategoryName, cancellationToken: cancellationToken)
+                .ConfigureAwait(false) ?? throw new InvalidOperationException(ProductCatalogConstants.FruitsAndVegetablesSubCategoryName + " category not found.");
 
             var apples = ProductEntity.Create(
                 "Gala Apples 1kg",
@@ -26,6 +20,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
                 Money.From(2.50m),
                 100);
 
+            await productCatalogUnitOfWork.ProductRepository.AddAsync(apples, cancellationToken).ConfigureAwait(false);
+
             var bananas = ProductEntity.Create(
                 "Bananas 5pk",
                 "Ripe and ready-to-eat bananas, perfect for breakfast or as a healthy snack.",
@@ -33,6 +29,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
                 category,
                 Money.From(1.95m),
                 150);
+
+            await productCatalogUnitOfWork.ProductRepository.AddAsync(bananas, cancellationToken).ConfigureAwait(false);
 
             var oranges = ProductEntity.Create(
                 "Navel Oranges 4pk",
@@ -42,8 +40,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
                 Money.From(3.25m),
                 80);
 
-            await _dbContext.Products.AddRangeAsync(apples, bananas, oranges).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await productCatalogUnitOfWork.ProductRepository.AddAsync(oranges, cancellationToken).ConfigureAwait(false);
+            await productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Persistence.Implementation.Cart;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder;
 
 namespace ECommerceNetApp.Api.Services
@@ -34,6 +35,9 @@ namespace ECommerceNetApp.Api.Services
             try
             {
                 // Initialize product catalog database
+                var productCatalogMigrator = scope.ServiceProvider.GetRequiredService<ProductCatalogDbMigrator>();
+                await productCatalogMigrator.MigrateDatabaseAsync(cancellationToken).ConfigureAwait(false);
+
                 var productCatalogSeeder = scope.ServiceProvider.GetRequiredService<ProductCatalogDataSeeder>();
                 await productCatalogSeeder.SeedAsync(cancellationToken).ConfigureAwait(false);
 

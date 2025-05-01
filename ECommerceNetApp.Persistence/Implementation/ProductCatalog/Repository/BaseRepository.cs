@@ -12,6 +12,40 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.Repository
 
         protected DbSet<TEntity> DbSet { get; } = dbContext.Set<TEntity>();
 
+        public virtual async Task<bool> AnyAsync(
+            Expression<Func<TEntity, bool>>? filter = null,
+            CancellationToken cancellationToken = default)
+        {
+            IQueryable<TEntity> query = DbSet.AsNoTracking();
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            return await query.AnyAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        public virtual async Task<TEntity?> FirstOrDefaultAsync(
+            Expression<Func<TEntity, bool>>? filter = null,
+            Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
+            CancellationToken cancellationToken = default)
+        {
+            IQueryable<TEntity> query = DbSet;
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return await query.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(
             Expression<Func<TEntity, bool>>? filter = null,
             Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
