@@ -4,34 +4,33 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class BakeryProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork) : IProductDataSeeder
+    internal class BakeryProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork)
+        : BaseProductsDataSeeder(productCatalogUnitOfWork), IProductDataSeeder
     {
         public async Task SeedProductsAsync(CancellationToken cancellationToken = default)
         {
-            var category = await productCatalogUnitOfWork.CategoryRepository
-                .FirstOrDefaultAsync(c => c.Name == ProductCatalogConstants.BakerySubCategoryName, cancellationToken: cancellationToken).ConfigureAwait(false)
-                ?? throw new InvalidOperationException(ProductCatalogConstants.BakerySubCategoryName + " category not found.");
+            var category = await GetCategoryAsync(ProductCatalogConstants.CategoryNames.Groceries.Bakery, cancellationToken).ConfigureAwait(false);
 
             var bread = ProductEntity.Create(
-                "Wholemeal Bread 800g",
+                ProductCatalogConstants.ProductNames.Bakery.Bread,
                 "Freshly baked wholemeal bread, ideal for sandwiches.",
-                ImageInfo.Create($"{ProductCatalogConstants.ProductImagePrefix}bread.jpg"),
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Product}bread.jpg"),
                 category,
                 Money.From(1.20m),
                 30);
 
-            await productCatalogUnitOfWork.ProductRepository.AddAsync(bread, cancellationToken).ConfigureAwait(false);
+            await AddProductAsync(bread, cancellationToken).ConfigureAwait(false);
 
             var croissants = ProductEntity.Create(
-                "Butter Croissants 4pk",
+                ProductCatalogConstants.ProductNames.Bakery.Croissant,
                 "Flaky butter croissants, baked in-store daily.",
-                ImageInfo.Create($"{ProductCatalogConstants.ProductImagePrefix}croissants.jpg"),
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Product}croissants.jpg"),
                 category,
                 Money.From(2.50m),
                 25);
 
-            await productCatalogUnitOfWork.ProductRepository.AddAsync(croissants, cancellationToken).ConfigureAwait(false);
-            await productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await AddProductAsync(croissants, cancellationToken).ConfigureAwait(false);
+            await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

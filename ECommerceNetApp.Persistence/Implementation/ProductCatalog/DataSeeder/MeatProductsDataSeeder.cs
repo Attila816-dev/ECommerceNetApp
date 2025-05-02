@@ -4,35 +4,33 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class MeatProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork) : IProductDataSeeder
+    internal class MeatProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork)
+        : BaseProductsDataSeeder(productCatalogUnitOfWork), IProductDataSeeder
     {
         public async Task SeedProductsAsync(CancellationToken cancellationToken = default)
         {
-            var category = await productCatalogUnitOfWork.CategoryRepository.FirstOrDefaultAsync(
-                c => c.Name == ProductCatalogConstants.MeatSubCategoryName,
-                cancellationToken: cancellationToken)
-                .ConfigureAwait(false) ?? throw new InvalidOperationException(ProductCatalogConstants.MeatSubCategoryName + " category not found.");
+            var category = await GetCategoryAsync(ProductCatalogConstants.CategoryNames.Groceries.Meat, cancellationToken).ConfigureAwait(false);
 
             var chicken = ProductEntity.Create(
-                "Chicken Breast Fillets 500g",
+                ProductCatalogConstants.ProductNames.Meat.ChickenBreast,
                 "Fresh chicken breast fillets, perfect for a variety of dishes.",
-                ImageInfo.Create($"{ProductCatalogConstants.ProductImagePrefix}chicken.jpg"),
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Product}chicken.jpg"),
                 category,
                 Money.From(5.95m),
                 20);
 
-            await productCatalogUnitOfWork.ProductRepository.AddAsync(chicken, cancellationToken).ConfigureAwait(false);
+            await AddProductAsync(chicken, cancellationToken).ConfigureAwait(false);
 
             var beef = ProductEntity.Create(
-                "Lean Beef Mince 500g",
+                ProductCatalogConstants.ProductNames.Meat.BeefMince,
                 "Quality lean beef mince, ideal for bolognese or burgers.",
-                ImageInfo.Create($"{ProductCatalogConstants.ProductImagePrefix}beef.jpg"),
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Product}beef.jpg"),
                 category,
                 Money.From(4.50m),
                 15);
 
-            await productCatalogUnitOfWork.ProductRepository.AddAsync(beef, cancellationToken).ConfigureAwait(false);
-            await productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await AddProductAsync(beef, cancellationToken).ConfigureAwait(false);
+            await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

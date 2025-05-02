@@ -4,50 +4,49 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class GroceriesCategoriesDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork) : ICategoryDataSeeder
+    internal class GroceriesCategoriesDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork)
+        : BaseCategoriesDataSeeder(productCatalogUnitOfWork), ICategoryDataSeeder
     {
         public async Task SeedCategoriesAsync(CancellationToken cancellationToken = default)
         {
-            var parentCategory = await productCatalogUnitOfWork.CategoryRepository.FirstOrDefaultAsync(
-                c => c.Name == ProductCatalogConstants.GroceriesCategoryName, cancellationToken: cancellationToken)
-                .ConfigureAwait(false) ?? throw new InvalidOperationException(ProductCatalogConstants.GroceriesCategoryName + " category not found.");
+            var parentCategory = await GetCategoryAsync(ProductCatalogConstants.CategoryNames.Root.Groceries, cancellationToken).ConfigureAwait(false);
 
             // Groceries subcategories
             var fruitsCategory = CategoryEntity.Create(
-                ProductCatalogConstants.FruitsAndVegetablesSubCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}fruits.jpg"),
+                ProductCatalogConstants.CategoryNames.Groceries.FruitsAndVegetables,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}fruits.jpg"),
                 parentCategory);
 
-            await productCatalogUnitOfWork.CategoryRepository.AddAsync(fruitsCategory, cancellationToken).ConfigureAwait(false);
+            await AddCategoryAsync(fruitsCategory, cancellationToken).ConfigureAwait(false);
 
             var dairyCategory = CategoryEntity.Create(
-                ProductCatalogConstants.DairySubCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}dairy.jpg"),
+                ProductCatalogConstants.CategoryNames.Groceries.Dairy,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}dairy.jpg"),
                 parentCategory);
 
-            await productCatalogUnitOfWork.CategoryRepository.AddAsync(dairyCategory, cancellationToken).ConfigureAwait(false);
+            await AddCategoryAsync(dairyCategory, cancellationToken).ConfigureAwait(false);
 
             var bakeryCatgory = CategoryEntity.Create(
-                ProductCatalogConstants.BakerySubCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}bakery.jpg"),
+                ProductCatalogConstants.CategoryNames.Groceries.Bakery,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}bakery.jpg"),
                 parentCategory);
 
-            await productCatalogUnitOfWork.CategoryRepository.AddAsync(bakeryCatgory, cancellationToken).ConfigureAwait(false);
+            await AddCategoryAsync(bakeryCatgory, cancellationToken).ConfigureAwait(false);
 
             var meatCategory = CategoryEntity.Create(
-                ProductCatalogConstants.MeatSubCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}meat.jpg"),
+                ProductCatalogConstants.CategoryNames.Groceries.Meat,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}meat.jpg"),
                 parentCategory);
 
-            await productCatalogUnitOfWork.CategoryRepository.AddAsync(meatCategory, cancellationToken).ConfigureAwait(false);
+            await AddCategoryAsync(meatCategory, cancellationToken).ConfigureAwait(false);
 
             var drinksCategory = CategoryEntity.Create(
-                ProductCatalogConstants.DrinksSubCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}drinks.jpg"),
+                ProductCatalogConstants.CategoryNames.Groceries.Drinks,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}drinks.jpg"),
                 parentCategory);
 
-            await productCatalogUnitOfWork.CategoryRepository.AddAsync(drinksCategory, cancellationToken).ConfigureAwait(false);
-            await productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await AddCategoryAsync(drinksCategory, cancellationToken).ConfigureAwait(false);
+            await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

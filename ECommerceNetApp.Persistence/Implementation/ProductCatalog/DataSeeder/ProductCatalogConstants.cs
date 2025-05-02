@@ -2,30 +2,113 @@
 {
     internal class ProductCatalogConstants
     {
-        public const string ImagePrefix = "https://storage.googleapis.com/ecommerceapp/images/";
-        public const string CategoryImagePrefix = $"{ImagePrefix}/categories/";
-        public const string ProductImagePrefix = $"{ImagePrefix}/products/";
+        public class ImagePrefix
+        {
+            public const string Category = $"{BaseImagePrefix}/categories/";
+            public const string Product = $"{BaseImagePrefix}/products/";
+            private const string BaseImagePrefix = "https://storage.googleapis.com/ecommerceapp/images/";
+        }
 
-        public const string GroceriesCategoryName = "Groceries";
-        public const string FruitsAndVegetablesSubCategoryName = "Fruits & Vegetables";
-        public const string DrinksSubCategoryName = "Drinks";
-        public const string MeatSubCategoryName = "Meat & Seafood";
-        public const string BakerySubCategoryName = "Bakery";
-        public const string DairySubCategoryName = "Dairy & Eggs";
+        public class CategoryNames
+        {
+            public class Root
+            {
+                public const string Groceries = "Groceries";
+                public const string Household = "Household";
+                public const string Electronics = "Electronics";
+                public const string Clothing = "Clothing";
+            }
 
-        public const string HouseholdCategoryName = "Household";
-        public const string CleaningSubCategoryName = "Cleaning";
-        public const string KitchenwareSubCategoryName = "Kitchenware";
-        public const string LaundrySubCategoryName = "Laundry";
+            public class Groceries
+            {
+                public const string FruitsAndVegetables = "Fruits & Vegetables";
+                public const string Drinks = "Drinks";
+                public const string Meat = "Meat & Seafood";
+                public const string Bakery = "Bakery";
+                public const string Dairy = "Dairy & Eggs";
+            }
 
-        public const string ElectronicsCategoryName = "Electronics";
-        public const string PhonesAndTabletsSubCategoryName = "Phones & Tablets";
-        public const string AppliancesSubCategoryName = "Appliances";
-        public const string ComputersSubCategoryName = "Computers";
+            public class Household
+            {
+                public const string Cleaning = "Cleaning";
+                public const string Kitchenware = "Kitchenware";
+                public const string Laundry = "Laundry";
+            }
 
-        public const string ClothingCategoryName = "Clothing";
-        public const string MensClothingSubCategoryName = "Men's Clothing";
-        public const string WomensClothingSubCategoryName = "Women's Clothing";
-        public const string KidsClothingSubCategoryName = "Kids' Clothing";
+            public class Electronics
+            {
+                public const string PhonesAndTablets = "Phones & Tablets";
+                public const string Appliances = "Appliances";
+                public const string Computers = "Computers";
+            }
+
+            public class Clothing
+            {
+                public const string Mens = "Men's Clothing";
+                public const string Womens = "Women's Clothing";
+                public const string Kids = "Kids' Clothing";
+            }
+        }
+
+        public class ProductNames
+        {
+            public class Bakery
+            {
+                public const string Croissant = "Butter Croissants 4pk";
+                public const string Bread = "Wholemeal Bread 800g";
+            }
+
+            public class Dairy
+            {
+                public const string Milk = "Semi-Skimmed Milk 2L";
+                public const string Egg = "Free Range Eggs 12pk";
+                public const string Cheese = "Mature Cheddar 400g";
+            }
+
+            public class Cleaning
+            {
+                public const string Cleaner = "All-Purpose Cleaner 1L";
+                public const string DishwasherTablets = "Dishwasher Tablets 40pk";
+            }
+
+            public class Computer
+            {
+                public const string Laptop = "15.6\" Laptop";
+            }
+
+            public class Drink
+            {
+                public const string Water = "Spring Water 6x1.5L";
+                public const string Cola = "Cola 2L";
+            }
+
+            public class FruitesAndVegetables
+            {
+                public const string Apple = "Gala Apples 1kg";
+                public const string Banana = "Bananas 5pk";
+                public const string Orange = "Navel Oranges 4pk";
+            }
+
+            public class Kitchenware
+            {
+                public const string FryingPan = "Non-Stick Frying Pan 28cm";
+            }
+
+            public class Laundry
+            {
+                public const string Detergent = "Laundry Detergent 2L";
+            }
+
+            public class Meat
+            {
+                public const string ChickenBreast = "Chicken Breast Fillets 500g";
+                public const string BeefMince = "Lean Beef Mince 500g";
+            }
+
+            public class PhonesAndTablets
+            {
+                public const string AndroidTablet = "10\" Android Tablet";
+            }
+        }
     }
 }

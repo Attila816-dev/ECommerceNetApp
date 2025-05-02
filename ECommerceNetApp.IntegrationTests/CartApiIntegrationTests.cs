@@ -36,7 +36,11 @@ namespace ECommerceNetApp.IntegrationTests
                     // Replace services with test doubles if needed
                     // For example, replace the real DB context with a test one:
                     services.Configure<CartDbOptions>(o => o.SeedSampleData = false);
-                    services.Configure<ProductCatalogDbOptions>(o => o.SeedSampleData = false);
+                    services.Configure<ProductCatalogDbOptions>(o =>
+                    {
+                        o.EnableDatabaseMigration = false;
+                        o.SeedSampleData = false;
+                    });
 
                     var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(CartDbContext));
                     if (descriptor != null)

@@ -4,36 +4,35 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class ElectronicsCategoriesDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork) : ICategoryDataSeeder
+    internal class ElectronicsCategoriesDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork)
+        : BaseCategoriesDataSeeder(productCatalogUnitOfWork), ICategoryDataSeeder
     {
         public async Task SeedCategoriesAsync(CancellationToken cancellationToken = default)
         {
-            var parentCategory = await productCatalogUnitOfWork.CategoryRepository
-                .FirstOrDefaultAsync(c => c.Name == ProductCatalogConstants.ElectronicsCategoryName, cancellationToken: cancellationToken)
-                .ConfigureAwait(false) ?? throw new InvalidOperationException(ProductCatalogConstants.ElectronicsCategoryName + " category not found.");
+            var parentCategory = await GetCategoryAsync(ProductCatalogConstants.CategoryNames.Root.Electronics, cancellationToken).ConfigureAwait(false);
 
             // Electronics subcategories
             var phones = CategoryEntity.Create(
-                ProductCatalogConstants.PhonesAndTabletsSubCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}phones.jpg"),
+                ProductCatalogConstants.CategoryNames.Electronics.PhonesAndTablets,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}phones.jpg"),
                 parentCategory);
 
-            await productCatalogUnitOfWork.CategoryRepository.AddAsync(phones, cancellationToken).ConfigureAwait(false);
+            await AddCategoryAsync(phones, cancellationToken).ConfigureAwait(false);
 
             var computers = CategoryEntity.Create(
-                ProductCatalogConstants.ComputersSubCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}computers.jpg"),
+                ProductCatalogConstants.CategoryNames.Electronics.Computers,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}computers.jpg"),
                 parentCategory);
 
-            await productCatalogUnitOfWork.CategoryRepository.AddAsync(computers, cancellationToken).ConfigureAwait(false);
+            await AddCategoryAsync(computers, cancellationToken).ConfigureAwait(false);
 
             var appliances = CategoryEntity.Create(
-                ProductCatalogConstants.AppliancesSubCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}appliances.jpg"),
+                ProductCatalogConstants.CategoryNames.Electronics.Appliances,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}appliances.jpg"),
                 parentCategory);
 
-            await productCatalogUnitOfWork.CategoryRepository.AddAsync(appliances, cancellationToken).ConfigureAwait(false);
-            await productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await AddCategoryAsync(appliances, cancellationToken).ConfigureAwait(false);
+            await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

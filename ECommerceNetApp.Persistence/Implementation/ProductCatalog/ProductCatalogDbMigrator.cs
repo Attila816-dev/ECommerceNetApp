@@ -1,19 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ECommerceNetApp.Domain.Options;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 {
-    public class ProductCatalogDbMigrator
+    public class ProductCatalogDbMigrator(
+        ProductCatalogDbContext dbContext,
+        IOptions<ProductCatalogDbOptions> options)
     {
-        private readonly ProductCatalogDbContext _dbContext;
-
-        public ProductCatalogDbMigrator(ProductCatalogDbContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly ProductCatalogDbContext _dbContext = dbContext;
+        private readonly IOptions<ProductCatalogDbOptions> _options = options;
 
         public async Task MigrateDatabaseAsync(CancellationToken cancellationToken)
         {
-            await _dbContext.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
+            if (_options.Value.EnableDatabaseMigration)
+            {
+                await _dbContext.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

@@ -43,16 +43,6 @@ namespace ECommerceNetApp.Domain.Entities
             return new CartEntity(id);
         }
 
-        public void AddItem(ProductEntity product, int quantity)
-        {
-            if (product == null)
-            {
-                throw InvalidCartException.InvalidProduct();
-            }
-
-            AddItem(product.Id, product.Name, product.Price, quantity, product.Image);
-        }
-
         public void AddItem(int id, string name, Money price, int quantity, ImageInfo? image = null)
         {
             var cartItem = CartItem.Create(id, name, price, quantity, image);

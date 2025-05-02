@@ -68,29 +68,29 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
         {
             // Main departments
             var groceriesCategory = CategoryEntity.Create(
-                ProductCatalogConstants.GroceriesCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}groceries.jpg"),
+                ProductCatalogConstants.CategoryNames.Root.Groceries,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}groceries.jpg"),
                 null);
 
             await _productCatalogUnitOfWork.CategoryRepository.AddAsync(groceriesCategory, cancellationToken).ConfigureAwait(false);
 
             var householdCategory = CategoryEntity.Create(
-                ProductCatalogConstants.HouseholdCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}household.jpg"),
+                ProductCatalogConstants.CategoryNames.Root.Household,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}household.jpg"),
                 null);
 
             await _productCatalogUnitOfWork.CategoryRepository.AddAsync(householdCategory, cancellationToken).ConfigureAwait(false);
 
             var electronicsCategory = CategoryEntity.Create(
-                ProductCatalogConstants.ElectronicsCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}electronics.jpg"),
+                ProductCatalogConstants.CategoryNames.Root.Electronics,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}electronics.jpg"),
                 null);
 
             await _productCatalogUnitOfWork.CategoryRepository.AddAsync(electronicsCategory, cancellationToken).ConfigureAwait(false);
 
             var clothingCategory = CategoryEntity.Create(
-                ProductCatalogConstants.ClothingCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}clothing.jpg"),
+                ProductCatalogConstants.CategoryNames.Root.Clothing,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}clothing.jpg"),
                 null);
 
             await _productCatalogUnitOfWork.CategoryRepository.AddAsync(clothingCategory, cancellationToken).ConfigureAwait(false);

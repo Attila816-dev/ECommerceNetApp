@@ -4,25 +4,23 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class PhoneProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork) : IProductDataSeeder
+    internal class PhoneProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork)
+        : BaseProductsDataSeeder(productCatalogUnitOfWork), IProductDataSeeder
     {
         public async Task SeedProductsAsync(CancellationToken cancellationToken = default)
         {
-            var category = await productCatalogUnitOfWork.CategoryRepository.FirstOrDefaultAsync(
-                c => c.Name == ProductCatalogConstants.PhonesAndTabletsSubCategoryName,
-                cancellationToken: cancellationToken)
-                .ConfigureAwait(false) ?? throw new InvalidOperationException(ProductCatalogConstants.PhonesAndTabletsSubCategoryName + " category not found.");
+            var category = await GetCategoryAsync(ProductCatalogConstants.CategoryNames.Electronics.PhonesAndTablets, cancellationToken).ConfigureAwait(false);
 
             var tablet = ProductEntity.Create(
-                "10\" Android Tablet",
+                ProductCatalogConstants.ProductNames.PhonesAndTablets.AndroidTablet,
                 "10-inch Android tablet with HD display and 32GB storage.",
-                ImageInfo.Create($"{ProductCatalogConstants.PhonesAndTabletsSubCategoryName}tablet.jpg"),
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Product}tablet.jpg"),
                 category,
                 Money.From(129.99m),
                 5);
 
-            await productCatalogUnitOfWork.ProductRepository.AddAsync(tablet, cancellationToken).ConfigureAwait(false);
-            await productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await AddProductAsync(tablet, cancellationToken).ConfigureAwait(false);
+            await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

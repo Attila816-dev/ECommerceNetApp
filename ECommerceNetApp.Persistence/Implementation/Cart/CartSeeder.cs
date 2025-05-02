@@ -1,5 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using Microsoft.Extensions.Logging;
@@ -53,8 +54,19 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
                     var guestCart = CartEntity.Create(guestCartId);
 
                     // Add some sample items to the guest cart
-                    await AddProductToCartAsync(guestCart, "Gala Apples 1kg", 2, cancellationToken).ConfigureAwait(false);
-                    await AddProductToCartAsync(guestCart, "Semi-Skimmed Milk 2L", 1, cancellationToken).ConfigureAwait(false);
+                    await AddProductToCartAsync(
+                        guestCart,
+                        ProductCatalogConstants.ProductNames.FruitesAndVegetables.Apple,
+                        2,
+                        cancellationToken)
+                        .ConfigureAwait(false);
+
+                    await AddProductToCartAsync(
+                        guestCart,
+                        ProductCatalogConstants.ProductNames.Dairy.Milk,
+                        1,
+                        cancellationToken)
+                        .ConfigureAwait(false);
 
                     await _cartUnitOfWork.CartRepository.SaveAsync(guestCart, CancellationToken.None).ConfigureAwait(false);
                     await _cartUnitOfWork.CommitAsync(CancellationToken.None).ConfigureAwait(false);
@@ -70,9 +82,26 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
                     var userCart = CartEntity.Create(userCartId);
 
                     // Add some sample items to the user cart
-                    await AddProductToCartAsync(userCart, "Free Range Eggs 12pk", 1, cancellationToken).ConfigureAwait(false);
-                    await AddProductToCartAsync(userCart, "Chicken Breast Fillets 500g", 2, cancellationToken).ConfigureAwait(false);
-                    await AddProductToCartAsync(userCart, "Wholemeal Bread 800g", 1, cancellationToken).ConfigureAwait(false);
+                    await AddProductToCartAsync(
+                        userCart,
+                        ProductCatalogConstants.ProductNames.Dairy.Egg,
+                        1,
+                        cancellationToken)
+                        .ConfigureAwait(false);
+
+                    await AddProductToCartAsync(
+                        userCart,
+                        ProductCatalogConstants.ProductNames.Meat.ChickenBreast,
+                        2,
+                        cancellationToken)
+                        .ConfigureAwait(false);
+
+                    await AddProductToCartAsync(
+                        userCart,
+                        ProductCatalogConstants.ProductNames.Bakery.Bread,
+                        1,
+                        cancellationToken)
+                        .ConfigureAwait(false);
 
                     await _cartUnitOfWork.CartRepository.SaveAsync(userCart, CancellationToken.None).ConfigureAwait(false);
                     await _cartUnitOfWork.CommitAsync(CancellationToken.None).ConfigureAwait(false);
@@ -82,12 +111,13 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             }
         }
 
-        private async Task AddProductToCartAsync(CartEntity userCart, string productName, int quantity, CancellationToken cancellationToken)
+        private async Task AddProductToCartAsync(CartEntity cart, string productName, int quantity, CancellationToken cancellationToken)
         {
-            var bread = (await _productCatalogUnitOfWork.ProductRepository
+            var product = (await _productCatalogUnitOfWork.ProductRepository
                 .FirstOrDefaultAsync(p => p.Name == productName, cancellationToken: cancellationToken)
                 .ConfigureAwait(false)) ?? throw new InvalidOperationException(productName + " product not found.");
-            userCart.AddItem(bread, quantity);
+
+            cart.AddItem(product.Id, product.Name, product.Price, quantity, product.Image);
         }
     }
 }

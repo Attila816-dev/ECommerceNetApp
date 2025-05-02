@@ -4,34 +4,33 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class CleaningProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork) : IProductDataSeeder
+    internal class CleaningProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork)
+        : BaseProductsDataSeeder(productCatalogUnitOfWork), IProductDataSeeder
     {
         public async Task SeedProductsAsync(CancellationToken cancellationToken = default)
         {
-            var category = await productCatalogUnitOfWork.CategoryRepository
-                .FirstOrDefaultAsync(c => c.Name == ProductCatalogConstants.CleaningSubCategoryName, cancellationToken: cancellationToken).ConfigureAwait(false)
-                ?? throw new InvalidOperationException(ProductCatalogConstants.CleaningSubCategoryName + " category not found.");
+            var category = await GetCategoryAsync(ProductCatalogConstants.CategoryNames.Household.Cleaning, cancellationToken).ConfigureAwait(false);
 
             var cleaner = ProductEntity.Create(
-                "All-Purpose Cleaner 1L",
+                ProductCatalogConstants.ProductNames.Cleaning.Cleaner,
                 "Powerful all-purpose cleaning solution for all surfaces.",
-                ImageInfo.Create($"{ProductCatalogConstants.ProductImagePrefix}cleaner.jpg"),
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Product}cleaner.jpg"),
                 category,
                 Money.From(2.25m),
                 50);
 
-            await productCatalogUnitOfWork.ProductRepository.AddAsync(cleaner, cancellationToken).ConfigureAwait(false);
+            await AddProductAsync(cleaner, cancellationToken).ConfigureAwait(false);
 
             var dishwasher = ProductEntity.Create(
-                "Dishwasher Tablets 40pk",
+                ProductCatalogConstants.ProductNames.Cleaning.DishwasherTablets,
                 "Powerful dishwasher tablets for sparkling clean dishes.",
-                ImageInfo.Create($"{ProductCatalogConstants.ProductImagePrefix}dishwasher.jpg"),
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Product}dishwasher.jpg"),
                 category,
                 Money.From(6.50m),
                 30);
 
-            await productCatalogUnitOfWork.ProductRepository.AddAsync(dishwasher, cancellationToken).ConfigureAwait(false);
-            await productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await AddProductAsync(dishwasher, cancellationToken).ConfigureAwait(false);
+            await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

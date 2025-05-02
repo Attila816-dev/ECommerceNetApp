@@ -4,37 +4,35 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class HouseholdCategoriesDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork) : ICategoryDataSeeder
+    internal class HouseholdCategoriesDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork)
+        : BaseCategoriesDataSeeder(productCatalogUnitOfWork), ICategoryDataSeeder
     {
         public async Task SeedCategoriesAsync(CancellationToken cancellationToken = default)
         {
-            var parentCategory = await productCatalogUnitOfWork.CategoryRepository.FirstOrDefaultAsync(
-                c => c.Name == ProductCatalogConstants.HouseholdCategoryName,
-                cancellationToken: cancellationToken)
-                .ConfigureAwait(false) ?? throw new InvalidOperationException(ProductCatalogConstants.HouseholdCategoryName + " category not found.");
+            var parentCategory = await GetCategoryAsync(ProductCatalogConstants.CategoryNames.Root.Household, cancellationToken).ConfigureAwait(false);
 
             // Household subcategories
             var cleaning = CategoryEntity.Create(
-                ProductCatalogConstants.CleaningSubCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}cleaning.jpg"),
+                ProductCatalogConstants.CategoryNames.Household.Cleaning,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}cleaning.jpg"),
                 parentCategory);
 
-            await productCatalogUnitOfWork.CategoryRepository.AddAsync(cleaning, cancellationToken).ConfigureAwait(false);
+            await AddCategoryAsync(cleaning, cancellationToken).ConfigureAwait(false);
 
             var laundry = CategoryEntity.Create(
-                ProductCatalogConstants.LaundrySubCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}laundry.jpg"),
+                ProductCatalogConstants.CategoryNames.Household.Laundry,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}laundry.jpg"),
                 parentCategory);
 
-            await productCatalogUnitOfWork.CategoryRepository.AddAsync(laundry, cancellationToken).ConfigureAwait(false);
+            await AddCategoryAsync(laundry, cancellationToken).ConfigureAwait(false);
 
             var kitchenware = CategoryEntity.Create(
-                ProductCatalogConstants.KitchenwareSubCategoryName,
-                ImageInfo.Create($"{ProductCatalogConstants.CategoryImagePrefix}kitchenware.jpg"),
+                ProductCatalogConstants.CategoryNames.Household.Kitchenware,
+                ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}kitchenware.jpg"),
                 parentCategory);
 
-            await productCatalogUnitOfWork.CategoryRepository.AddAsync(kitchenware, cancellationToken).ConfigureAwait(false);
-            await productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await AddCategoryAsync(kitchenware, cancellationToken).ConfigureAwait(false);
+            await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

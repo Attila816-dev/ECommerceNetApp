@@ -42,7 +42,11 @@ namespace ECommerceNetApp.IntegrationTests
                     services.AddDbContext<ProductCatalogDbContext>(options => options.UseInMemoryDatabase("TestProductCatalogDb"));
 
                     services.Configure<CartDbOptions>(o => o.SeedSampleData = false);
-                    services.Configure<ProductCatalogDbOptions>(o => o.SeedSampleData = false);
+                    services.Configure<ProductCatalogDbOptions>(o =>
+                    {
+                        o.EnableDatabaseMigration = false;
+                        o.SeedSampleData = false;
+                    });
                 });
             });
 
