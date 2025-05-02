@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Text;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using ECommerceNetApp.Api.Extensions;
@@ -15,6 +16,8 @@ using ECommerceNetApp.Service.Implementation.Behaviors;
 using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -62,6 +65,7 @@ namespace ECommerceNetApp.Api
             app.UseErrorHandlingMiddleware();
             app.UseHttpsRedirection();
             app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 
@@ -99,6 +103,35 @@ namespace ECommerceNetApp.Api
             builder.Services.AddValidatorsFromAssemblyContaining<AddCartItemCommandValidator>();
             builder.Services.AddECommerceServices();
             ConfigureHealthCheck(builder);
+            ConfigureAuthentication(builder);
+        }
+
+        private static void ConfigureAuthentication(WebApplicationBuilder builder)
+        {
+            // Configure JWT authentication
+            var jwtKey = builder.Configuration["Jwt:Key"];
+            var keyBytes = Encoding.UTF8.GetBytes(jwtKey!);
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+                };
+            });
+
+            builder.Services.AddSingleton<BCrypt.Net.BCrypt>();
         }
 
         private static void ConfigureHealthCheck(WebApplicationBuilder builder)

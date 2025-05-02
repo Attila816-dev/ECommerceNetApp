@@ -6,6 +6,8 @@
 
         ICategoryRepository CategoryRepository { get; }
 
+        IUserRepository UserRepository { get; }
+
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
         Task CommitAsync(CancellationToken cancellationToken = default);

@@ -14,6 +14,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 
         public DbSet<ProductEntity> Products { get; set; } = null!;
 
+        public DbSet<ProductEntity> Users { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -21,6 +23,7 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 
             modelBuilder.ApplyConfiguration(new CategoryEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new ProductEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new UserEntityTypeConfiguration());
         }
     }
 }

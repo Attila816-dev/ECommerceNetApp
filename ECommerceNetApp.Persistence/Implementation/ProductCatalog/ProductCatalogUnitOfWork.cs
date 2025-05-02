@@ -17,11 +17,14 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 
             ProductRepository = new ProductRepository(_dbContext);
             CategoryRepository = new CategoryRepository(_dbContext);
+            UserRepository = new UserRepository(_dbContext);
         }
 
         public IProductRepository ProductRepository { get; }
 
         public ICategoryRepository CategoryRepository { get; }
+
+        public IUserRepository UserRepository { get; }
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
