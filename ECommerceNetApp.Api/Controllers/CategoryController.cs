@@ -4,6 +4,7 @@ using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Queries.Category;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceNetApp.Api.Controllers
@@ -21,6 +22,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>A list of all categories.</returns>
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<CollectionLinkedResourceDto<CategoryDto>>> GetAllCategories(CancellationToken cancellationToken)
         {
@@ -42,6 +44,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>A list of categories under the specified parent category.</returns>
         [HttpGet("by-parent")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<CollectionLinkedResourceDto<CategoryDto>>> GetCategoriesByParentId(
             [FromQuery] int? parentCategoryId,
@@ -76,6 +79,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>The category with the specified ID.</returns>
         [HttpGet("{id}")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<LinkedResourceDto<CategoryDetailDto>>> GetCategoryById(
@@ -131,6 +135,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>The ID of the created category.</returns>
         [HttpPost]
+        [Authorize(Policy = "RequireProductManagerRole")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<LinkedResourceDto<int>>> CreateCategory(
@@ -176,6 +181,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>No content if the update is successful.</returns>
         [HttpPut("{id}")]
+        [Authorize(Policy = "RequireProductManagerRole")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -212,6 +218,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>OK if the deletion is successful.</returns>
         [HttpDelete("{id}")]
+        [Authorize(Policy = "RequireProductManagerRole")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteCategory(int id, CancellationToken cancellationToken)

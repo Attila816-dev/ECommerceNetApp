@@ -1,23 +1,19 @@
-﻿using System.Globalization;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+﻿using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.User;
+using ECommerceNetApp.Service.Interfaces;
 using MediatR;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using BC = BCrypt.Net.BCrypt;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
 {
     public class LoginUserCommandHandler(
         IProductCatalogUnitOfWork productCatalogUnitOfWork,
-        IConfiguration configuration)
+        IPasswordService passwordService,
+        ITokenService tokenService)
         : IRequestHandler<LoginUserCommand, LoginUserCommandResponse>
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork ?? throw new ArgumentNullException(nameof(productCatalogUnitOfWork));
-        private readonly IConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        private readonly IPasswordService _passwordService = passwordService ?? throw new ArgumentNullException(nameof(passwordService));
+        private readonly ITokenService _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
 
         public async Task<LoginUserCommandResponse> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
@@ -31,7 +27,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
             }
 
             // Verify password
-            if (!BC.Verify(request.Password, user.PasswordHash))
+            if (!_passwordService.VerifyPassword(request.Password, user.PasswordHash))
             {
                 return LoginUserCommandResponse.Failed("Invalid email or password");
             }
@@ -41,32 +37,8 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
             _productCatalogUnitOfWork.UserRepository.Update(user);
             await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
 
-            // Generate JWT token
-            var token = GenerateJwtToken(user);
+            var token = _tokenService.GenerateJwtToken(user);
             return LoginUserCommandResponse.Successful(token);
-        }
-
-        private string GenerateJwtToken(Domain.Entities.UserEntity user)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString(CultureInfo.InvariantCulture)),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.FullName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            };
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddHours(24),
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

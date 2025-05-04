@@ -1,4 +1,5 @@
-﻿using Asp.Versioning;
+﻿using System.IdentityModel.Tokens.Jwt;
+using Asp.Versioning;
 using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Api.Services;
 using ECommerceNetApp.Service.Commands.User;
@@ -21,9 +22,9 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous] // TODO: only admin
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(command, nameof(command));
@@ -49,9 +50,9 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginUserCommand command, CancellationToken cancellationToken)
         {
             var result = await Mediator.Send(command, cancellationToken).ConfigureAwait(false);
@@ -65,10 +66,32 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpGet("{email}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<LinkedResourceDto<UserDto>>> GetUserByEmail(string email, CancellationToken cancellationToken)
         {
+            var user = await Mediator.Send(new GetUserQuery(email), cancellationToken).ConfigureAwait(false);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(CreateResource(user));
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser(CancellationToken cancellationToken)
+        {
+            var email = User.FindFirst(JwtRegisteredClaimNames.Email)?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return Unauthorized();
+            }
+
             var user = await Mediator.Send(new GetUserQuery(email), cancellationToken).ConfigureAwait(false);
 
             if (user == null)

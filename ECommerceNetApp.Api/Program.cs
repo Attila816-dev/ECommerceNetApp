@@ -109,8 +109,7 @@ namespace ECommerceNetApp.Api
         private static void ConfigureAuthentication(WebApplicationBuilder builder)
         {
             // Configure JWT authentication
-            var jwtKey = builder.Configuration["Jwt:Key"];
-            var keyBytes = Encoding.UTF8.GetBytes(jwtKey!);
+            var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!);
 
             builder.Services.AddAuthentication(options =>
             {
@@ -119,6 +118,7 @@ namespace ECommerceNetApp.Api
             })
             .AddJwtBearer(options =>
             {
+                options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -127,11 +127,26 @@ namespace ECommerceNetApp.Api
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
                     ValidAudience = builder.Configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ClockSkew = TimeSpan.Zero,
                 };
             });
 
-            builder.Services.AddSingleton<BCrypt.Net.BCrypt>();
+            // Authorization Policies
+            builder.Services.AddAuthorization(options =>
+            {
+                // Policy for Admin role
+                options.AddPolicy("RequireAdminRole", policy =>
+                    policy.RequireRole("Admin"));
+
+                // Policy for ProductManager role (Admin has higher privileges and can also access)
+                options.AddPolicy("RequireProductManagerRole", policy =>
+                    policy.RequireRole("Admin", "ProductManager"));
+
+                // Policy for Customer role (all authenticated users can access)
+                options.AddPolicy("RequireCustomerRole", policy =>
+                    policy.RequireRole("Admin", "ProductManager", "Customer"));
+            });
         }
 
         private static void ConfigureHealthCheck(WebApplicationBuilder builder)
@@ -198,6 +213,31 @@ namespace ECommerceNetApp.Api
                 {
                     options.IncludeXmlComments(xmlPath);
                 }
+
+                // Add JWT Authentication to Swagger
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer",
+                            },
+                        },
+                        Array.Empty<string>()
+                    },
+                });
             });
         }
 

@@ -1,8 +1,10 @@
-﻿namespace ECommerceNetApp.Domain.Entities
+﻿using ECommerceNetApp.Domain.Enums;
+
+namespace ECommerceNetApp.Domain.Entities
 {
     public class UserEntity : BaseEntity<int>
     {
-        internal UserEntity(int? id, string email, string passwordHash, string firstName, string lastName)
+        internal UserEntity(int? id, string email, string passwordHash, string firstName, string lastName, UserRole role)
             : base(default)
         {
             if (id.HasValue)
@@ -14,6 +16,7 @@
             PasswordHash = passwordHash;
             FirstName = firstName;
             LastName = lastName;
+            Role = role;
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = CreatedAt;
         }
@@ -42,6 +45,8 @@
 
         public DateTime? LastLogin { get; private set; }
 
+        public UserRole Role { get; private set; }
+
         public string FullName => $"{FirstName} {LastName}";
 
         public static UserEntity Create(
@@ -49,12 +54,13 @@
             string passwordHash,
             string firstName,
             string lastName,
+            UserRole role,
             int? id = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(email, nameof(email));
             ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash, nameof(passwordHash));
 
-            return new UserEntity(id, email, passwordHash, firstName, lastName);
+            return new UserEntity(id, email, passwordHash, firstName, lastName, role);
         }
 
         public void UpdateProfile(string firstName, string lastName)
@@ -66,7 +72,14 @@
 
         public void UpdatePassword(string newPasswordHash)
         {
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(newPasswordHash, nameof(newPasswordHash));
             PasswordHash = newPasswordHash;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateRole(UserRole role)
+        {
+            Role = role;
             UpdatedAt = DateTime.UtcNow;
         }
 
