@@ -1,4 +1,4 @@
-﻿using ECommerceNetApp.Domain.Entities;
+﻿using ECommerceNetApp.Domain.Events;
 using ECommerceNetApp.Domain.Interfaces;
 using MediatR;
 
@@ -14,24 +14,14 @@ namespace ECommerceNetApp.Service.Implementation
         }
 
         /// <summary>
-        /// Publish domain events for the given entity. Process domain events if needed. In a real application, we would publish these events to an event bus.
+        /// Publish domain event. Process domain event if needed. In a real application, we would publish these events to an event bus.
         /// </summary>
-        /// <param name="entity">Domain entity.</param>
+        /// <param name="domainEvent">Domain event.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>Task completed.</returns>
-        public async Task PublishEventsAsync(BaseEntity entity, CancellationToken cancellationToken)
+        public async Task PublishEventAsync(DomainEvent domainEvent, CancellationToken cancellationToken)
         {
-            if (entity?.DomainEvents == null || entity.DomainEvents.Count == 0)
-            {
-                return;
-            }
-
-            foreach (var domainEvent in entity.DomainEvents)
-            {
-                await _mediator.Publish(domainEvent, cancellationToken).ConfigureAwait(false);
-            }
-
-            entity.ClearDomainEvents();
+            await _mediator.Publish(domainEvent, cancellationToken).ConfigureAwait(false);
         }
     }
 }

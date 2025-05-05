@@ -29,9 +29,6 @@ namespace ECommerceNetApp.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -64,16 +61,10 @@ namespace ECommerceNetApp.Persistence.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -89,6 +80,31 @@ namespace ECommerceNetApp.Persistence.Migrations
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.OwnsOne("ECommerceNetApp.Domain.ValueObjects.ImageInfo", "Image", b1 =>
+                        {
+                            b1.Property<int>("CategoryEntityId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("AltText")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("ImageAltText");
+
+                            b1.Property<string>("Url")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("ImageUrl");
+
+                            b1.HasKey("CategoryEntityId");
+
+                            b1.ToTable("Categories");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CategoryEntityId");
+                        });
+
+                    b.Navigation("Image");
+
                     b.Navigation("ParentCategory");
                 });
 
@@ -100,7 +116,58 @@ namespace ECommerceNetApp.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.OwnsOne("ECommerceNetApp.Domain.ValueObjects.ImageInfo", "Image", b1 =>
+                        {
+                            b1.Property<int>("ProductEntityId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("AltText")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("ImageAltText");
+
+                            b1.Property<string>("Url")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("ImageUrl");
+
+                            b1.HasKey("ProductEntityId");
+
+                            b1.ToTable("Products");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductEntityId");
+                        });
+
+                    b.OwnsOne("ECommerceNetApp.Domain.ValueObjects.Money", "Price", b1 =>
+                        {
+                            b1.Property<int>("ProductEntityId")
+                                .HasColumnType("int");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("Price");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("nvarchar(3)")
+                                .HasColumnName("Currency");
+
+                            b1.HasKey("ProductEntityId");
+
+                            b1.ToTable("Products");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProductEntityId");
+                        });
+
                     b.Navigation("Category");
+
+                    b.Navigation("Image");
+
+                    b.Navigation("Price")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ECommerceNetApp.Domain.Entities.CategoryEntity", b =>

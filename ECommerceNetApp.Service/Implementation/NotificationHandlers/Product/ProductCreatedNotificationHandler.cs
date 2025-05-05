@@ -9,23 +9,18 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Product
         : INotificationHandler<ProductCreatedEvent>
     {
         // Define a static LoggerMessage delegate for improved performance and consistent templates
-        private static readonly Action<ILogger, int, string, Exception?> LogProductCreated =
-            LoggerMessage.Define<int, string>(
+        private static readonly Action<ILogger, string, Exception?> LogProductCreated =
+            LoggerMessage.Define<string>(
                 LogLevel.Information,
                 new EventId(1, nameof(ProductCreatedNotificationHandler)),
-                "Product {ProductId} created with Properties: {SerializedNotification}");
+                "Product created with Properties: {SerializedNotification}");
 
         private readonly ILogger<ProductCreatedNotificationHandler> _logger = logger;
 
         public Task Handle(ProductCreatedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);
-
-            LogProductCreated(
-                _logger,
-                notification.ProductId,
-                JsonSerializer.Serialize(notification),
-                null);
+            LogProductCreated(_logger, JsonSerializer.Serialize(notification), null);
 
             // Add any business logic that should happen when a Product is created
             // For example, you could send an email to administrators, update search indexes, etc.

@@ -1,5 +1,5 @@
 using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using FluentValidation;
 
@@ -7,11 +7,11 @@ namespace ECommerceNetApp.Service.Validators.Category
 {
     public class UpdateCategoryCommandValidator : AbstractValidator<UpdateCategoryCommand>
     {
-        private readonly ICategoryRepository _categoryRepository;
+        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork;
 
-        public UpdateCategoryCommandValidator(ICategoryRepository categoryRepository)
+        public UpdateCategoryCommandValidator(IProductCatalogUnitOfWork productCatalogUnitOfWork)
         {
-            _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
+            _productCatalogUnitOfWork = productCatalogUnitOfWork ?? throw new ArgumentNullException(nameof(productCatalogUnitOfWork));
 
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Category name is required.")
@@ -32,7 +32,9 @@ namespace ECommerceNetApp.Service.Validators.Category
 
         private async Task<bool> ExistingCategoryIdAsync(UpdateCategoryCommand command, int categoryId, CancellationToken cancellationToken)
         {
-            return await _categoryRepository.ExistsAsync(categoryId, cancellationToken).ConfigureAwait(false);
+            return await _productCatalogUnitOfWork.CategoryRepository
+                .ExistsAsync(categoryId, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         private async Task<bool> ExistingParentCategoryIdOrNullAsync(UpdateCategoryCommand command, int? parentCategoryId, CancellationToken cancellationToken)
@@ -42,7 +44,9 @@ namespace ECommerceNetApp.Service.Validators.Category
                 return true;
             }
 
-            return await _categoryRepository.ExistsAsync(parentCategoryId.Value, cancellationToken).ConfigureAwait(false);
+            return await _productCatalogUnitOfWork.CategoryRepository
+                .ExistsAsync(parentCategoryId.Value, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

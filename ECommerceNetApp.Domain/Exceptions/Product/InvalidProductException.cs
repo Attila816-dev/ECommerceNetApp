@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Domain.Entities;
+﻿using System.Net;
+using ECommerceNetApp.Domain.Entities;
 
 namespace ECommerceNetApp.Domain.Exceptions.Product
 {
@@ -6,6 +7,11 @@ namespace ECommerceNetApp.Domain.Exceptions.Product
     {
         public InvalidProductException(string message)
             : base(message)
+        {
+        }
+
+        public InvalidProductException(string message, HttpStatusCode statusCode)
+            : base(message, statusCode)
         {
         }
 
@@ -43,9 +49,9 @@ namespace ECommerceNetApp.Domain.Exceptions.Product
             return new InvalidProductException("Amount must be a positive integer");
         }
 
-        public static InvalidProductException NotFound(Guid id)
+        public static InvalidProductException NotFound(int id)
         {
-            return new InvalidProductException($"Product with id {id} not found");
+            return new InvalidProductException($"Product with id {id} not found", HttpStatusCode.NotFound);
         }
     }
 }

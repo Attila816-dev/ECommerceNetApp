@@ -1,5 +1,5 @@
 using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.Validators.Category;
 using FluentValidation.TestHelper;
@@ -11,11 +11,14 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
     {
         private readonly CreateCategoryCommandValidator _validator;
         private readonly Mock<ICategoryRepository> _categoryRepository;
+        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
 
         public CreateCategoryCommandValidatorTest()
         {
             _categoryRepository = new Mock<ICategoryRepository>();
-            _validator = new CreateCategoryCommandValidator(_categoryRepository.Object);
+            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
+            _mockUnitOfWork.SetupGet(x => x.CategoryRepository).Returns(_categoryRepository.Object);
+            _validator = new CreateCategoryCommandValidator(_mockUnitOfWork.Object);
         }
 
         [Fact]

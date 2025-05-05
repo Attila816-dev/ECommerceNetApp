@@ -1,75 +1,63 @@
-﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.Interfaces;
-using ECommerceNetApp.Persistence.Interfaces;
+﻿using System.Linq.Expressions;
+using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 {
-    public class ProductRepository : IProductRepository
+    internal class ProductRepository(ProductCatalogDbContext dbContext)
+        : BaseRepository<ProductEntity, int>(dbContext), IProductRepository
     {
-        private readonly ProductCatalogDbContext _dbContext;
-        private readonly IDomainEventService _domainEventService;
-
-        public ProductRepository(ProductCatalogDbContext dbContext, IDomainEventService domainEventService)
+        public override Task<IEnumerable<ProductEntity>> GetAllAsync(Expression<Func<ProductEntity, bool>>? filter = null, Func<IQueryable<ProductEntity>, IQueryable<ProductEntity>>? include = null, CancellationToken cancellationToken = default)
         {
-            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-            _domainEventService = domainEventService ?? throw new ArgumentNullException(nameof(domainEventService));
-        }
-
-        public async Task<IEnumerable<ProductEntity>> GetAllAsync(CancellationToken cancellationToken)
-        {
-            return await _dbContext.Products
-                .Include(p => p.Category)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        public async Task<IEnumerable<ProductEntity>> GetProductsByCategoryIdAsync(int categoryId, CancellationToken cancellationToken)
-        {
-            return await _dbContext.Products
-                .Where(p => p.CategoryId == categoryId)
-                .Include(p => p.Category)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        public async Task<ProductEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
-        {
-            return await _dbContext.Products
-                .Include(p => p.Category)
-                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        public async Task<bool> ExistsAsync(int id, CancellationToken cancellationToken)
-        {
-            return await _dbContext.Products.AnyAsync(c => c.Id == id, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task AddAsync(ProductEntity product, CancellationToken cancellationToken)
-        {
-            await _dbContext.Products.AddAsync(product, cancellationToken).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            await _domainEventService.PublishEventsAsync(product, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task UpdateAsync(ProductEntity product, CancellationToken cancellationToken)
-        {
-            _dbContext.Products.Update(product);
-            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            await _domainEventService.PublishEventsAsync(product, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task DeleteAsync(int id, CancellationToken cancellationToken)
-        {
-            var product = await _dbContext.Products.FindAsync([id], cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (product != null)
+            if (include == null)
             {
-                product.MarkAsDeleted();
-                _dbContext.Products.Remove(product);
-                await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                await _domainEventService.PublishEventsAsync(product, cancellationToken).ConfigureAwait(false);
+                include = query => query.Include(p => p.Category);
             }
+
+            return base.GetAllAsync(filter, include, cancellationToken);
+        }
+
+        public override Task<ProductEntity?> GetByIdAsync(int id, Func<IQueryable<ProductEntity>, IQueryable<ProductEntity>>? include = null, CancellationToken cancellationToken = default)
+        {
+            if (include == null)
+            {
+                include = query => query.Include(p => p.Category);
+            }
+
+            return base.GetByIdAsync(id, include, cancellationToken);
+        }
+
+        public Task<IEnumerable<ProductEntity>> GetProductsByCategoryIdAsync(int categoryId, CancellationToken cancellationToken)
+        {
+            return GetAllAsync(
+                filter: p => p.CategoryId == categoryId,
+                include: query => query.Include(p => p.Category),
+                cancellationToken: cancellationToken);
+        }
+
+        public Task<(IEnumerable<ProductEntity> Products, int TotalCount)> GetPaginatedProductsAsync(
+            int pageNumber,
+            int pageSize,
+            int? categoryId,
+            CancellationToken cancellationToken)
+        {
+            return GetPaginatedEntitiesAsync(
+                pageNumber,
+                pageSize,
+                filter: categoryId.HasValue ? p => p.CategoryId == categoryId.Value : null,
+                include: query => query.Include(p => p.Category),
+                cancellationToken);
+        }
+
+        public Task<bool> ExistsAsync(int id, CancellationToken cancellationToken)
+        {
+            return ExistsAsync(p => p.Id == id, cancellationToken);
+        }
+
+        public Task<bool> ExistsAnyProductWithCategoryIdAsync(int categoryId, CancellationToken cancellationToken)
+        {
+            return ExistsAsync(c => c.CategoryId == categoryId, cancellationToken);
         }
     }
 }

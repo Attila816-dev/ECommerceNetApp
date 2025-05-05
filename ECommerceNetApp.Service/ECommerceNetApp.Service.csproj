@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="FluentValidation" Version="11.11.0" />
     <PackageReference Include="MediatR" Version="12.5.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.4" />
@@ -15,10 +16,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ECommerceNetApp.Domain\ECommerceNetApp.Domain.csproj" />
     <ProjectReference Include="..\ECommerceNetApp.Persistence\ECommerceNetApp.Persistence.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Implementation\NotificationHandlers\Cart\" />
   </ItemGroup>
 
 </Project>

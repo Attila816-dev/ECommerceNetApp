@@ -1,50 +1,34 @@
-﻿using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
-    public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryCommand>
+    public class DeleteCategoryCommandHandler(
+        IProductCatalogUnitOfWork productCatalogUnitOfWork)
+        : IRequestHandler<DeleteCategoryCommand>
     {
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly IProductRepository _productRepository;
-
-        public DeleteCategoryCommandHandler(
-            ICategoryRepository categoryRepository,
-            IProductRepository productRepository)
-        {
-            _categoryRepository = categoryRepository;
-            _productRepository = productRepository;
-        }
+        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
 
         public async Task Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
-            await ValidateCategoryBeforeDeleteAsync(request, cancellationToken).ConfigureAwait(false);
-            await _categoryRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);
-        }
 
-        private async Task ValidateCategoryBeforeDeleteAsync(DeleteCategoryCommand request, CancellationToken cancellationToken)
-        {
-            var exists = await _categoryRepository.ExistsAsync(request.Id, cancellationToken).ConfigureAwait(false);
-            if (!exists)
+            // Get all products related to this category
+            var products = await _productCatalogUnitOfWork.ProductRepository
+                .GetProductsByCategoryIdAsync(request.Id, cancellationToken)
+                .ConfigureAwait(false);
+
+            // Delete all related products first
+            foreach (var product in products)
             {
-                throw new InvalidOperationException($"Category with id {request.Id} not found");
+                await _productCatalogUnitOfWork.ProductRepository
+                    .DeleteAsync(product.Id, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
-            // Check if category has products
-            var products = await _productRepository.GetProductsByCategoryIdAsync(request.Id, cancellationToken).ConfigureAwait(false);
-            if (products != null && products.Any())
-            {
-                throw new InvalidOperationException("Cannot delete category with associated products");
-            }
-
-            // Check if category has subcategories
-            var subcategories = await _categoryRepository.GetByParentCategoryIdAsync(request.Id, cancellationToken).ConfigureAwait(false);
-            if (subcategories != null && subcategories.Any())
-            {
-                throw new InvalidOperationException("Cannot delete category with subcategories");
-            }
+            await _productCatalogUnitOfWork.CategoryRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

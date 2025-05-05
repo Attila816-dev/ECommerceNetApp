@@ -63,6 +63,7 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
                 Id = 1,
                 Price = 15.99m,
                 Quantity = 1,
+                Name = string.Empty,
             };
 
             // Act
@@ -133,7 +134,7 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.Item.Price)
-                .WithErrorMessage("Cart item price must be greater than zero.");
+                .WithErrorMessage("Cart item price must be greater than or equal to zero.");
         }
     }
 }

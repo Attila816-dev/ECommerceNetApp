@@ -1,29 +1,14 @@
-﻿using ECommerceNetApp.Domain.Exceptions;
+﻿using ECommerceNetApp.Domain.Exceptions.Cart;
 
 namespace ECommerceNetApp.Domain.ValueObjects
 {
-    public class CartItem : IEquatable<CartItem>
+    public record CartItem
     {
-        public CartItem(int id, string? name, Money price, int quantity, ImageInfo? image = null)
+        private CartItem(int id, string name, Money price, int quantity, ImageInfo? image = null)
         {
-            if (id <= 0)
-            {
-                throw new DomainException("Item ID must be positive");
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new DomainException("Item name cannot be empty");
-            }
-
-            if (quantity <= 0)
-            {
-                throw new DomainException("Item quantity must be positive");
-            }
-
             Id = id;
             Name = name;
-            Price = price ?? throw new DomainException("Price cannot be null");
+            Price = price;
             Quantity = quantity;
             Image = image;
         }
@@ -33,75 +18,66 @@ namespace ECommerceNetApp.Domain.ValueObjects
         /// Default constructor for ORM purposes.
         /// </summary>
         private CartItem()
+            : this(default, string.Empty, Money.From(0), 0)
         {
         }
 
-        public int Id { get; private set; }
+        public int Id { get; init; }
 
-        public string? Name { get; private set; }
+        public string Name { get; init; }
 
-        public ImageInfo? Image { get; private set; }
+        public ImageInfo? Image { get; init; }
 
-        public Money? Price { get; private set; }
+        public Money Price { get; init; }
 
         public int Quantity { get; private set; }
 
-        public Money? TotalPrice
-        {
-            get
-            {
-                if (Price == null)
-                {
-                    return null;
-                }
+        public Money TotalPrice => Price * Quantity;
 
-                return Price * Quantity;
+        internal static CartItem Create(int id, string name, Money price, int quantity, ImageInfo? image = null)
+        {
+            if (id <= 0)
+            {
+                throw InvalidCartException.InvalidCartItemId();
             }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw InvalidCartException.InvalidCartItemName();
+            }
+
+            if (quantity <= 0)
+            {
+                throw InvalidCartException.InvalidCartItemQuantity();
+            }
+
+            ArgumentNullException.ThrowIfNull(price, nameof(price));
+
+            return new CartItem(id, name, price, quantity, image);
         }
 
-        public void UpdateQuantity(int newQuantity)
+        // Since we need to modify Quantity, we can't make it init-only
+        // Instead, we need methods to create a new instance with updated values
+        public CartItem WithUpdatedQuantity(int newQuantity)
         {
             if (newQuantity <= 0)
             {
-                throw new DomainException("Quantity must be positive");
+                throw InvalidCartException.InvalidCartItemQuantity();
             }
 
-            Quantity = newQuantity;
+            // Use the with expression to create a new record with updated quantity
+            return this with { Quantity = newQuantity };
         }
 
-        public void IncreaseQuantity(int additionalQuantity)
+        public CartItem WithIncreasedQuantity(int additionalQuantity)
         {
             if (additionalQuantity <= 0)
             {
-                throw new DomainException("Additional quantity must be positive");
+                throw InvalidCartException.InvalidCartItemQuantity();
             }
 
-            Quantity += additionalQuantity;
-        }
-
-        public bool Equals(CartItem? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return Id == other.Id;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as CartItem);
-        }
-
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
+            // Use the with expression to create a new record with updated quantity
+            return this with { Quantity = Quantity + additionalQuantity };
         }
     }
 }

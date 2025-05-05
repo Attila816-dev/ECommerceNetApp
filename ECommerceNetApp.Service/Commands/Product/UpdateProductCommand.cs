@@ -11,5 +11,6 @@ namespace ECommerceNetApp.Service.Commands.Product
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         int CategoryId,
         decimal Price,
+        string? Currency,
         int Amount) : IRequest;
 }

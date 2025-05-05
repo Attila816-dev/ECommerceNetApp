@@ -4,17 +4,17 @@ using ECommerceNetApp.Domain.ValueObjects;
 
 namespace ECommerceNetApp.Domain.Entities
 {
-    public class CartEntity : BaseEntity
+    public class CartEntity : BaseEntity<string>
     {
         private readonly List<CartItem> _items = new List<CartItem>();
 
-        public CartEntity(string id)
+        internal CartEntity(string id)
+            : base(id)
         {
-            ArgumentException.ThrowIfNullOrEmpty(id);
-
-            Id = id;
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = CreatedAt;
+
+            // AddDomainEvent(new CartCreatedEvent(id));
         }
 
         /// <summary>
@@ -22,11 +22,9 @@ namespace ECommerceNetApp.Domain.Entities
         /// Default constructor for ORM purposes.
         /// </summary>
         private CartEntity()
+            : base(string.Empty)
         {
-            Id = string.Empty;
         }
-
-        public string Id { get; private set; }
 
         public DateTime CreatedAt { get; private set; }
 
@@ -35,23 +33,38 @@ namespace ECommerceNetApp.Domain.Entities
         // Expose items as read-only collection
         public IReadOnlyCollection<CartItem> Items => _items.AsReadOnly();
 
-        public void AddItem(CartItem item)
+        public static CartEntity Create(string id)
         {
-            ArgumentNullException.ThrowIfNull(item);
-            var existingItem = _items.FirstOrDefault(i => i.Id == item.Id);
-
-            if (existingItem != null)
+            if (string.IsNullOrWhiteSpace(id))
             {
-                // Increase quantity of existing item
-                int oldQuantity = existingItem.Quantity;
-                existingItem.IncreaseQuantity(item.Quantity);
-                AddDomainEvent(new CartItemQuantityUpdatedEvent(Id, item.Id, oldQuantity, existingItem.Quantity));
+                throw InvalidCartException.InvalidCartId();
+            }
+
+            return new CartEntity(id);
+        }
+
+        public void AddItem(int id, string name, Money price, int quantity, ImageInfo? image = null)
+        {
+            var cartItem = CartItem.Create(id, name, price, quantity, image);
+
+            var itemIndex = _items.FindIndex(i => i.Id == cartItem.Id);
+            if (itemIndex < 0)
+            {
+                // Add new item
+                _items.Add(cartItem);
+                AddDomainEvent(new CartItemAddedEvent(Id, cartItem));
             }
             else
             {
-                // Add new item
-                _items.Add(item);
-                AddDomainEvent(new CartItemAddedEvent(Id, item));
+                // Increase quantity of existing item
+                var existingItem = _items[itemIndex];
+                int oldQuantity = existingItem.Quantity;
+
+                // Replace with new immutable item
+                var updatedItem = existingItem.WithIncreasedQuantity(cartItem.Quantity);
+                _items[itemIndex] = updatedItem;
+
+                AddDomainEvent(new CartItemQuantityUpdatedEvent(Id, cartItem.Id, oldQuantity, existingItem.Quantity));
             }
 
             UpdatedAt = DateTime.UtcNow;
@@ -63,7 +76,7 @@ namespace ECommerceNetApp.Domain.Entities
 
             if (item == null)
             {
-                throw new CartItemNotFoundException(itemId);
+                throw InvalidCartException.CartItemNotFound(itemId);
             }
 
             _items.Remove(item);
@@ -73,26 +86,48 @@ namespace ECommerceNetApp.Domain.Entities
 
         public void UpdateItemQuantity(int itemId, int newQuantity)
         {
-            var item = _items.FirstOrDefault(i => i.Id == itemId);
-
-            if (item == null)
+            if (newQuantity <= 0)
             {
-                throw new CartItemNotFoundException(itemId);
+                throw InvalidCartException.InvalidCartItemQuantity();
             }
 
-            int oldQuantity = item.Quantity;
-            item.UpdateQuantity(newQuantity);
+            var itemIndex = _items.FindIndex(i => i.Id == itemId);
+            if (itemIndex < 0)
+            {
+                throw InvalidCartException.CartItemNotFound(itemId);
+            }
+
+            var oldItem = _items[itemIndex];
+            int oldQuantity = oldItem.Quantity;
+
+            // Replace with new immutable item
+            var updatedItem = oldItem.WithUpdatedQuantity(newQuantity);
+            _items[itemIndex] = updatedItem;
+
             AddDomainEvent(new CartItemQuantityUpdatedEvent(Id, itemId, oldQuantity, newQuantity));
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void MarkAsDeleted()
+        public void RemoveAllItems()
+        {
+            foreach (var item in _items.ToList())
+            {
+                RemoveItem(item.Id);
+            }
+        }
+
+        public override void MarkAsDeleted()
         {
             AddDomainEvent(new CartDeletedEvent(Id));
         }
 
         public Money CalculateTotal()
         {
+            if (Items.Count == 0 || _items.All(i => i.TotalPrice == null))
+            {
+                return Money.From(0);
+            }
+
             return _items
                 .Where(i => i.TotalPrice != null)
                 .Aggregate(

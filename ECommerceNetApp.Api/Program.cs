@@ -1,6 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Text;
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Api.HealthCheck;
+using ECommerceNetApp.Api.Services;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
 using ECommerceNetApp.Persistence.Implementation.Cart;
@@ -11,6 +16,11 @@ using ECommerceNetApp.Service.Implementation.Behaviors;
 using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Serilog;
 
 namespace ECommerceNetApp.Api
@@ -54,9 +64,11 @@ namespace ECommerceNetApp.Api
                 options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
             });
 
-            app.UseHttpsRedirection();
-            app.UseAuthorization();
             app.UseErrorHandlingMiddleware();
+            app.UseHttpsRedirection();
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.MapControllers();
 
             // Initialize and seed databases
@@ -68,18 +80,82 @@ namespace ECommerceNetApp.Api
 
         private static void ConfigureServices(WebApplicationBuilder builder)
         {
+            builder.Services.AddProblemDetails(options =>
+            {
+                // Customize problem details if needed
+                options.CustomizeProblemDetails = context =>
+                {
+                    context.ProblemDetails.Instance = context.HttpContext.Request.Path;
+                    context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+                };
+            });
+
             builder.Services.Configure<CartDbOptions>(builder.Configuration.GetSection(nameof(CartDbOptions)));
             builder.Services.Configure<ProductCatalogDbOptions>(builder.Configuration.GetSection(nameof(ProductCatalogDbOptions)));
+            builder.Services.AddOptions<JwtOptions>().Bind(builder.Configuration.GetSection("Jwt")).ValidateDataAnnotations().ValidateOnStart();
+            builder.Services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
+
+            // Add custom validator
+            builder.Services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
+
             builder.Services.AddMediatR(config =>
             {
                 config.RegisterServicesFromAssembly(typeof(AddCartItemCommand).Assembly);
             });
 
+            builder.Services.AddScoped<IHateoasLinkService, HateoasLinkService>();
+            builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-            builder.Services.AddECommerceRepositories(builder.Configuration);
+            builder.Services.AddCartDb(builder.Configuration);
+            builder.Services.AddProductCatalogDb(builder.Configuration);
             builder.Services.AddValidatorsFromAssemblyContaining<AddCartItemCommandValidator>();
             builder.Services.AddECommerceServices();
             ConfigureHealthCheck(builder);
+            ConfigureAuthentication(builder);
+        }
+
+        private static void ConfigureAuthentication(WebApplicationBuilder builder)
+        {
+            // Configure JWT authentication
+            var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>();
+            ArgumentNullException.ThrowIfNull(jwtOptions, nameof(jwtOptions));
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(jwtOptions.GetSecretKeyBytes()),
+                    ClockSkew = TimeSpan.Zero,
+                };
+            });
+
+            // Authorization Policies
+            builder.Services.AddAuthorization(options =>
+            {
+                // Policy for Admin role
+                options.AddPolicy("RequireAdminRole", policy =>
+                    policy.RequireRole("Admin"));
+
+                // Policy for ProductManager role (Admin has higher privileges and can also access)
+                options.AddPolicy("RequireProductManagerRole", policy =>
+                    policy.RequireRole("Admin", "ProductManager"));
+
+                // Policy for Customer role (all authenticated users can access)
+                options.AddPolicy("RequireCustomerRole", policy =>
+                    policy.RequireRole("Admin", "ProductManager", "Customer"));
+            });
         }
 
         private static void ConfigureHealthCheck(WebApplicationBuilder builder)
@@ -99,14 +175,77 @@ namespace ECommerceNetApp.Api
 
         private static void ConfigureSwagger(WebApplicationBuilder builder)
         {
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            builder.Services
+                .AddApiVersioning(options =>
                 {
-                    Title = "ECommerceNetApp API",
-                    Version = "v1",
-                    Description = "API for ECommerceNetApp",
+                    options.ApiVersionReader = ApiVersionReader.Combine(
+                        new UrlSegmentApiVersionReader(),
+                        new HeaderApiVersionReader("X-API-Version"),
+                        new MediaTypeApiVersionReader("v"));
+
+                    options.ReportApiVersions = true;
+                    options.AssumeDefaultVersionWhenUnspecified = true;
+                    options.DefaultApiVersion = new ApiVersion(1, 0);
+                })
+                .AddApiExplorer(options =>
+                {
+                    options.GroupNameFormat = "'v'VVV";
+                    options.SubstituteApiVersionInUrl = true;
+                    options.AssumeDefaultVersionWhenUnspecified = true;
+                });
+
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                // Get all API version descriptors
+                var provider = builder.Services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+
+                // Add a swagger document for each discovered API version
+                foreach (var description in provider.ApiVersionDescriptions)
+                {
+                    options.SwaggerDoc(
+                        description.GroupName,
+                        new OpenApiInfo
+                        {
+                            Title = $"E-commerce API {description.ApiVersion}",
+                            Version = description.ApiVersion.ToString(),
+                            Description = description.IsDeprecated
+                                ? "This API version has been deprecated."
+                                : "E-commerce API",
+                        });
+                }
+
+                // Include XML comments if available
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    options.IncludeXmlComments(xmlPath);
+                }
+
+                // Add JWT Authentication to Swagger
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer",
+                            },
+                        },
+                        Array.Empty<string>()
+                    },
                 });
             });
         }
@@ -119,7 +258,33 @@ namespace ECommerceNetApp.Api
                 {
                     c.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi2_0;
                 });
-                app.UseSwaggerUI();
+
+                var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                app.UseSwaggerUI(options =>
+                {
+                    // Build a swagger endpoint for each discovered API version in reverse order
+                    // This ensures newest versions appear first in the dropdown
+                    foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+                    {
+                        options.SwaggerEndpoint(
+                            $"/swagger/{description.GroupName}/swagger.json",
+                            $"E-commerce API {description.GroupName.ToUpperInvariant()}");
+                    }
+
+                    // Set document expansion to list to show all operations by default
+                    options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
+
+                    options.DisplayRequestDuration();
+                    options.ConfigObject.DefaultModelsExpandDepth = -1; // Hide schemas section by default
+                });
+            }
+            else
+            {
+                app.UseExceptionHandler("/error");
+
+                // The default HSTS value is 30 days. You may want to change this for production scenarios.
+                app.UseHsts();
             }
         }
 

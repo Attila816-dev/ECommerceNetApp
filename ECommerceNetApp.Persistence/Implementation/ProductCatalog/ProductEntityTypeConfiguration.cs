@@ -20,12 +20,26 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             builder.Property(p => p.Description)
                    .IsRequired(false);
 
-            builder.Property(p => p.ImageUrl)
-                   .IsRequired(false);
+            // Configure ImageInfo as owned entity
+            builder.OwnsOne(p => p.Image, imageBuilder =>
+            {
+                imageBuilder.Property(i => i.Url).HasColumnName("ImageUrl");
+                imageBuilder.Property(i => i.AltText).HasColumnName("ImageAltText");
+            });
 
-            builder.Property(p => p.Price)
-                   .IsRequired()
-                   .HasColumnType("decimal(18,2)");
+            // Configure Money as owned entity
+            builder.OwnsOne(p => p.Price, priceBuilder =>
+            {
+                priceBuilder.Property(m => m.Amount)
+                    .HasColumnName("Price")
+                    .HasColumnType("decimal(18,2)")
+                    .IsRequired();
+
+                priceBuilder.Property(m => m.Currency)
+                    .HasColumnName("Currency")
+                    .HasMaxLength(3)
+                    .IsRequired();
+            });
 
             builder.Property(p => p.Amount)
                    .IsRequired();

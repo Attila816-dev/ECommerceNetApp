@@ -1,5 +1,7 @@
-﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+﻿using System.Linq.Expressions;
+using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Service.Implementation.Mappers.Category;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Category;
 using ECommerceNetApp.Service.Queries.Category;
 using Moq;
@@ -11,12 +13,18 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
     {
         private readonly GetAllCategoriesQueryHandler _queryHandler;
         private readonly Mock<ICategoryRepository> _mockRepository;
+        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
+        private readonly CategoryMapper _categoryMapper;
 
         public GetAllCategoriesQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICategoryRepository>();
-            _queryHandler = new GetAllCategoriesQueryHandler(_mockRepository.Object);
+            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
+            _mockUnitOfWork.SetupGet(u => u.CategoryRepository).Returns(_mockRepository.Object);
+
+            _categoryMapper = new CategoryMapper();
+            _queryHandler = new GetAllCategoriesQueryHandler(_mockUnitOfWork.Object, _categoryMapper);
         }
 
         [Fact]
@@ -25,11 +33,14 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
             // Arrange
             var categories = new List<CategoryEntity>
             {
-                new CategoryEntity(1, "Electronics"),
-                new CategoryEntity(2, "Books"),
+                CategoryEntity.Create("Electronics", null, null, 1),
+                CategoryEntity.Create("Books", null, null, 2),
             };
             _mockRepository
-                .Setup(r => r.GetAllAsync(CancellationToken.None))
+                .Setup(r => r.GetAllAsync(
+                    It.IsAny<Expression<Func<CategoryEntity, bool>>?>(),
+                    It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                    CancellationToken.None))
                 .ReturnsAsync(categories);
 
             // Act
