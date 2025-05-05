@@ -4,6 +4,14 @@ namespace ECommerceNetApp.Domain.Entities
 {
     public class UserEntity : BaseEntity<int>
     {
+        public const int MinPasswordLength = 8;
+
+        public const int MaxFirstNameLength = 100;
+
+        public const int MaxLastNameLength = 100;
+
+        public const int MaxEmailLength = 200;
+
         internal UserEntity(int? id, string email, string passwordHash, string firstName, string lastName, UserRole role)
             : base(default)
         {

@@ -13,10 +13,10 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             builder.ToTable("Users");
             builder.HasKey(p => p.Id);
 
-            builder.Property(e => e.Email).IsRequired().HasMaxLength(100);
+            builder.Property(e => e.Email).IsRequired().HasMaxLength(UserEntity.MaxEmailLength);
             builder.Property(e => e.PasswordHash).IsRequired();
-            builder.Property(e => e.FirstName).HasMaxLength(50);
-            builder.Property(e => e.LastName).HasMaxLength(50);
+            builder.Property(e => e.FirstName).HasMaxLength(UserEntity.MaxFirstNameLength);
+            builder.Property(e => e.LastName).HasMaxLength(UserEntity.MaxLastNameLength);
 
             builder.HasIndex(e => e.Email).IsUnique();
 

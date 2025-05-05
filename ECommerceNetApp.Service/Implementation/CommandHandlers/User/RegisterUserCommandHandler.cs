@@ -1,7 +1,7 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.User;
-using ECommerceNetApp.Service.Interfaces;
 using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User

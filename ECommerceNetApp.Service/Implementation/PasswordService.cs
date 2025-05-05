@@ -1,4 +1,4 @@
-﻿using ECommerceNetApp.Service.Interfaces;
+﻿using ECommerceNetApp.Domain.Interfaces;
 using BC = BCrypt.Net.BCrypt;
 
 namespace ECommerceNetApp.Service.Implementation

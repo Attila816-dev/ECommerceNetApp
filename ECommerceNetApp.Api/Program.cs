@@ -17,6 +17,8 @@ using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -90,6 +92,12 @@ namespace ECommerceNetApp.Api
 
             builder.Services.Configure<CartDbOptions>(builder.Configuration.GetSection(nameof(CartDbOptions)));
             builder.Services.Configure<ProductCatalogDbOptions>(builder.Configuration.GetSection(nameof(ProductCatalogDbOptions)));
+            builder.Services.AddOptions<JwtOptions>().Bind(builder.Configuration.GetSection("Jwt")).ValidateDataAnnotations().ValidateOnStart();
+            builder.Services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
+
+            // Add custom validator
+            builder.Services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
+
             builder.Services.AddMediatR(config =>
             {
                 config.RegisterServicesFromAssembly(typeof(AddCartItemCommand).Assembly);
@@ -109,7 +117,8 @@ namespace ECommerceNetApp.Api
         private static void ConfigureAuthentication(WebApplicationBuilder builder)
         {
             // Configure JWT authentication
-            var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!);
+            var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>();
+            ArgumentNullException.ThrowIfNull(jwtOptions, nameof(jwtOptions));
 
             builder.Services.AddAuthentication(options =>
             {
@@ -125,9 +134,9 @@ namespace ECommerceNetApp.Api
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                    ValidAudience = builder.Configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(jwtOptions.GetSecretKeyBytes()),
                     ClockSkew = TimeSpan.Zero,
                 };
             });

@@ -1,13 +1,16 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Threading;
 using Asp.Versioning;
 using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Api.Services;
+using ECommerceNetApp.Domain.Enums;
 using ECommerceNetApp.Service.Commands.User;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Queries.User;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ECommerceNetApp.Api.Controllers
 {
@@ -22,12 +25,44 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpPost("register")]
-        [AllowAnonymous] // TODO: only admin
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(command, nameof(command));
+            var userId = await Mediator.Send(command, cancellationToken).ConfigureAwait(false);
+
+            var getUserLink = LinkService.CreateLink(
+                this,
+                nameof(GetUserByEmail),
+                values: new { email = command.Email },
+                rel: "self");
+
+            var links = new List<LinkDto>
+            {
+                getUserLink,
+            };
+
+            var resource = CreateResource(userId, links);
+
+            return CreatedAtAction(
+                nameof(GetUserByEmail),
+                new { email = command.Email },
+                resource);
+        }
+
+        [HttpPost("register/customer")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RegisterCustomer([FromBody] RegisterCustomerRequest request, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(request, nameof(request));
+            var command = new RegisterUserCommand(
+                request.Email,
+                request.Password,
+                request.FirstName,
+                request.LastName,
+                UserRole.Customer);
             var userId = await Mediator.Send(command, cancellationToken).ConfigureAwait(false);
 
             var getUserLink = LinkService.CreateLink(
@@ -85,7 +120,7 @@ namespace ECommerceNetApp.Api.Controllers
         [Authorize]
         public async Task<IActionResult> GetCurrentUser(CancellationToken cancellationToken)
         {
-            var email = User.FindFirst(JwtRegisteredClaimNames.Email)?.Value;
+            var email = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
 
             if (string.IsNullOrEmpty(email))
             {

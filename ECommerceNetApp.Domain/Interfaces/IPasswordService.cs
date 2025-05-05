@@ -1,4 +1,4 @@
-﻿namespace ECommerceNetApp.Service.Interfaces
+﻿namespace ECommerceNetApp.Domain.Interfaces
 {
     public interface IPasswordService
     {
