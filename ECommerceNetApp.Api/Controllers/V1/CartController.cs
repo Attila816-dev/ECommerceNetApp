@@ -32,7 +32,7 @@ namespace ECommerceNetApp.Api.Controllers.V1
             CancellationToken cancellationToken)
         {
             var query = new GetCartQuery(cartId);
-            var cart = await Dispatcher.SendAsync(query, cancellationToken).ConfigureAwait(false);
+            var cart = await Dispatcher.SendQueryAsync<GetCartQuery, CartDto?>(query, cancellationToken).ConfigureAwait(false);
 
             if (cart == null)
             {
@@ -70,7 +70,7 @@ namespace ECommerceNetApp.Api.Controllers.V1
                 return BadRequest("Cart item is required.");
             }
 
-            await Dispatcher.SendAsync(new AddCartItemCommand(cartId, cartItem), cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync(new AddCartItemCommand(cartId, cartItem), cancellationToken).ConfigureAwait(false);
 
             var links = new List<LinkDto>
             {
@@ -99,7 +99,7 @@ namespace ECommerceNetApp.Api.Controllers.V1
             int itemId,
             CancellationToken cancellationToken)
         {
-            await Dispatcher.SendAsync(new RemoveCartItemCommand(cartId, itemId), cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync(new RemoveCartItemCommand(cartId, itemId), cancellationToken).ConfigureAwait(false);
             return NoContent();
         }
 
@@ -117,7 +117,7 @@ namespace ECommerceNetApp.Api.Controllers.V1
             string cartId,
             CancellationToken cancellationToken)
         {
-            var total = await Dispatcher.SendAsync(new GetCartTotalQuery(cartId), cancellationToken).ConfigureAwait(false);
+            var total = await Dispatcher.SendQueryAsync<GetCartTotalQuery, decimal?>(new GetCartTotalQuery(cartId), cancellationToken).ConfigureAwait(false);
             if (total == null)
             {
                 return NotFound();

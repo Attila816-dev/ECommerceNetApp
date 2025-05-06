@@ -31,7 +31,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
             string cartId,
             CancellationToken cancellationToken)
         {
-            var cartItems = await Dispatcher.SendAsync(new GetCartItemsQuery(cartId), cancellationToken).ConfigureAwait(false);
+            var cartItems = await Dispatcher.SendQueryAsync<GetCartItemsQuery, List<CartItemDto>?>(new GetCartItemsQuery(cartId), cancellationToken).ConfigureAwait(false);
             if (cartItems == null)
             {
                 return NotFound();
@@ -68,7 +68,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
                 return BadRequest("Cart item is required.");
             }
 
-            await Dispatcher.SendAsync(new AddCartItemCommand(cartId, cartItem), cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync(new AddCartItemCommand(cartId, cartItem), cancellationToken).ConfigureAwait(false);
 
             var links = new List<LinkDto>
             {
@@ -97,7 +97,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
             int itemId,
             CancellationToken cancellationToken)
         {
-            await Dispatcher.SendAsync(new RemoveCartItemCommand(cartId, itemId), cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync(new RemoveCartItemCommand(cartId, itemId), cancellationToken).ConfigureAwait(false);
             return NoContent();
         }
 
@@ -119,7 +119,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
             [FromBody] int quantity,
             CancellationToken cancellationToken)
         {
-            await Dispatcher.SendAsync(new UpdateCartItemQuantityCommand(cartId, itemId, quantity), cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync(new UpdateCartItemQuantityCommand(cartId, itemId, quantity), cancellationToken).ConfigureAwait(false);
             return NoContent();
         }
 
@@ -137,7 +137,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
             string cartId,
             CancellationToken cancellationToken)
         {
-            var total = await Dispatcher.SendAsync(new GetCartTotalQuery(cartId), cancellationToken).ConfigureAwait(false);
+            var total = await Dispatcher.SendQueryAsync<GetCartTotalQuery, decimal?>(new GetCartTotalQuery(cartId), cancellationToken).ConfigureAwait(false);
             if (total == null)
             {
                 return NotFound();
@@ -169,7 +169,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
             CancellationToken cancellationToken)
         {
             var query = new GetCartItemQuery(cartId, itemId);
-            var cartItem = await Dispatcher.SendAsync(query, cancellationToken).ConfigureAwait(false);
+            var cartItem = await Dispatcher.SendQueryAsync<GetCartItemQuery, CartItemDto?>(query, cancellationToken).ConfigureAwait(false);
 
             if (cartItem == null)
             {

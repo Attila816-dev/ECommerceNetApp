@@ -24,7 +24,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<CollectionLinkedResourceDto<ProductDto>>> GetAllProducts(CancellationToken cancellationToken)
         {
-            var products = await Dispatcher.SendAsync(new GetAllProductsQuery(), cancellationToken).ConfigureAwait(false);
+            var products = await Dispatcher.SendQueryAsync<GetAllProductsQuery, IEnumerable<ProductDto>>(new GetAllProductsQuery(), cancellationToken).ConfigureAwait(false);
 
             var links = new List<LinkDto>
             {
@@ -49,7 +49,7 @@ namespace ECommerceNetApp.Api.Controllers
             CancellationToken cancellationToken)
         {
             var query = new GetProductsByCategoryQuery(categoryId);
-            var products = await Dispatcher.SendAsync(query, cancellationToken).ConfigureAwait(false);
+            var products = await Dispatcher.SendQueryAsync<GetProductsByCategoryQuery, IEnumerable<ProductDto>>(query, cancellationToken).ConfigureAwait(false);
 
             var links = new List<LinkDto>
             {
@@ -76,7 +76,7 @@ namespace ECommerceNetApp.Api.Controllers
             CancellationToken cancellationToken)
         {
             var query = new GetProductByIdQuery(id);
-            var product = await Dispatcher.SendAsync(query, cancellationToken).ConfigureAwait(false);
+            var product = await Dispatcher.SendQueryAsync<GetProductByIdQuery, ProductDto?>(query, cancellationToken).ConfigureAwait(false);
 
             if (product == null)
             {
@@ -114,7 +114,7 @@ namespace ECommerceNetApp.Api.Controllers
             CancellationToken cancellationToken = default)
         {
             var query = new GetPaginatedProductsQuery(pageNumber, pageSize, categoryId);
-            var result = await Dispatcher.SendAsync(query, cancellationToken).ConfigureAwait(false);
+            var result = await Dispatcher.SendQueryAsync<GetPaginatedProductsQuery, PaginationResult<ProductDto>>(query, cancellationToken).ConfigureAwait(false);
 
             var totalPages = (int)Math.Ceiling(result.TotalCount / (double)pageSize);
 
@@ -172,7 +172,7 @@ namespace ECommerceNetApp.Api.Controllers
                 productDto.Currency,
                 productDto.Amount);
 
-            var createdProductId = await Dispatcher.SendAsync(command, cancellationToken).ConfigureAwait(false);
+            var createdProductId = await Dispatcher.SendCommandAsync<CreateProductCommand, int>(command, cancellationToken).ConfigureAwait(false);
 
             var getProductLink = LinkService.CreateLink(
                 this,
@@ -229,7 +229,7 @@ namespace ECommerceNetApp.Api.Controllers
                 productDto.Currency,
                 productDto.Amount);
 
-            await Dispatcher.SendAsync(command, cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync<UpdateProductCommand>(command, cancellationToken).ConfigureAwait(false);
             return NoContent();
         }
 
@@ -244,7 +244,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken)
         {
-            await Dispatcher.SendAsync(new DeleteProductCommand(id), cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync<DeleteProductCommand>(new DeleteProductCommand(id), cancellationToken).ConfigureAwait(false);
             return NoContent();
         }
     }

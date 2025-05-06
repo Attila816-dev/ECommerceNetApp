@@ -24,7 +24,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<CollectionLinkedResourceDto<CategoryDto>>> GetAllCategories(CancellationToken cancellationToken)
         {
-            var categories = await Dispatcher.SendAsync(new GetAllCategoriesQuery(), cancellationToken).ConfigureAwait(false);
+            var categories = await Dispatcher.SendQueryAsync<GetAllCategoriesQuery, IEnumerable<CategoryDto>>(new GetAllCategoriesQuery(), cancellationToken).ConfigureAwait(false);
 
             var links = new List<LinkDto>
             {
@@ -48,7 +48,7 @@ namespace ECommerceNetApp.Api.Controllers
             CancellationToken cancellationToken)
         {
             var query = new GetCategoriesByParentCategoryIdQuery(parentCategoryId);
-            var categories = await Dispatcher.SendAsync(query, cancellationToken).ConfigureAwait(false);
+            var categories = await Dispatcher.SendQueryAsync<GetCategoriesByParentCategoryIdQuery, IEnumerable<CategoryDto>>(query, cancellationToken).ConfigureAwait(false);
 
             var links = new List<LinkDto>
             {
@@ -82,7 +82,7 @@ namespace ECommerceNetApp.Api.Controllers
             int id,
             CancellationToken cancellationToken)
         {
-            var category = await Dispatcher.SendAsync(new GetCategoryByIdQuery(id), cancellationToken).ConfigureAwait(false);
+            var category = await Dispatcher.SendQueryAsync<GetCategoryByIdQuery, CategoryDetailDto?>(new GetCategoryByIdQuery(id), cancellationToken).ConfigureAwait(false);
             if (category == null)
             {
                 return NotFound();
@@ -147,7 +147,7 @@ namespace ECommerceNetApp.Api.Controllers
                 categoryDto.ImageUrl,
                 categoryDto.ParentCategoryId);
 
-            var createdCategoryId = await Dispatcher.SendAsync(command, cancellationToken).ConfigureAwait(false);
+            var createdCategoryId = await Dispatcher.SendCommandAsync<CreateCategoryCommand, int>(command, cancellationToken).ConfigureAwait(false);
 
             var categoryLink = LinkService.CreateLink(
                 this,
@@ -200,7 +200,7 @@ namespace ECommerceNetApp.Api.Controllers
                 categoryDto.ImageUrl,
                 categoryDto.ParentCategoryId);
 
-            await Dispatcher.SendAsync(command, cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync(command, cancellationToken).ConfigureAwait(false);
 
             return NoContent();
         }
@@ -216,7 +216,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteCategory(int id, CancellationToken cancellationToken)
         {
-            await Dispatcher.SendAsync(new DeleteCategoryCommand(id), cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync(new DeleteCategoryCommand(id), cancellationToken).ConfigureAwait(false);
             return NoContent();
         }
     }

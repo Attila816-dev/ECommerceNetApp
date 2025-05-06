@@ -25,85 +25,36 @@ namespace ECommerceNetApp.Service.Extensions
             var assembly = Assembly.GetExecutingAssembly();
             services.AddScoped<IDispatcher, Dispatcher>();
             services.AddScoped<IPublisher, SimplePublisher>();
-            RegisterCommandHandlers(services, assembly);
-            RegisterQueryHandlers(services, assembly);
+            RegisterHandlers(services, assembly);
 
             return services;
         }
 
-        private static void RegisterCommandHandlers(IServiceCollection services, Assembly assembly)
+        public static IServiceCollection RegisterHandlers(this IServiceCollection services, Assembly assembly)
         {
-            var commandHandlerTypesWithResultTypes = assembly.GetTypes()
-                .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>)))
-                .ToList();
-
-            foreach (var commandHandlerType in commandHandlerTypesWithResultTypes)
-            {
-                var commandHandlerInterfaceType = commandHandlerType.GetInterfaces()
-                    .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>));
-                var commandType = commandHandlerInterfaceType.GetGenericArguments()[0];
-                var resultType = commandHandlerInterfaceType.GetGenericArguments()[1];
-
-                // Handle nullable result types
-                var serviceType = typeof(ICommandHandler<,>).MakeGenericType(commandType, resultType);
-                services.AddScoped(serviceType, commandHandlerType);
-
-                if (Nullable.GetUnderlyingType(resultType) != null)
+            ArgumentNullException.ThrowIfNull(assembly, nameof(assembly));
+            var handlerTypes = assembly.GetTypes()
+                .Where(t => t.IsClass && !t.IsAbstract && !t.IsGenericType)
+                .Select(t => new
                 {
-                    var nullableServiceType = typeof(ICommandHandler<,>).MakeGenericType(commandType, typeof(Nullable<>).MakeGenericType(resultType));
-                    services.AddScoped(nullableServiceType, commandHandlerType);
+                    Implementation = t,
+                    Interfaces = t.GetInterfaces()
+                        .Where(i => i.IsGenericType && (
+                            i.GetGenericTypeDefinition() == typeof(ICommandHandler<>) ||
+                            i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>) ||
+                            i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))),
+                })
+                .Where(t => t.Interfaces.Any());
+
+            foreach (var handler in handlerTypes)
+            {
+                foreach (var @interface in handler.Interfaces)
+                {
+                    services.AddTransient(@interface, handler.Implementation);
                 }
             }
 
-            var commandHandlerTypesWithoutResultTypes = assembly.GetTypes()
-                .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommandHandler<>)))
-                .ToList();
-
-            foreach (var commandHandlerType in commandHandlerTypesWithoutResultTypes)
-            {
-                var commandType = commandHandlerType.GetInterfaces()
-                    .First(i => i.IsGenericType && (i.GetGenericTypeDefinition() == typeof(ICommandHandler<>)))
-                    .GetGenericArguments()[0];
-                var serviceType = typeof(ICommandHandler<>).MakeGenericType(commandType);
-                services.AddScoped(serviceType, commandHandlerType);
-            }
-        }
-
-        private static void RegisterQueryHandlers(IServiceCollection services, Assembly assembly)
-        {
-            var queryHandlerTypes = assembly.GetTypes()
-                .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>)))
-                .ToList();
-
-            foreach (var queryHandlerType in queryHandlerTypes)
-            {
-                var queryHandlerInterface = queryHandlerType.GetInterfaces()
-                    .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>));
-                var queryType = queryHandlerInterface.GetGenericArguments()[0];
-                var resultType = queryHandlerInterface.GetGenericArguments()[1];
-
-                // Register the non-nullable version
-                var serviceType = typeof(IQueryHandler<,>).MakeGenericType(queryType, resultType);
-                services.AddScoped(serviceType, queryHandlerType);
-
-                // Handle nullable reference types and nullable value types
-                if (resultType.IsValueType && Nullable.GetUnderlyingType(resultType) != null)
-                {
-                    // Nullable value type (e.g., decimal?)
-                    var nullableServiceType = typeof(IQueryHandler<,>).MakeGenericType(queryType, resultType);
-                    services.AddScoped(nullableServiceType, queryHandlerType);
-                }
-                else if (!resultType.IsValueType && resultType.IsGenericType && resultType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                {
-                    // Handle IEnumerable<T> where T might be nullable
-                    var elementType = resultType.GetGenericArguments()[0];
-                    if (Nullable.GetUnderlyingType(elementType) != null || !elementType.IsValueType)
-                    {
-                        var nullableServiceType = typeof(IQueryHandler<,>).MakeGenericType(queryType, resultType);
-                        services.AddScoped(nullableServiceType, queryHandlerType);
-                    }
-                }
-            }
+            return services;
         }
     }
 }
