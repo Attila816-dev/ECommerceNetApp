@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
+namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.EntityTypeConfiguration
 {
     public class CategoryEntityTypeConfiguration : IEntityTypeConfiguration<CategoryEntity>
     {

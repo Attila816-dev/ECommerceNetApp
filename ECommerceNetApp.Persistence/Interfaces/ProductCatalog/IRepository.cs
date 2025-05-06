@@ -7,6 +7,15 @@ namespace ECommerceNetApp.Persistence.Interfaces.ProductCatalog
     where TEntity : BaseEntity<TId>
     where TId : struct
     {
+        Task<bool> AnyAsync(
+            Expression<Func<TEntity, bool>>? filter = null,
+            CancellationToken cancellationToken = default);
+
+        Task<TEntity?> FirstOrDefaultAsync(
+            Expression<Func<TEntity, bool>>? filter = null,
+            Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
+            CancellationToken cancellationToken = default);
+
         Task<IEnumerable<TEntity>> GetAllAsync(
             Expression<Func<TEntity, bool>>? filter = null,
             Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
