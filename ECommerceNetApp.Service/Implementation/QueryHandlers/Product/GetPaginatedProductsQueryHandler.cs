@@ -15,16 +15,16 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
         private readonly IProductMapper _productMapper = productMapper;
 
         public async Task<PaginationResult<ProductDto>> HandleAsync(
-            GetPaginatedProductsQuery request,
+            GetPaginatedProductsQuery query,
             CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(query);
 
             var (products, totalCount) = await _productCatalogUnitOfWork.ProductRepository
                 .GetPaginatedProductsAsync(
-                    request.PageNumber,
-                    request.PageSize,
-                    request.CategoryId,
+                    query.PageNumber,
+                    query.PageSize,
+                    query.CategoryId,
                     cancellationToken)
                 .ConfigureAwait(false);
 
@@ -33,8 +33,8 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
             return new PaginationResult<ProductDto>(
                 productDtos,
                 totalCount,
-                request.PageNumber,
-                request.PageSize);
+                query.PageNumber,
+                query.PageSize);
         }
     }
 }

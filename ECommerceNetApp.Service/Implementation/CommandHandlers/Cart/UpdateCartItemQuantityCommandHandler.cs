@@ -11,18 +11,18 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
     {
         private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
 
-        public async Task HandleAsync(UpdateCartItemQuantityCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(UpdateCartItemQuantityCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(command);
 
-            var cart = await _cartUnitOfWork.CartRepository.GetByIdAsync(request.CartId, cancellationToken).ConfigureAwait(false);
+            var cart = await _cartUnitOfWork.CartRepository.GetByIdAsync(command.CartId, cancellationToken).ConfigureAwait(false);
 
             if (cart == null)
             {
-                throw InvalidCartException.CartNotFound(request.CartId);
+                throw InvalidCartException.CartNotFound(command.CartId);
             }
 
-            cart.UpdateItemQuantity(request.ItemId, request.Quantity);
+            cart.UpdateItemQuantity(command.ItemId, command.Quantity);
             await _cartUnitOfWork.CartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
             await _cartUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }

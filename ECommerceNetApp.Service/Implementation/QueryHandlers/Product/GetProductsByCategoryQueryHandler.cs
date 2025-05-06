@@ -15,11 +15,11 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
         private readonly IProductMapper _productMapper = productMapper;
 
-        public async Task<IEnumerable<ProductDto>> HandleAsync(GetProductsByCategoryQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ProductDto>> HandleAsync(GetProductsByCategoryQuery query, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(query);
             IEnumerable<ProductEntity> products = await _productCatalogUnitOfWork.ProductRepository
-                .GetProductsByCategoryIdAsync(request.CategoryId, cancellationToken).ConfigureAwait(false);
+                .GetProductsByCategoryIdAsync(query.CategoryId, cancellationToken).ConfigureAwait(false);
             return products.Select(_productMapper.MapToProductDto).ToList();
         }
     }

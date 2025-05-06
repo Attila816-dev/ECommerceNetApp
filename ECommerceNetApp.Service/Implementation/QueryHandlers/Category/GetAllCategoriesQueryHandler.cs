@@ -15,9 +15,9 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Category
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
         private readonly ICategoryMapper _categoryMapper = categoryMapper;
 
-        public async Task<IEnumerable<CategoryDto>> HandleAsync(GetAllCategoriesQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CategoryDto>> HandleAsync(GetAllCategoriesQuery query, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(query);
             IEnumerable<CategoryEntity> categories = await _productCatalogUnitOfWork.CategoryRepository
                 .GetAllAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             return categories.Select(_categoryMapper.MapToDto).ToList();

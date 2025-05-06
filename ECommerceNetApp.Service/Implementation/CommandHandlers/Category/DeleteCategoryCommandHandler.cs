@@ -10,13 +10,13 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
 
-        public async Task HandleAsync(DeleteCategoryCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(DeleteCategoryCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(command);
 
             // Get all products related to this category
             var products = await _productCatalogUnitOfWork.ProductRepository
-                .GetProductsByCategoryIdAsync(request.Id, cancellationToken)
+                .GetProductsByCategoryIdAsync(command.Id, cancellationToken)
                 .ConfigureAwait(false);
 
             // Delete all related products first
@@ -27,7 +27,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
                     .ConfigureAwait(false);
             }
 
-            await _productCatalogUnitOfWork.CategoryRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            await _productCatalogUnitOfWork.CategoryRepository.DeleteAsync(command.Id, cancellationToken).ConfigureAwait(false);
             await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
     }

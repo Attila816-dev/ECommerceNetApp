@@ -15,9 +15,9 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
         private readonly IProductMapper _productMapper = productMapper;
 
-        public async Task<IEnumerable<ProductDto>> HandleAsync(GetAllProductsQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ProductDto>> HandleAsync(GetAllProductsQuery query, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(query);
             IEnumerable<ProductEntity> products = await _productCatalogUnitOfWork.ProductRepository
                 .GetAllAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             return products.Select(_productMapper.MapToProductDto).ToList();

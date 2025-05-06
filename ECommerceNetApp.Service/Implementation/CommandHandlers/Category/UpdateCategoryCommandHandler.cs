@@ -12,33 +12,33 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
 
-        public async Task HandleAsync(UpdateCategoryCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(UpdateCategoryCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(command);
 
-            var existingCategory = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var existingCategory = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(command.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (existingCategory == null)
             {
-                throw new InvalidOperationException($"Category with Id {request.Id} not found");
+                throw new InvalidOperationException($"Category with Id {command.Id} not found");
             }
 
-            var imageInfo = request.ImageUrl != null ? ImageInfo.Create(request.ImageUrl) : null;
-            var parentCategory = await GetParentCategoryAsync(request, existingCategory, cancellationToken).ConfigureAwait(false);
-            existingCategory.Update(request.Name, imageInfo, parentCategory);
+            var imageInfo = command.ImageUrl != null ? ImageInfo.Create(command.ImageUrl) : null;
+            var parentCategory = await GetParentCategoryAsync(command, existingCategory, cancellationToken).ConfigureAwait(false);
+            existingCategory.Update(command.Name, imageInfo, parentCategory);
             _productCatalogUnitOfWork.CategoryRepository.Update(existingCategory);
             await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<CategoryEntity?> GetParentCategoryAsync(UpdateCategoryCommand request, CategoryEntity category, CancellationToken cancellationToken)
+        private async Task<CategoryEntity?> GetParentCategoryAsync(UpdateCategoryCommand command, CategoryEntity category, CancellationToken cancellationToken)
         {
             CategoryEntity? parentCategory = null;
-            if (request.ParentCategoryId.HasValue)
+            if (command.ParentCategoryId.HasValue)
             {
                 parentCategory = await _productCatalogUnitOfWork.CategoryRepository
-                    .GetByIdAsync(request.ParentCategoryId.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    .GetByIdAsync(command.ParentCategoryId.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (parentCategory == null)
                 {
-                    throw new InvalidOperationException($"Parent category with id {request.ParentCategoryId.Value} not found");
+                    throw new InvalidOperationException($"Parent category with id {command.ParentCategoryId.Value} not found");
                 }
             }
 

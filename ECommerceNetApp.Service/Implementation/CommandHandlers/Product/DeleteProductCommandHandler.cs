@@ -10,16 +10,16 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
 
-        public async Task HandleAsync(DeleteProductCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(DeleteProductCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
-            var exists = await _productCatalogUnitOfWork.ProductRepository.ExistsAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(command);
+            var exists = await _productCatalogUnitOfWork.ProductRepository.ExistsAsync(command.Id, cancellationToken).ConfigureAwait(false);
             if (!exists)
             {
-                throw InvalidProductException.NotFound(request.Id);
+                throw InvalidProductException.NotFound(command.Id);
             }
 
-            await _productCatalogUnitOfWork.ProductRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            await _productCatalogUnitOfWork.ProductRepository.DeleteAsync(command.Id, cancellationToken).ConfigureAwait(false);
             await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
     }

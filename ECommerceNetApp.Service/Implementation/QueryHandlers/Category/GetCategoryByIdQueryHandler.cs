@@ -14,10 +14,10 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Category
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
         private readonly ICategoryMapper _categoryMapper = categoryMapper;
 
-        public async Task<CategoryDetailDto?> HandleAsync(GetCategoryByIdQuery request, CancellationToken cancellationToken)
+        public async Task<CategoryDetailDto?> HandleAsync(GetCategoryByIdQuery query, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
-            var category = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(query);
+            var category = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(query.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (category == null)
             {
                 return null;

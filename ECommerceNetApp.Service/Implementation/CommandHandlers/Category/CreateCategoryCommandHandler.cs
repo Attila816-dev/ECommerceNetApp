@@ -14,21 +14,21 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
         private readonly ICategoryMapper _categoryMapper = categoryMapper;
 
-        public async Task<int> HandleAsync(CreateCategoryCommand request, CancellationToken cancellationToken)
+        public async Task<int> HandleAsync(CreateCategoryCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(command);
             CategoryEntity? parentCategory = null;
 
-            if (request.ParentCategoryId.HasValue)
+            if (command.ParentCategoryId.HasValue)
             {
-                parentCategory = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.ParentCategoryId.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
+                parentCategory = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(command.ParentCategoryId.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (parentCategory == null)
                 {
-                    throw new InvalidOperationException($"Parent category with id {request.ParentCategoryId.Value} not found");
+                    throw new InvalidOperationException($"Parent category with id {command.ParentCategoryId.Value} not found");
                 }
             }
 
-            var category = _categoryMapper.MapToEntity(request, parentCategory);
+            var category = _categoryMapper.MapToEntity(command, parentCategory);
             await _productCatalogUnitOfWork.CategoryRepository.AddAsync(category, cancellationToken).ConfigureAwait(false);
             await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
 
