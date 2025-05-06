@@ -10,12 +10,12 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
     {
         private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
 
-        public async Task<CartItemDto?> HandleAsync(GetCartItemQuery request, CancellationToken cancellationToken)
+        public async Task<CartItemDto?> HandleAsync(GetCartItemQuery query, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
-            ArgumentException.ThrowIfNullOrWhiteSpace(request.CartId, nameof(request.CartId));
+            ArgumentNullException.ThrowIfNull(query);
+            ArgumentException.ThrowIfNullOrWhiteSpace(query.CartId, nameof(query.CartId));
 
-            var cartItem = await _cartUnitOfWork.CartRepository.GetCartItemAsync(request.CartId, request.ItemId, cancellationToken).ConfigureAwait(false);
+            var cartItem = await _cartUnitOfWork.CartRepository.GetCartItemAsync(query.CartId, query.ItemId, cancellationToken).ConfigureAwait(false);
 
             if (cartItem == null)
             {
