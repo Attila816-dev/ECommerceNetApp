@@ -1,5 +1,7 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Domain.ValueObjects;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Service.Implementation.Mappers.Product;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Product;
 using ECommerceNetApp.Service.Queries.Product;
 using Moq;
@@ -11,24 +13,29 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
     {
         private readonly GetAllProductsQueryHandler _queryHandler;
         private readonly Mock<IProductRepository> _mockRepository;
+        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
+        private readonly ProductMapper _productMapper;
 
         public GetAllProductsQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<IProductRepository>();
-            _queryHandler = new GetAllProductsQueryHandler(_mockRepository.Object);
+            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
+            _mockUnitOfWork.SetupGet(x => x.ProductRepository).Returns(_mockRepository.Object);
+            _productMapper = new ProductMapper();
+            _queryHandler = new GetAllProductsQueryHandler(_mockUnitOfWork.Object, _productMapper);
         }
 
         [Fact]
         public async Task GetAllCategories_ReturnsCategories()
         {
-            var category = new CategoryEntity(1, "Electronics");
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
 
             // Arrange
             var products = new List<ProductEntity>
             {
-                new ProductEntity(1, "Laptop", null, null, category, 999.99m, 10),
-                new ProductEntity(2, "Smartphone", null, null, category, 499.99m, 20),
+                ProductEntity.Create("Laptop", null, null, category, Money.From(999.99m), 10, 1),
+                ProductEntity.Create("Smartphone", null, null, category, Money.From(499.99m), 20, 2),
             };
             _mockRepository
                 .Setup(r => r.GetAllAsync(CancellationToken.None))

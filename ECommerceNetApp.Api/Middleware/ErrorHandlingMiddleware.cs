@@ -1,6 +1,5 @@
 using System.Net;
 using ECommerceNetApp.Domain.Exceptions;
-using ECommerceNetApp.Domain.Exceptions.Cart;
 using FluentValidation;
 
 namespace ECommerceNetApp.Api.Middleware
@@ -29,10 +28,6 @@ namespace ECommerceNetApp.Api.Middleware
             try
             {
                 await _next(context).ConfigureAwait(false);
-            }
-            catch (CartItemNotFoundException ex)
-            {
-                await HandleExceptionAsync(context, HttpStatusCode.NotFound, ex).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is ArgumentException or DomainException or ValidationException)
             {

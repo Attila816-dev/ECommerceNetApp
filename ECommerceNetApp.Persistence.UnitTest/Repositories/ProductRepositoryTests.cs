@@ -1,5 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,13 +11,15 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 {
     public class ProductRepositoryTests : IDisposable
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ProductCatalogDbContext _dbContext;
-        private readonly ProductRepository _productRepository;
+#pragma warning restore CA2213 // Disposable fields should be disposed
+        private readonly ProductCatalogUnitOfWork _productCatalogUnitOfWork;
         private readonly Mock<IDomainEventService> _mockDomainEventService;
 
         private bool disposedValue;
-        private CategoryEntity _electronicsCategory = new CategoryEntity("Electronics", null, null);
-        private CategoryEntity _booksCategory = new CategoryEntity("Books", null, null);
+        private CategoryEntity _electronicsCategory = CategoryEntity.Create("Electronics", null, null);
+        private CategoryEntity _booksCategory = CategoryEntity.Create("Books", null, null);
         private ProductEntity? _laptopProduct;
         private ProductEntity? _smartPhoneProduct;
         private ProductEntity? _bookProduct;
@@ -35,7 +38,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
 
             _mockDomainEventService = new Mock<IDomainEventService>();
             _dbContext = new ProductCatalogDbContext(options);
-            _productRepository = new ProductRepository(_dbContext, _mockDomainEventService.Object);
+            _productCatalogUnitOfWork = new ProductCatalogUnitOfWork(_dbContext, _mockDomainEventService.Object);
 
             // Seed test data
             SeedTestData();
@@ -45,7 +48,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetAllProductsAsync_ShouldReturnAllProducts()
         {
             // Act
-            var result = await _productRepository.GetAllAsync(CancellationToken.None);
+            var result = await _productCatalogUnitOfWork.ProductRepository.GetAllAsync(CancellationToken.None);
 
             // Assert
             result.Count().ShouldBe(3);
@@ -55,8 +58,8 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetProductsByCategoryIdAsync_ShouldReturnProductsInCategory()
         {
             // Act
-            var electronicsProducts = await _productRepository.GetProductsByCategoryIdAsync(_electronicsCategory.Id, CancellationToken.None);
-            var booksProducts = await _productRepository.GetProductsByCategoryIdAsync(_booksCategory.Id, CancellationToken.None);
+            var electronicsProducts = await _productCatalogUnitOfWork.ProductRepository.GetProductsByCategoryIdAsync(_electronicsCategory.Id, CancellationToken.None);
+            var booksProducts = await _productCatalogUnitOfWork.ProductRepository.GetProductsByCategoryIdAsync(_booksCategory.Id, CancellationToken.None);
 
             // Assert
             electronicsProducts.Count().ShouldBe(2);
@@ -69,19 +72,19 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetProductByIdAsync_WithValidId_ShouldReturnProduct()
         {
             // Act
-            var result = await _productRepository.GetByIdAsync(_laptopProduct!.Id, CancellationToken.None);
+            var result = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(_laptopProduct!.Id, CancellationToken.None);
 
             // Assert
             result.ShouldNotBeNull();
             result.Name.ShouldBe("Laptop");
-            result.Price.ShouldBe(999.99m);
+            result.Price.Amount.ShouldBe(999.99m);
         }
 
         [Fact]
         public async Task GetProductByIdAsync_WithInvalidId_ShouldReturnNull()
         {
             // Act
-            var result = await _productRepository.GetByIdAsync(999, CancellationToken.None);
+            var result = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(999, CancellationToken.None);
 
             // Assert
             result.ShouldBeNull();
@@ -91,16 +94,17 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task AddProductAsync_ShouldAddNewProduct()
         {
             // Arrange
-            var newProduct = new ProductEntity("Tablet", "Compact tablet", null, _electronicsCategory, 299.99m, 15);
+            var newProduct = ProductEntity.Create("Tablet", "Compact tablet", null, _electronicsCategory, Money.From(299.99m), 15);
 
             // Act
-            await _productRepository.AddAsync(newProduct, CancellationToken.None);
+            await _productCatalogUnitOfWork.ProductRepository.AddAsync(newProduct, CancellationToken.None);
+            await _productCatalogUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Assert - Verify it was added to the database
             var productInDb = await _dbContext.Products.FirstAsync(p => p.Name == newProduct.Name);
             productInDb.ShouldNotBeNull();
             productInDb.Description.ShouldBe(newProduct.Description);
-            productInDb.Price.ShouldBe(299.99m);
+            productInDb.Price.Amount.ShouldBe(299.99m);
         }
 
         [Fact]
@@ -110,30 +114,32 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             var product = await _dbContext.Products.FindAsync(_laptopProduct!.Id);
             product.ShouldNotBeNull();
             product.UpdateName("Updated Laptop");
-            product.UpdatePrice(1099.99m);
+            product.UpdatePrice(Money.From(1099.99m));
 
             // Act
-            await _productRepository.UpdateAsync(product, CancellationToken.None);
+            _productCatalogUnitOfWork.ProductRepository.Update(product);
+            await _productCatalogUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Assert
             var updatedProduct = await _dbContext.Products.FindAsync(1);
             updatedProduct.ShouldNotBeNull();
             updatedProduct.Name.ShouldBe("Updated Laptop");
-            updatedProduct.Price.ShouldBe(1099.99m);
+            updatedProduct.Price.Amount.ShouldBe(1099.99m);
         }
 
         [Fact]
         public async Task DeleteProductAsync_ShouldRemoveProduct()
         {
             // Act
-            await _productRepository.DeleteAsync(1, CancellationToken.None);
+            await _productCatalogUnitOfWork.ProductRepository.DeleteAsync(1, CancellationToken.None);
+            await _productCatalogUnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Assert
             var deletedProduct = await _dbContext.Products.FindAsync(_laptopProduct!.Id);
             deletedProduct.ShouldBeNull();
 
             // Verify we now have one less product
-            var remainingProducts = await _productRepository.GetAllAsync(CancellationToken.None);
+            var remainingProducts = await _productCatalogUnitOfWork.ProductRepository.GetAllAsync(CancellationToken.None);
             remainingProducts.Count().ShouldBe(2);
         }
 
@@ -141,8 +147,8 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetProductsIncludingCategory_ShouldIncludeCategoryData()
         {
             // Act
-            var products = await _productRepository.GetAllAsync(CancellationToken.None);
-            var product = await _productRepository.GetByIdAsync(_laptopProduct!.Id, CancellationToken.None);
+            var products = await _productCatalogUnitOfWork.ProductRepository.GetAllAsync(CancellationToken.None);
+            var product = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(_laptopProduct!.Id, CancellationToken.None);
 
             // Assert
             // Check that Category navigation property is loaded
@@ -166,7 +172,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects)
-                    _dbContext.Dispose();
+                    _productCatalogUnitOfWork.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
@@ -183,13 +189,13 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             _dbContext.SaveChanges();
 
             // Add products
-            _laptopProduct = new ProductEntity("Laptop", "Powerful laptop", null, _electronicsCategory, 999.99m, 10);
-            _smartPhoneProduct = new ProductEntity("Smartphone", "Latest model", null, _electronicsCategory, 499.99m, 20);
+            _laptopProduct = ProductEntity.Create("Laptop", "Powerful laptop", null, _electronicsCategory, Money.From(999.99m), 10);
+            _smartPhoneProduct = ProductEntity.Create("Smartphone", "Latest model", null, _electronicsCategory, Money.From(499.99m), 20);
 
             _dbContext.Products.Add(_laptopProduct);
             _dbContext.Products.Add(_smartPhoneProduct);
 
-            _bookProduct = new ProductEntity("Programming Book", "Learn to code", null, _booksCategory, 39.99m, 50);
+            _bookProduct = ProductEntity.Create("Programming Book", "Learn to code", null, _booksCategory, Money.From(39.99m), 50);
             _dbContext.Products.Add(_bookProduct);
 
             _dbContext.SaveChanges();

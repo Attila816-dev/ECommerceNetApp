@@ -7,7 +7,7 @@
   </PropertyGroup>
 	
   <ItemGroup>
-	  <InternalsVisibleTo Include="ECommerceNetApp.Persistence" />
+	  <InternalsVisibleTo Include="ECommerceNetApp.Persistence.UnitTest" />
   </ItemGroup>
 	
   <ItemGroup>

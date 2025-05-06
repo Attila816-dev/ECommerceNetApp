@@ -1,6 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 
-namespace ECommerceNetApp.Persistence.Interfaces
+namespace ECommerceNetApp.Persistence.Interfaces.ProductCatalog
 {
     public interface IProductRepository
     {
@@ -12,9 +12,11 @@ namespace ECommerceNetApp.Persistence.Interfaces
 
         Task<bool> ExistsAsync(int id, CancellationToken cancellationToken);
 
+        Task<bool> ExistsAnyProductWithCategoryIdAsync(int categoryId, CancellationToken cancellationToken);
+
         Task AddAsync(ProductEntity product, CancellationToken cancellationToken);
 
-        Task UpdateAsync(ProductEntity product, CancellationToken cancellationToken);
+        void Update(ProductEntity product);
 
         Task DeleteAsync(int id, CancellationToken cancellationToken);
     }

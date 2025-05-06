@@ -1,5 +1,5 @@
-﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+﻿using ECommerceNetApp.Domain.ValueObjects;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using FluentValidation;
 using MediatR;
@@ -7,20 +7,18 @@ using MediatR;
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
 {
     public class UpdateProductCommandHandler(
-            IProductRepository productRepository,
-            ICategoryRepository categoryRepository,
-            IValidator<UpdateProductCommand> validator)
+        IProductCatalogUnitOfWork productCatalogUnitOfWork,
+        IValidator<UpdateProductCommand> validator)
         : IRequestHandler<UpdateProductCommand>
     {
-        private readonly IProductRepository _productRepository = productRepository;
-        private readonly ICategoryRepository _categoryRepository = categoryRepository;
+        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
         private readonly IValidator<UpdateProductCommand> _validator = validator;
 
         public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            var product = await _productRepository.GetByIdAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            var product = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(request.Id, cancellationToken).ConfigureAwait(false);
             if (product == null)
             {
                 throw new InvalidOperationException($"Product with id {request.Id} not found");
@@ -32,28 +30,18 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
                 throw new ValidationException(validationResult.Errors);
             }
 
-            product.UpdateName(request.Name);
-            product.UpdateDescription(request.Description);
-            product.UpdateImage(request.ImageUrl);
-            product.UpdatePrice(request.Price);
-            product.UpdateAmount(request.Amount);
-            await UpdateProductCategoryAsync(request, product, cancellationToken).ConfigureAwait(false);
-
-            await _productRepository.UpdateAsync(product, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task UpdateProductCategoryAsync(UpdateProductCommand command, ProductEntity product, CancellationToken cancellationToken)
-        {
-            if (command.CategoryId != product.CategoryId)
+            var category = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.CategoryId, cancellationToken).ConfigureAwait(false);
+            if (category == null)
             {
-                var category = await _categoryRepository.GetByIdAsync(command.CategoryId, cancellationToken).ConfigureAwait(false);
-                if (category == null)
-                {
-                    throw new InvalidOperationException($"Category with id {command.CategoryId} not found");
-                }
-
-                product.UpdateCategory(category);
+                throw new ArgumentException($"Category with id {request.CategoryId} not found");
             }
+
+            var imageInfo = request.ImageUrl != null ? ImageInfo.Create(request.ImageUrl) : null;
+            var money = Money.Create(request.Price, request.Currency);
+
+            product.Update(request.Name, request.Description, imageInfo, category, money, request.Amount);
+            _productCatalogUnitOfWork.ProductRepository.Update(product);
+            await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

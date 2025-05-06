@@ -1,9 +1,10 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Category;
+using FluentValidation;
+using FluentValidation.Results;
 using Moq;
-using Shouldly;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
 {
@@ -11,26 +12,36 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
     {
         private readonly DeleteCategoryCommandHandler _commandHandler;
         private readonly Mock<ICategoryRepository> _mockCategoryRepository;
-        private readonly Mock<IProductRepository> _mockProductRepository;
+        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
+        private readonly Mock<IValidator<DeleteCategoryCommand>> _mockValidator;
 
         public DeleteCategoryCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockCategoryRepository = new Mock<ICategoryRepository>();
-            _mockProductRepository = new Mock<IProductRepository>();
-            _commandHandler = new DeleteCategoryCommandHandler(_mockCategoryRepository.Object, _mockProductRepository.Object);
+            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
+            _mockUnitOfWork.Setup(u => u.CategoryRepository).Returns(_mockCategoryRepository.Object);
+
+            _mockValidator = new Mock<IValidator<DeleteCategoryCommand>>();
+            _mockValidator.Setup(v => v.ValidateAsync(It.IsAny<DeleteCategoryCommand>(), CancellationToken.None))
+                .ReturnsAsync(new ValidationResult());
+            _commandHandler = new DeleteCategoryCommandHandler(_mockUnitOfWork.Object, _mockValidator.Object);
         }
 
         [Fact]
         public async Task DeleteExistingCategory_RemovesCategory()
         {
             // Arrange
-            var category = new CategoryEntity(1, "test-category");
+            var category = CategoryEntity.Create("test-category", null, null, 1);
 
             _mockCategoryRepository.Setup(r => r.ExistsAsync(category.Id, CancellationToken.None))
                 .ReturnsAsync(true);
 
             _mockCategoryRepository.Setup(r => r.DeleteAsync(category.Id, CancellationToken.None))
+                .Verifiable();
+
+            _mockUnitOfWork.Setup(x => x.CommitAsync(CancellationToken.None))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
@@ -40,19 +51,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             _mockCategoryRepository.Verify(
                 r => r.DeleteAsync(It.Is<int>(c => c == category.Id), CancellationToken.None),
                 Times.Once);
-        }
 
-        [Fact]
-        public async Task DeleteCategoryAsync_WithNonExistingCategory_ShouldThrowInvalidOperationException()
-        {
-            // Arrange
-            var categoryId = 2;
-            _mockCategoryRepository.Setup(repo => repo.ExistsAsync(categoryId, CancellationToken.None))
-                .ReturnsAsync(false);
-
-            // Act & Assert
-            await Should.ThrowAsync<InvalidOperationException>(() =>
-                _commandHandler.Handle(new DeleteCategoryCommand(categoryId), CancellationToken.None));
+            _mockUnitOfWork.Verify(
+                x => x.CommitAsync(CancellationToken.None),
+                Times.Once);
         }
     }
 }

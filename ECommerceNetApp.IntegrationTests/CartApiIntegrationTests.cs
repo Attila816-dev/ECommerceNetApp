@@ -20,6 +20,12 @@ namespace ECommerceNetApp.IntegrationTests
 
         public CartApiIntegrationTests(WebApplicationFactory<Program> factory)
         {
+            string testDbPath = Path.Combine(Path.GetTempPath(), $"Cart-{Guid.NewGuid()}.db");
+            if (File.Exists(testDbPath))
+            {
+                File.Delete(testDbPath);
+            }
+
             ArgumentNullException.ThrowIfNull(factory);
 
             _factory = factory.WithWebHostBuilder(builder =>
@@ -28,11 +34,17 @@ namespace ECommerceNetApp.IntegrationTests
                 {
                     // Replace services with test doubles if needed
                     // For example, replace the real DB context with a test one:
-                    services.Remove(services.Single(d => d.ServiceType == typeof(CartDbContext)));
-                    services.AddSingleton(new CartDbContext("Filename=:memory:;Mode=Memory;Cache=Shared"));
-
                     services.Configure<CartDbOptions>(o => o.SeedSampleData = false);
                     services.Configure<ProductCatalogDbOptions>(o => o.SeedSampleData = false);
+
+                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(CartDbContext));
+                    if (descriptor != null)
+                    {
+                        services.Remove(descriptor);
+                    }
+
+                    // Register the test CartDbContext with the test connection string
+                    services.AddScoped(provider => new CartDbContext($"Filename={testDbPath};Mode=Shared"));
                 });
             });
 
@@ -44,9 +56,12 @@ namespace ECommerceNetApp.IntegrationTests
         {
             // Arrange
             var cartId = "test-cart-id-1";
-            var cartDbContext = _factory.Services.GetService<CartDbContext>();
-            cartDbContext!.CreateCollection<CartEntity>();
-            await cartDbContext.GetCollection<CartEntity>().InsertAsync(new CartEntity(cartId));
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var cartDbContext = scope.ServiceProvider.GetService<CartDbContext>();
+                cartDbContext!.CreateCollection<CartEntity>();
+                await cartDbContext.GetCollection<CartEntity>().InsertAsync(CartEntity.Create(cartId));
+            }
 
             // Act
             var response = await _client.GetAsync($"/api/carts/{cartId}/items");

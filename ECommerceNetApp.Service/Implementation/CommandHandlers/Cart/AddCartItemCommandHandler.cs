@@ -1,20 +1,18 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces;
+using ECommerceNetApp.Domain.ValueObjects;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
-using ECommerceNetApp.Service.Interfaces;
 using FluentValidation;
 using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
     public class AddCartItemCommandHandler(
-        ICartRepository cartRepository,
-        ICartItemMapper cartItemMapper,
+        ICartUnitOfWork cartUnitOfWork,
         IValidator<AddCartItemCommand> validator)
         : IRequestHandler<AddCartItemCommand>
     {
-        private readonly ICartRepository _cartRepository = cartRepository;
-        private readonly ICartItemMapper _cartItemMapper = cartItemMapper;
+        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
         private readonly IValidator<AddCartItemCommand> _validator = validator;
 
         public async Task Handle(AddCartItemCommand request, CancellationToken cancellationToken)
@@ -27,17 +25,22 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
                 throw new ValidationException(validationResult.Errors);
             }
 
-            var cart = await _cartRepository.GetByIdAsync(request.CartId, cancellationToken).ConfigureAwait(false);
+            var cart = await _cartUnitOfWork.CartRepository
+                .GetByIdAsync(request.CartId, cancellationToken)
+                .ConfigureAwait(false);
 
-            if (cart == null)
-            {
-                cart = new CartEntity(request.CartId);
-            }
+            cart ??= CartEntity.Create(request.CartId);
 
             // Use domain logic to add item
-            cart.AddItem(_cartItemMapper.MapToEntity(request));
+            cart.AddItem(
+                request.Item.Id,
+                request.Item.Name,
+                Money.Create(request.Item.Price, request.Item.Currency),
+                request.Item.Quantity,
+                string.IsNullOrEmpty(request.Item.ImageUrl) ? null : ImageInfo.Create(request.Item.ImageUrl, request.Item.ImageAltText));
 
-            await _cartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
+            await _cartUnitOfWork.CartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
+            await _cartUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

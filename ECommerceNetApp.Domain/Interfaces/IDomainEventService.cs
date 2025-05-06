@@ -1,9 +1,9 @@
-﻿using ECommerceNetApp.Domain.Entities;
+﻿using ECommerceNetApp.Domain.Events;
 
 namespace ECommerceNetApp.Domain.Interfaces
 {
     public interface IDomainEventService
     {
-        Task PublishEventsAsync(BaseEntity entity, CancellationToken cancellationToken);
+        Task PublishEventAsync(DomainEvent domainEvent, CancellationToken cancellationToken);
     }
 }

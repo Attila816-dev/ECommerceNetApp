@@ -26,9 +26,9 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             if (!await _dbContext.Categories.AnyAsync(cancellationToken).ConfigureAwait(false))
             {
                 await _dbContext.Categories.AddRangeAsync(
-                    new CategoryEntity("Electronics"),
-                    new CategoryEntity("Books"),
-                    new CategoryEntity("Clothing"))
+                    CategoryEntity.Create("Electronics", null, null),
+                    CategoryEntity.Create("Books", null, null),
+                    CategoryEntity.Create("Clothing", null, null))
                     .ConfigureAwait(false);
                 await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }

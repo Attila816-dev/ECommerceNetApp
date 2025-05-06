@@ -1,16 +1,11 @@
 ﻿namespace ECommerceNetApp.Domain.ValueObjects
 {
-    public class Money : IEquatable<Money>
+    public record Money
     {
         private const string DefaultCurrency = "EUR";
 
-        public Money(decimal amount, string? currency = null)
+        private Money(decimal amount, string? currency = null)
         {
-            if (amount < 0)
-            {
-                throw new ArgumentException("Price cannot be negative", nameof(amount));
-            }
-
             Amount = amount;
             Currency = currency ?? DefaultCurrency;
         }
@@ -20,25 +15,41 @@
         /// Default constructor for ORM purposes.
         /// </summary>
         private Money()
+            : this(0)
         {
         }
 
-        public decimal Amount { get; }
+        public decimal Amount { get; init; }
 
-        public string Currency { get; } = DefaultCurrency; // Default currency
+        public string Currency { get; init; } = DefaultCurrency;
 
         public static Money operator +(Money left, Money right)
         {
             ArgumentNullException.ThrowIfNull(left);
             ArgumentNullException.ThrowIfNull(right);
 
-            return new Money(left.Amount + right.Amount, left.Currency);
+            if (!left.Currency.Equals(right.Currency, StringComparison.Ordinal))
+            {
+                throw new ArgumentException("Currencies must match for addition");
+            }
+
+            return Create(left.Amount + right.Amount, left.Currency);
         }
 
         public static Money operator *(Money money, int multiplier)
         {
             ArgumentNullException.ThrowIfNull(money);
-            return new Money(money.Amount * multiplier, money.Currency);
+            return Create(money.Amount * multiplier, money.Currency);
+        }
+
+        public static Money Create(decimal amount, string? currency = null)
+        {
+            if (amount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Price cannot be negative");
+            }
+
+            return new Money(amount, currency);
         }
 
         public static Money Add(Money left, Money right)
@@ -54,36 +65,13 @@
             return money * multiplier;
         }
 
-        public static Money From(decimal amount) => new Money(amount);
+        public static Money From(decimal amount)
+            => Create(amount);
 
-        public bool Equals(Money? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return Amount == other.Amount && Currency == other.Currency;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as Money);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Amount, Currency);
-        }
-
+        // With records, .Equals, GetHashCode are automatically implemented
         public override string ToString()
         {
-            return $"{Amount} {Currency}";
+            return $"{Amount:C} {Currency}";
         }
     }
 }
