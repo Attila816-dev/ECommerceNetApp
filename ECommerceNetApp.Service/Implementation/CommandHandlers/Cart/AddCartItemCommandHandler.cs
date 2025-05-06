@@ -2,28 +2,18 @@
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
-using FluentValidation;
 using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
-    public class AddCartItemCommandHandler(
-        ICartUnitOfWork cartUnitOfWork,
-        IValidator<AddCartItemCommand> validator)
+    public class AddCartItemCommandHandler(ICartUnitOfWork cartUnitOfWork)
         : IRequestHandler<AddCartItemCommand>
     {
         private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
-        private readonly IValidator<AddCartItemCommand> _validator = validator;
 
         public async Task Handle(AddCartItemCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
-
-            var validationResult = await _validator.ValidateAsync(request, cancellationToken).ConfigureAwait(false);
-            if (!validationResult.IsValid)
-            {
-                throw new ValidationException(validationResult.Errors);
-            }
 
             var cart = await _cartUnitOfWork.CartRepository
                 .GetByIdAsync(request.CartId, cancellationToken)

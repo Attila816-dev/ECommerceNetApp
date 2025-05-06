@@ -5,8 +5,6 @@ using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
 using ECommerceNetApp.Service.Implementation.Mappers.Product;
-using FluentValidation;
-using FluentValidation.Results;
 using Moq;
 using Shouldly;
 
@@ -19,7 +17,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         private readonly Mock<IProductRepository> _mockProductRepository;
         private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
         private readonly ProductMapper _productMapper;
-        private readonly Mock<IValidator<CreateProductCommand>> _mockValidator;
 
         public CreateProductCommandHandlerTest()
         {
@@ -29,13 +26,9 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
             _mockUnitOfWork.SetupGet(x => x.ProductRepository).Returns(_mockProductRepository.Object);
             _mockUnitOfWork.SetupGet(x => x.CategoryRepository).Returns(_mockCategoryRepository.Object);
-
-            _mockValidator = new Mock<IValidator<CreateProductCommand>>();
             _productMapper = new ProductMapper();
-            _mockValidator.Setup(c => c.ValidateAsync(It.IsAny<CreateProductCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult());
 
-            _commandHandler = new CreateProductCommandHandler(_mockUnitOfWork.Object, _productMapper, _mockValidator.Object);
+            _commandHandler = new CreateProductCommandHandler(_mockUnitOfWork.Object, _productMapper);
         }
 
         [Fact]
@@ -53,7 +46,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             var category = CategoryEntity.Create("Electronics", null, null, 1);
             var product = ProductEntity.Create("Laptop", null, null, category, Money.From(999.99m), 10, 1);
 
-            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(category.Id, CancellationToken.None))
+            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(
+                category.Id,
+                It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                CancellationToken.None))
                 .ReturnsAsync(category);
 
             _mockProductRepository.Setup(repo => repo.AddAsync(It.Is<ProductEntity>(p => p.Name == productDto.Name), CancellationToken.None))
@@ -94,7 +90,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 CategoryId = 999, // Non-existing category ID
             };
 
-            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(999, CancellationToken.None))
+            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(
+                999,
+                It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                CancellationToken.None))
                 .ReturnsAsync((CategoryEntity?)null);
 
             // Act & Assert

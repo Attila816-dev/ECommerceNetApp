@@ -17,7 +17,7 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Category
         public async Task<CategoryDetailDto?> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
-            var category = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.Id, cancellationToken).ConfigureAwait(false);
+            var category = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(request.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (category == null)
             {
                 return null;

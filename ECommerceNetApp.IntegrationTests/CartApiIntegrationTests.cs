@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using ECommerceNetApp.Api;
+using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Implementation.Cart;
@@ -64,13 +65,14 @@ namespace ECommerceNetApp.IntegrationTests
             }
 
             // Act
-            var response = await _client.GetAsync($"/api/carts/{cartId}/items");
+            var response = await _client.GetAsync($"/api/v1/carts/{cartId}");
 
             // Assert
             response.EnsureSuccessStatusCode();
-            var cartItems = await response.Content.ReadFromJsonAsync<List<CartItemDto>>();
+            var cartWithLinks = await response.Content.ReadFromJsonAsync<LinkedResourceDto<CartDto>>();
 
-            cartItems.ShouldNotBeNull();
+            cartWithLinks.ShouldNotBeNull();
+            cartWithLinks.Resource.ShouldNotBeNull();
         }
 
         [Fact]
@@ -78,7 +80,7 @@ namespace ECommerceNetApp.IntegrationTests
         {
             // Act
             var cartId = "invalid-cart-id-1";
-            var response = await _client.GetAsync($"/api/carts/{cartId}/items");
+            var response = await _client.GetAsync($"/api/v1/carts/{cartId}");
 
             // Assert
             response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -105,18 +107,19 @@ namespace ECommerceNetApp.IntegrationTests
                 "application/json");
 
             // Act
-            var response = await _client.PostAsync($"/api/carts/{cartId}/items", content);
+            var response = await _client.PostAsync($"/api/v1/carts/{cartId}/items", content);
 
             // Assert
             response.EnsureSuccessStatusCode();
-            var itemsResponse = await _client.GetAsync($"/api/carts/{cartId}/items");
-            var items = await itemsResponse.Content.ReadFromJsonAsync<List<CartItemDto>>();
+            var itemsResponse = await _client.GetAsync($"/api/v2/carts/{cartId}/items/{1}");
+            var itemWithLinks = await itemsResponse.Content.ReadFromJsonAsync<LinkedResourceDto<CartItemDto>>();
 
-            items.ShouldNotBeNull();
-            items.Count.ShouldBe(1);
-            items[0].Name.ShouldBe("Test Product");
-            items[0].Price.ShouldBe(19.99m);
-            items[0].Quantity.ShouldBe(2);
+            itemWithLinks.ShouldNotBeNull();
+            var item = itemWithLinks.Resource;
+            item.ShouldNotBeNull();
+            item.Name.ShouldBe("Test Product");
+            item.Price.ShouldBe(19.99m);
+            item.Quantity.ShouldBe(2);
         }
 
         [Fact]
@@ -138,7 +141,7 @@ namespace ECommerceNetApp.IntegrationTests
                 Encoding.UTF8,
                 "application/json");
 
-            await _client.PostAsync($"/api/carts/{cartId}/items", addContent);
+            await _client.PostAsync($"/api/v2/carts/{cartId}/items", addContent);
 
             var updateQuantity = 5;
             using var updateContent = new StringContent(
@@ -147,16 +150,17 @@ namespace ECommerceNetApp.IntegrationTests
                 "application/json");
 
             // Act
-            var updateResponse = await _client.PutAsync($"/api/carts/{cartId}/items/1", updateContent);
+            var updateResponse = await _client.PutAsync($"/api/v2/carts/{cartId}/items/{newItem.Id}", updateContent);
 
             // Assert
             updateResponse.EnsureSuccessStatusCode();
-            var itemsResponse = await _client.GetAsync($"/api/carts/{cartId}/items");
-            var items = await itemsResponse.Content.ReadFromJsonAsync<List<CartItemDto>>();
+            var itemsResponse = await _client.GetAsync($"/api/v2/carts/{cartId}/items/{newItem.Id}");
+            var itemWithLinks = await itemsResponse.Content.ReadFromJsonAsync<LinkedResourceDto<CartItemDto>>();
 
-            items.ShouldNotBeNull();
-            items.Count.ShouldBe(1);
-            items[0].Quantity.ShouldBe(updateQuantity);
+            itemWithLinks.ShouldNotBeNull();
+            var item = itemWithLinks.Resource;
+            item.ShouldNotBeNull();
+            item.Quantity.ShouldBe(updateQuantity);
         }
 
         [Fact]
@@ -177,18 +181,15 @@ namespace ECommerceNetApp.IntegrationTests
                 Encoding.UTF8,
                 "application/json");
 
-            await _client.PostAsync($"/api/carts/{cartId}/items", addContent);
+            await _client.PostAsync($"/api/v2/carts/{cartId}/items", addContent);
 
             // Act
-            var deleteResponse = await _client.DeleteAsync($"/api/carts/{cartId}/items/1");
+            var deleteResponse = await _client.DeleteAsync($"/api/v2/carts/{cartId}/items/1");
 
             // Assert
             deleteResponse.EnsureSuccessStatusCode();
-            var itemsResponse = await _client.GetAsync($"/api/carts/{cartId}/items");
-            var items = await itemsResponse.Content.ReadFromJsonAsync<List<CartItemDto>>();
-
-            items.ShouldNotBeNull();
-            items!.ShouldBeEmpty();
+            var itemResponse = await _client.GetAsync($"/api/carts/{cartId}/items/1");
+            itemResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         }
 
         [Fact]
@@ -209,16 +210,17 @@ namespace ECommerceNetApp.IntegrationTests
                 Encoding.UTF8,
                 "application/json");
 
-            await _client.PostAsync($"/api/carts/{cartId}/items", addContent);
+            await _client.PostAsync($"/api/v2/carts/{cartId}/items", addContent);
 
             // Act
-            var totalResponse = await _client.GetAsync($"/api/carts/{cartId}/total");
+            var totalResponse = await _client.GetAsync($"/api/v1/carts/{cartId}/total");
 
             // Assert
             totalResponse.EnsureSuccessStatusCode();
-            var total = await totalResponse.Content.ReadFromJsonAsync<decimal>();
+            var totalWithLinks = await totalResponse.Content.ReadFromJsonAsync<LinkedResourceDto<decimal>>();
 
-            total.ShouldBe(39.98m);
+            totalWithLinks.ShouldNotBeNull();
+            totalWithLinks.Resource.ShouldBe(39.98m);
         }
     }
 }

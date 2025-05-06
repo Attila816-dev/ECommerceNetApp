@@ -1,5 +1,7 @@
-﻿using System.Net.Http.Json;
+﻿using System.Net;
+using System.Net.Http.Json;
 using ECommerceNetApp.Api;
+using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Implementation.Cart;
@@ -67,10 +69,11 @@ namespace ECommerceNetApp.IntegrationTests
 
             // Assert
             response.EnsureSuccessStatusCode();
-            var categories = await response.Content.ReadFromJsonAsync<List<CategoryDto>>();
-            categories.ShouldNotBeNull();
-            categories.ShouldContain(c => c.Name == "Electronics");
-            categories.ShouldContain(c => c.Name == "Books");
+            var categoriesWithLinks = await response.Content.ReadFromJsonAsync<CollectionLinkedResourceDto<CategoryDto>>();
+            categoriesWithLinks.ShouldNotBeNull();
+            categoriesWithLinks.Items.ShouldNotBeNull();
+            categoriesWithLinks.Items.ShouldContain(c => c.Name == "Electronics");
+            categoriesWithLinks.Items.ShouldContain(c => c.Name == "Books");
         }
 
         [Fact]
@@ -142,6 +145,53 @@ namespace ECommerceNetApp.IntegrationTests
             response.EnsureSuccessStatusCode();
             var exists = await dbContext.Categories.AnyAsync(c => c.Id == category.Id);
             exists.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task CreateCategory_WithValidData_ReturnsCreated()
+        {
+            // Arrange
+            var newCategory = new CategoryDto
+            {
+                Name = "Test Category " + Guid.NewGuid(),
+                ImageUrl = "http://example.com/image.jpg",
+                ParentCategoryId = null,
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("/api/categories", newCategory);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.NotNull(response.Headers.Location);
+        }
+
+        [Fact]
+        public async Task CreateCategory_WithInvalidData_ReturnsBadRequest()
+        {
+            // Arrange
+            var invalidCategory = new CategoryDto
+            {
+                // Missing required Name
+                ImageUrl = "http://example.com/image.jpg",
+                ParentCategoryId = null,
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("/api/categories", invalidCategory);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetCategory_WithInvalidId_ReturnsNotFound()
+        {
+            // Act
+            var response = await _client.GetAsync("/api/categories/999999");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }

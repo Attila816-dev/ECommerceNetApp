@@ -1,4 +1,4 @@
-﻿using ECommerceNetApp.Domain.Exceptions;
+﻿using ECommerceNetApp.Domain.Exceptions.Cart;
 
 namespace ECommerceNetApp.Domain.ValueObjects
 {
@@ -38,17 +38,17 @@ namespace ECommerceNetApp.Domain.ValueObjects
         {
             if (id <= 0)
             {
-                throw new DomainException("Item ID must be positive");
+                throw InvalidCartException.InvalidCartItemId();
             }
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                throw new DomainException("Item name cannot be empty");
+                throw InvalidCartException.InvalidCartItemName();
             }
 
             if (quantity <= 0)
             {
-                throw new DomainException("Item quantity must be positive");
+                throw InvalidCartException.InvalidCartItemQuantity();
             }
 
             ArgumentNullException.ThrowIfNull(price, nameof(price));
@@ -62,7 +62,7 @@ namespace ECommerceNetApp.Domain.ValueObjects
         {
             if (newQuantity <= 0)
             {
-                throw new DomainException("Quantity must be positive");
+                throw InvalidCartException.InvalidCartItemQuantity();
             }
 
             // Use the with expression to create a new record with updated quantity
@@ -73,7 +73,7 @@ namespace ECommerceNetApp.Domain.ValueObjects
         {
             if (additionalQuantity <= 0)
             {
-                throw new DomainException("Additional quantity must be positive");
+                throw InvalidCartException.InvalidCartItemQuantity();
             }
 
             // Use the with expression to create a new record with updated quantity

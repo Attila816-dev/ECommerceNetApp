@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using ECommerceNetApp.Api;
+using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Domain.ValueObjects;
@@ -72,9 +73,10 @@ namespace ECommerceNetApp.IntegrationTests
 
             // Assert
             response.EnsureSuccessStatusCode();
-            var products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();
-            products.ShouldNotBeNull();
-            products.ShouldContain(p => p.Name.Equals("Sample Product", StringComparison.Ordinal) && p.Amount == 5);
+            var productsWithLinks = await response.Content.ReadFromJsonAsync<CollectionLinkedResourceDto<ProductDto>>();
+            productsWithLinks.ShouldNotBeNull();
+            productsWithLinks.Items.ShouldNotBeNull();
+            productsWithLinks.Items.ShouldContain(p => p.Name.Equals("Sample Product", StringComparison.Ordinal) && p.Amount == 5);
         }
 
         [Fact]

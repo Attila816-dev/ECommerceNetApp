@@ -1,11 +1,10 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Category;
 using ECommerceNetApp.Service.Implementation.Mappers.Category;
-using FluentValidation;
-using FluentValidation.Results;
 using Moq;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
@@ -16,7 +15,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
         private readonly Mock<ICategoryRepository> _mockRepository;
         private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
         private readonly CategoryMapper _categoryMapper;
-        private readonly Mock<IValidator<CreateCategoryCommand>> _mockValidator;
 
         public CreateCategoryCommandHandlerTest()
         {
@@ -26,10 +24,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             _mockUnitOfWork.Setup(x => x.CategoryRepository).Returns(_mockRepository.Object);
 
             _categoryMapper = new CategoryMapper();
-            _mockValidator = new Mock<IValidator<CreateCategoryCommand>>();
-            _mockValidator.Setup(c => c.ValidateAsync(It.IsAny<CreateCategoryCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult());
-            _commandHandler = new CreateCategoryCommandHandler(_mockUnitOfWork.Object, _categoryMapper, _mockValidator.Object);
+            _commandHandler = new CreateCategoryCommandHandler(_mockUnitOfWork.Object, _categoryMapper);
         }
 
         [Fact]
@@ -57,6 +52,50 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
 
             _mockUnitOfWork.Verify(
                 r => r.CommitAsync(CancellationToken.None),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_WithParentCategory_CorrectlyAssignsParent()
+        {
+            // Arrange
+            var parentCategoryId = 42;
+            var command = new CreateCategoryCommand("Test Category", "image.jpg", parentCategoryId);
+            var parentCategory = CategoryEntity.Create("Parent Category", ImageInfo.Create("parent.jpg"), null, parentCategoryId);
+            var categoryEntity = CategoryEntity.Create("Test Category", ImageInfo.Create("image.jpg"), parentCategory, 123);
+
+            _mockUnitOfWork
+                .Setup(u => u.CategoryRepository.GetByIdAsync(
+                    parentCategoryId,
+                    It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(parentCategory);
+
+            _mockUnitOfWork
+                .Setup(u => u.CategoryRepository.AddAsync(categoryEntity, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            _mockUnitOfWork
+                .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            // Act
+            var result = await _commandHandler.Handle(command, CancellationToken.None);
+
+            // Assert
+            _mockUnitOfWork.Verify(
+                u => u.CategoryRepository.GetByIdAsync(
+                    parentCategoryId,
+                    It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            _mockUnitOfWork.Verify(
+                u => u.CategoryRepository.AddAsync(
+                    It.Is<CategoryEntity>(c => c.Name == command.Name && c.ParentCategory == parentCategory),
+                    It.IsAny<CancellationToken>()),
                 Times.Once);
         }
     }

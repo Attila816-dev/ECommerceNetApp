@@ -25,8 +25,8 @@ namespace ECommerceNetApp.Service.Validators.Cart
                         .WithMessage("Cart item name is required.");
 
                     RuleFor(x => x.Item.Price)
-                        .GreaterThan(0)
-                        .WithMessage("Cart item price must be greater than zero.");
+                        .GreaterThanOrEqualTo(0)
+                        .WithMessage("Cart item price must be greater than or equal to zero.");
 
                     RuleFor(x => x.Item.Quantity)
                         .GreaterThan(0)

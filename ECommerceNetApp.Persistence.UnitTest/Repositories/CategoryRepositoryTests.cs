@@ -41,7 +41,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetAllAsync_ShouldReturnAllCategories()
         {
             // Act
-            var result = await _productCatalogUnitOfWork.CategoryRepository.GetAllAsync(CancellationToken.None);
+            var result = await _productCatalogUnitOfWork.CategoryRepository.GetAllAsync(cancellationToken: CancellationToken.None);
 
             // Assert
             result.Count().ShouldBe(2);
@@ -51,7 +51,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetByIdAsync_WithValidId_ShouldReturnCategory()
         {
             // Act
-            var result = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(1, CancellationToken.None);
+            var result = await _productCatalogUnitOfWork.CategoryRepository.GetByIdAsync(1, cancellationToken: CancellationToken.None);
 
             // Assert
             result.ShouldNotBeNull();

@@ -37,7 +37,10 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
             var category = CategoryEntity.Create("Test Category", null, null, 1);
 
             _mockCategoryRepository
-                .Setup(r => r.GetByIdAsync(category.Id, CancellationToken.None))
+                .Setup(r => r.GetByIdAsync(
+                    category.Id,
+                    It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                    CancellationToken.None))
                 .ReturnsAsync(category);
 
             // Act

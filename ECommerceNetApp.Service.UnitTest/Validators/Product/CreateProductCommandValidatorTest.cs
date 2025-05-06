@@ -57,17 +57,17 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
         }
 
         [Fact]
-        public void Validate_WithNonPositivePrice_ShouldFailValidation()
+        public void Validate_WithNegativePrice_ShouldFailValidation()
         {
             // Arrange
-            var command = new CreateProductCommand("Valid Product Name", null, null, 1, 0, null, 10);
+            var command = new CreateProductCommand("Valid Product Name", null, null, 1, -10, null, 10);
 
             // Act
             var result = _validator.TestValidate(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.Price)
-                .WithErrorMessage("Product price must be greater than zero.");
+                .WithErrorMessage("Product price must be greater than or equal to zero.");
         }
 
         [Fact]

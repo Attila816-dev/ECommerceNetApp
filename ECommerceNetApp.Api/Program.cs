@@ -1,6 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Api.HealthCheck;
+using ECommerceNetApp.Api.Services;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
 using ECommerceNetApp.Persistence.Implementation.Cart;
@@ -11,6 +15,7 @@ using ECommerceNetApp.Service.Implementation.Behaviors;
 using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
 using MediatR;
+using Microsoft.OpenApi.Models;
 using Serilog;
 
 namespace ECommerceNetApp.Api
@@ -54,9 +59,10 @@ namespace ECommerceNetApp.Api
                 options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
             });
 
-            app.UseHttpsRedirection();
-            app.UseAuthorization();
             app.UseErrorHandlingMiddleware();
+            app.UseHttpsRedirection();
+            app.UseRouting();
+            app.UseAuthorization();
             app.MapControllers();
 
             // Initialize and seed databases
@@ -68,6 +74,16 @@ namespace ECommerceNetApp.Api
 
         private static void ConfigureServices(WebApplicationBuilder builder)
         {
+            builder.Services.AddProblemDetails(options =>
+            {
+                // Customize problem details if needed
+                options.CustomizeProblemDetails = context =>
+                {
+                    context.ProblemDetails.Instance = context.HttpContext.Request.Path;
+                    context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+                };
+            });
+
             builder.Services.Configure<CartDbOptions>(builder.Configuration.GetSection(nameof(CartDbOptions)));
             builder.Services.Configure<ProductCatalogDbOptions>(builder.Configuration.GetSection(nameof(ProductCatalogDbOptions)));
             builder.Services.AddMediatR(config =>
@@ -75,6 +91,8 @@ namespace ECommerceNetApp.Api
                 config.RegisterServicesFromAssembly(typeof(AddCartItemCommand).Assembly);
             });
 
+            builder.Services.AddScoped<IHateoasLinkService, HateoasLinkService>();
+            builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
             builder.Services.AddCartDb(builder.Configuration);
             builder.Services.AddProductCatalogDb(builder.Configuration);
@@ -100,15 +118,53 @@ namespace ECommerceNetApp.Api
 
         private static void ConfigureSwagger(WebApplicationBuilder builder)
         {
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            builder.Services
+                .AddApiVersioning(options =>
                 {
-                    Title = "ECommerceNetApp API",
-                    Version = "v1",
-                    Description = "API for ECommerceNetApp",
+                    options.ApiVersionReader = ApiVersionReader.Combine(
+                        new UrlSegmentApiVersionReader(),
+                        new HeaderApiVersionReader("X-API-Version"),
+                        new MediaTypeApiVersionReader("v"));
+
+                    options.ReportApiVersions = true;
+                    options.AssumeDefaultVersionWhenUnspecified = true;
+                    options.DefaultApiVersion = new ApiVersion(1, 0);
+                })
+                .AddApiExplorer(options =>
+                {
+                    options.GroupNameFormat = "'v'VVV";
+                    options.SubstituteApiVersionInUrl = true;
+                    options.AssumeDefaultVersionWhenUnspecified = true;
                 });
+
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                // Get all API version descriptors
+                var provider = builder.Services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+
+                // Add a swagger document for each discovered API version
+                foreach (var description in provider.ApiVersionDescriptions)
+                {
+                    options.SwaggerDoc(
+                        description.GroupName,
+                        new OpenApiInfo
+                        {
+                            Title = $"E-commerce API {description.ApiVersion}",
+                            Version = description.ApiVersion.ToString(),
+                            Description = description.IsDeprecated
+                                ? "This API version has been deprecated."
+                                : "E-commerce API",
+                        });
+                }
+
+                // Include XML comments if available
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    options.IncludeXmlComments(xmlPath);
+                }
             });
         }
 
@@ -120,7 +176,33 @@ namespace ECommerceNetApp.Api
                 {
                     c.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi2_0;
                 });
-                app.UseSwaggerUI();
+
+                var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                app.UseSwaggerUI(options =>
+                {
+                    // Build a swagger endpoint for each discovered API version in reverse order
+                    // This ensures newest versions appear first in the dropdown
+                    foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+                    {
+                        options.SwaggerEndpoint(
+                            $"/swagger/{description.GroupName}/swagger.json",
+                            $"E-commerce API {description.GroupName.ToUpperInvariant()}");
+                    }
+
+                    // Set document expansion to list to show all operations by default
+                    options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
+
+                    options.DisplayRequestDuration();
+                    options.ConfigObject.DefaultModelsExpandDepth = -1; // Hide schemas section by default
+                });
+            }
+            else
+            {
+                app.UseExceptionHandler("/error");
+
+                // The default HSTS value is 30 days. You may want to change this for production scenarios.
+                app.UseHsts();
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Exceptions.Product;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
@@ -54,7 +55,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         }
 
         [Fact]
-        public async Task DeleteProductAsync_WithNonExistingProduct_ShouldThrowInvalidOperationException()
+        public async Task DeleteProductAsync_WithNonExistingProduct_ShouldThrowInvalidProductException()
         {
             // Arrange
             var productId = 2;
@@ -62,7 +63,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 .ReturnsAsync(false);
 
             // Act & Assert
-            await Should.ThrowAsync<InvalidOperationException>(() =>
+            await Should.ThrowAsync<InvalidProductException>(() =>
                 _commandHandler.Handle(new DeleteProductCommand(productId), CancellationToken.None));
         }
     }

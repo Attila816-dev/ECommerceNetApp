@@ -13,6 +13,8 @@ namespace ECommerceNetApp.Domain.Entities
         {
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = CreatedAt;
+
+            // AddDomainEvent(new CartCreatedEvent(id));
         }
 
         /// <summary>
@@ -106,6 +108,14 @@ namespace ECommerceNetApp.Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
+        public void RemoveAllItems()
+        {
+            foreach (var item in _items.ToList())
+            {
+                RemoveItem(item.Id);
+            }
+        }
+
         public override void MarkAsDeleted()
         {
             AddDomainEvent(new CartDeletedEvent(Id));
@@ -113,6 +123,11 @@ namespace ECommerceNetApp.Domain.Entities
 
         public Money CalculateTotal()
         {
+            if (Items.Count == 0 || _items.All(i => i.TotalPrice == null))
+            {
+                return Money.From(0);
+            }
+
             return _items
                 .Where(i => i.TotalPrice != null)
                 .Aggregate(

@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Domain.Entities;
+﻿using System.Linq.Expressions;
+using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,31 +9,37 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
         ProductCatalogDbContext dbContext)
         : BaseRepository<CategoryEntity, int>(dbContext), ICategoryRepository
     {
-        private readonly ProductCatalogDbContext _dbContext = dbContext;
-
-        public override async Task<IEnumerable<CategoryEntity>> GetAllAsync(CancellationToken cancellationToken)
+        public override Task<IEnumerable<CategoryEntity>> GetAllAsync(Expression<Func<CategoryEntity, bool>>? filter = null, Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>? include = null, CancellationToken cancellationToken = default)
         {
-            return await _dbContext.Categories
-                .Include(c => c.ParentCategory)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+            if (include == null)
+            {
+                include = query => query.Include(p => p.ParentCategory);
+            }
+
+            return base.GetAllAsync(filter, include, cancellationToken);
         }
 
-        public override async Task<CategoryEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
+        public override Task<CategoryEntity?> GetByIdAsync(int id, Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>? include = null, CancellationToken cancellationToken = default)
         {
-            return await _dbContext.Categories
-                .Include(c => c.ParentCategory)
-                .FirstOrDefaultAsync(c => c.Id == id, cancellationToken)
-                .ConfigureAwait(false);
+            if (include == null)
+            {
+                include = query => query.Include(p => p.ParentCategory);
+            }
+
+            return base.GetByIdAsync(id, include, cancellationToken);
         }
 
-        public async Task<IEnumerable<CategoryEntity>> GetByParentCategoryIdAsync(int? parentCategoryId, CancellationToken cancellationToken)
+        public Task<IEnumerable<CategoryEntity>> GetByParentCategoryIdAsync(int? parentCategoryId, CancellationToken cancellationToken)
         {
-            return await _dbContext.Categories
-                .Include(c => c.ParentCategory)
-                .Where(c => (parentCategoryId == null && c.ParentCategoryId == null) || (parentCategoryId != null && c.ParentCategoryId == parentCategoryId))
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+            return GetAllAsync(
+                filter: c => (parentCategoryId == null && c.ParentCategoryId == null) || (parentCategoryId != null && c.ParentCategoryId == parentCategoryId),
+                include: query => query.Include(c => c.ParentCategory),
+                cancellationToken: cancellationToken);
+        }
+
+        public Task<bool> ExistsAsync(int id, CancellationToken cancellationToken)
+        {
+            return ExistsAsync(p => p.Id == id, cancellationToken);
         }
     }
 }

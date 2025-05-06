@@ -14,7 +14,7 @@ namespace ECommerceNetApp.Service.Validators.Product
                 .WithMessage($"Product name cannot exceed {ProductEntity.MaxProductNameLength} characters.");
 
             RuleFor(command => command.Price)
-                .GreaterThan(0).WithMessage("Product price must be greater than zero.");
+                .GreaterThanOrEqualTo(0).WithMessage("Product price must be greater than or equal to zero.");
 
             RuleFor(command => command.Amount)
                 .GreaterThan(0).WithMessage("Product amount must be greater than zero.");

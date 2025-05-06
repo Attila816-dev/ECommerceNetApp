@@ -15,8 +15,6 @@ namespace ECommerceNetApp.Service.Validators.Category
             RuleFor(x => x.Id)
                 .MustAsync(ExistingCategoryIdAsync)
                 .WithMessage("Category does not exist.")
-                .MustAsync(CategoryHasNoAssociatedProductsAsync)
-                .WithMessage("Cannot delete category with associated products.")
                 .MustAsync(CategoryHasNoChildCategories)
                 .WithMessage("Cannot delete category with subcategories.");
         }
@@ -24,11 +22,6 @@ namespace ECommerceNetApp.Service.Validators.Category
         private async Task<bool> ExistingCategoryIdAsync(DeleteCategoryCommand command, int categoryId, CancellationToken cancellationToken)
         {
             return await _productCatalogUnitOfWork.CategoryRepository.ExistsAsync(categoryId, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<bool> CategoryHasNoAssociatedProductsAsync(DeleteCategoryCommand command, int categoryId, CancellationToken cancellationToken)
-        {
-            return !(await _productCatalogUnitOfWork.ProductRepository.ExistsAnyProductWithCategoryIdAsync(categoryId, cancellationToken).ConfigureAwait(false));
         }
 
         private async Task<bool> CategoryHasNoChildCategories(DeleteCategoryCommand command, int categoryId, CancellationToken cancellationToken)

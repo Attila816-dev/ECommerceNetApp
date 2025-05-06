@@ -19,7 +19,7 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Category
         {
             ArgumentNullException.ThrowIfNull(request);
             IEnumerable<CategoryEntity> categories = await _productCatalogUnitOfWork.CategoryRepository
-                .GetAllAsync(cancellationToken).ConfigureAwait(false);
+                .GetAllAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             return categories.Select(_categoryMapper.MapToDto).ToList();
         }
     }

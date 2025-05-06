@@ -1,5 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Exceptions.Cart;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
@@ -44,6 +45,29 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
             // Track the modified entity
             _cartUnitOfWork.TrackEntity(cart);
+        }
+
+        public async Task<bool> ExistsAsync(string cartId, CancellationToken cancellationToken)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
+
+            var collection = _cartDbContext.GetCollection<CartEntity>();
+            return await collection.ExistsAsync(x => x.Id == cartId).ConfigureAwait(false);
+        }
+
+        public async Task<CartItem?> GetCartItemAsync(string cartId, int itemId, CancellationToken cancellationToken)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
+
+            var collection = _cartDbContext.GetCollection<CartEntity>();
+            var cart = await collection.FindByIdAsync(cartId).ConfigureAwait(false);
+
+            if (cart == null)
+            {
+                throw InvalidCartException.CartNotFound(cartId);
+            }
+
+            return cart.Items.FirstOrDefault(item => item.Id == itemId);
         }
     }
 }

@@ -48,7 +48,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetAllProductsAsync_ShouldReturnAllProducts()
         {
             // Act
-            var result = await _productCatalogUnitOfWork.ProductRepository.GetAllAsync(CancellationToken.None);
+            var result = await _productCatalogUnitOfWork.ProductRepository.GetAllAsync(cancellationToken: CancellationToken.None);
 
             // Assert
             result.Count().ShouldBe(3);
@@ -72,7 +72,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetProductByIdAsync_WithValidId_ShouldReturnProduct()
         {
             // Act
-            var result = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(_laptopProduct!.Id, CancellationToken.None);
+            var result = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(_laptopProduct!.Id, cancellationToken: CancellationToken.None);
 
             // Assert
             result.ShouldNotBeNull();
@@ -84,7 +84,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetProductByIdAsync_WithInvalidId_ShouldReturnNull()
         {
             // Act
-            var result = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(999, CancellationToken.None);
+            var result = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(999, cancellationToken: CancellationToken.None);
 
             // Assert
             result.ShouldBeNull();
@@ -139,7 +139,7 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
             deletedProduct.ShouldBeNull();
 
             // Verify we now have one less product
-            var remainingProducts = await _productCatalogUnitOfWork.ProductRepository.GetAllAsync(CancellationToken.None);
+            var remainingProducts = await _productCatalogUnitOfWork.ProductRepository.GetAllAsync(cancellationToken: CancellationToken.None);
             remainingProducts.Count().ShouldBe(2);
         }
 
@@ -147,8 +147,8 @@ namespace ECommerceNetApp.Persistence.UnitTest.Repositories
         public async Task GetProductsIncludingCategory_ShouldIncludeCategoryData()
         {
             // Act
-            var products = await _productCatalogUnitOfWork.ProductRepository.GetAllAsync(CancellationToken.None);
-            var product = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(_laptopProduct!.Id, CancellationToken.None);
+            var products = await _productCatalogUnitOfWork.ProductRepository.GetAllAsync(cancellationToken: CancellationToken.None);
+            var product = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(_laptopProduct!.Id, cancellationToken: CancellationToken.None);
 
             // Assert
             // Check that Category navigation property is loaded

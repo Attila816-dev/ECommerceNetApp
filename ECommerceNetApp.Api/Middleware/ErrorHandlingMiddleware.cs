@@ -1,10 +1,15 @@
 using System.Net;
+using System.Text.Json;
+using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Domain.Exceptions;
 using FluentValidation;
 
 namespace ECommerceNetApp.Api.Middleware
 {
-    public class ErrorHandlingMiddleware
+    public class ErrorHandlingMiddleware(
+        RequestDelegate next,
+        ILogger<ErrorHandlingMiddleware> logger,
+        IHostEnvironment environment)
     {
         private static readonly Action<ILogger, HttpStatusCode, string, Exception> LogErrorMessage =
             LoggerMessage.Define<HttpStatusCode, string>(
@@ -12,50 +17,71 @@ namespace ECommerceNetApp.Api.Middleware
                 new EventId(1, nameof(ErrorHandlingMiddleware)),
                 "An error occurred while processing the request. StatusCode: {StatusCode}, TraceId: {TraceId}");
 
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ErrorHandlingMiddleware> _logger;
-
-        public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
+        private static readonly JsonSerializerOptions CachedJsonSerializerOptions = new JsonSerializerOptions
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+
+        private readonly RequestDelegate _next = next;
+        private readonly ILogger<ErrorHandlingMiddleware> _logger = logger;
+        private readonly IHostEnvironment _environment = environment;
 
         public async Task InvokeAsync(HttpContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
+#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 await _next(context).ConfigureAwait(false);
             }
-            catch (Exception ex) when (ex is ArgumentException or DomainException or ValidationException)
-            {
-                await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex).ConfigureAwait(false);
-            }
-            catch (InvalidOperationException ex)
-            {
-                await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, ex).ConfigureAwait(false);
-            }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
             {
-                await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, ex).ConfigureAwait(false);
+                await HandleExceptionAsync(context, ex).ConfigureAwait(false);
             }
 #pragma warning restore CA1031 // Do not catch general exception types
         }
 
-        private Task HandleExceptionAsync(HttpContext context, HttpStatusCode statusCode, Exception exception)
+        private Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            // Log the exception using LoggerMessage delegate
+            HttpStatusCode statusCode;
+            ErrorResponse errorResponse;
+
+            switch (exception)
+            {
+                case ValidationException validationException:
+                    statusCode = HttpStatusCode.BadRequest;
+                    errorResponse = ValidationErrorResponse.CreateValidationErrorResponse(context, validationException);
+                    break;
+
+                case DomainException domainException:
+                    errorResponse = ErrorResponse.CreateErrorResponse(context, domainException);
+                    statusCode = (HttpStatusCode)errorResponse.Status;
+                    break;
+
+                case ArgumentException argumentException:
+                    errorResponse = ErrorResponse.CreateErrorResponse(context, argumentException);
+                    statusCode = (HttpStatusCode)errorResponse.Status;
+                    break;
+
+                case InvalidOperationException invalidOperationException:
+                    errorResponse = ErrorResponse.CreateErrorResponse(context, invalidOperationException);
+                    statusCode = (HttpStatusCode)errorResponse.Status;
+                    break;
+
+                default:
+                    errorResponse = ErrorResponse.CreateErrorResponse(context, exception, _environment.IsDevelopment());
+                    statusCode = (HttpStatusCode)errorResponse.Status;
+                    break;
+            }
+
             LogErrorMessage(_logger, statusCode, context.TraceIdentifier, exception);
 
+            context.Response.ContentType = "application/problem+json";
             context.Response.StatusCode = (int)statusCode;
-            return context.Response.WriteAsJsonAsync(new
-            {
-                error = statusCode == HttpStatusCode.InternalServerError ? "An unexpected error occurred." : exception.Message,
-                traceId = context.TraceIdentifier,
-            });
+
+            var responseJson = JsonSerializer.Serialize(errorResponse, CachedJsonSerializerOptions);
+            return context.Response.WriteAsync(responseJson);
         }
     }
 }

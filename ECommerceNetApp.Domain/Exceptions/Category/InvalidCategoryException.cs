@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Domain.Entities;
+﻿using System.Net;
+using ECommerceNetApp.Domain.Entities;
 
 namespace ECommerceNetApp.Domain.Exceptions.Category
 {
@@ -6,6 +7,11 @@ namespace ECommerceNetApp.Domain.Exceptions.Category
     {
         public InvalidCategoryException(string message)
             : base(message)
+        {
+        }
+
+        public InvalidCategoryException(string message, HttpStatusCode statusCode)
+            : base(message, statusCode)
         {
         }
 
@@ -35,7 +41,7 @@ namespace ECommerceNetApp.Domain.Exceptions.Category
 
         public static InvalidCategoryException NotFound(int id)
         {
-            return new InvalidCategoryException($"Category with id {id} not found");
+            return new InvalidCategoryException($"Category with id {id} not found", HttpStatusCode.NotFound);
         }
 
         public static InvalidCategoryException HasSubCategories()

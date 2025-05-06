@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Domain.Entities;
+﻿using System.Linq.Expressions;
+using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Implementation.Mappers.Category;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Category;
@@ -36,7 +37,10 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
                 CategoryEntity.Create("Books", null, null, 2),
             };
             _mockRepository
-                .Setup(r => r.GetAllAsync(CancellationToken.None))
+                .Setup(r => r.GetAllAsync(
+                    It.IsAny<Expression<Func<CategoryEntity, bool>>?>(),
+                    It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
+                    CancellationToken.None))
                 .ReturnsAsync(categories);
 
             // Act
