@@ -37,7 +37,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
                 .ReturnsAsync(cart);
 
             // Act
-            var cartTotal = await _queryHandler.Handle(new GetCartTotalQuery(testCartId), CancellationToken.None);
+            var cartTotal = await _queryHandler.HandleAsync(new GetCartTotalQuery(testCartId), CancellationToken.None);
 
             // Assert
             cartTotal.ShouldBe(52.97m); // 10.99 + (20.99 * 2)
@@ -52,7 +52,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
                 .ReturnsAsync((CartEntity?)null);
 
             // Act
-            var cartTotal = await _queryHandler.Handle(new GetCartTotalQuery(testCartId), CancellationToken.None);
+            var cartTotal = await _queryHandler.HandleAsync(new GetCartTotalQuery(testCartId), CancellationToken.None);
 
             // Assert
             cartTotal.ShouldBeNull();

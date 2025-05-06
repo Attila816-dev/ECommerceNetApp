@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using ECommerceNetApp.Domain.Events.Category;
-using MediatR;
+using ECommerceNetApp.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Category
@@ -17,7 +17,7 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Category
 
         private readonly ILogger<CategoryUpdatedNotificationHandler> _logger = logger;
 
-        public Task Handle(CategoryUpdatedEvent notification, CancellationToken cancellationToken)
+        public Task HandleAsync(CategoryUpdatedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);
 

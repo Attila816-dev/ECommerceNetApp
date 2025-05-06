@@ -44,7 +44,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
 
             // Act
             var updateCategoryCommand = new UpdateCategoryCommand(categoryDto.Id, categoryDto.Name, null, null);
-            await _commandHandler.Handle(updateCategoryCommand, CancellationToken.None);
+            await _commandHandler.HandleAsync(updateCategoryCommand, CancellationToken.None);
 
             // Assert
             _mockRepository.Verify(
@@ -74,7 +74,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
 
             await Should.ThrowAsync<InvalidOperationException>(async () =>
             {
-                await _commandHandler.Handle(updateCategoryCommand, CancellationToken.None);
+                await _commandHandler.HandleAsync(updateCategoryCommand, CancellationToken.None);
             });
 
             // Assert

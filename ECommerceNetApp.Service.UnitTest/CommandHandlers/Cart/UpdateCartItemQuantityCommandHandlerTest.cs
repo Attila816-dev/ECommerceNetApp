@@ -35,7 +35,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
                 .ReturnsAsync(cart);
 
             // Act
-            await _commandHandler.Handle(new UpdateCartItemQuantityCommand(testCartId, 1, 5), CancellationToken.None);
+            await _commandHandler.HandleAsync(new UpdateCartItemQuantityCommand(testCartId, 1, 5), CancellationToken.None);
 
             // Assert
             _mockRepository.Verify(

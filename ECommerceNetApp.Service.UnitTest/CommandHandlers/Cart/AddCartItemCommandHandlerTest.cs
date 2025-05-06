@@ -43,7 +43,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
             };
 
             // Act
-            await _commandHandler.Handle(new AddCartItemCommand(testCartId, itemDto), CancellationToken.None);
+            await _commandHandler.HandleAsync(new AddCartItemCommand(testCartId, itemDto), CancellationToken.None);
 
             // Assert
             _mockRepository.Verify(
@@ -76,7 +76,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
             };
 
             // Act
-            await _commandHandler.Handle(new AddCartItemCommand(testCartId, itemDto), CancellationToken.None);
+            await _commandHandler.HandleAsync(new AddCartItemCommand(testCartId, itemDto), CancellationToken.None);
 
             // Assert
             _mockRepository.Verify(

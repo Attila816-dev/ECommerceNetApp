@@ -1,17 +1,17 @@
 ﻿using ECommerceNetApp.Domain.Exceptions.Cart;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
     public class UpdateCartItemQuantityCommandHandler(
         ICartUnitOfWork cartUnitOfWork)
-        : IRequestHandler<UpdateCartItemQuantityCommand>
+        : ICommandHandler<UpdateCartItemQuantityCommand>
     {
         private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
 
-        public async Task Handle(UpdateCartItemQuantityCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(UpdateCartItemQuantityCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
 

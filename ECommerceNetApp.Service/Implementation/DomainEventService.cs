@@ -1,16 +1,15 @@
 ﻿using ECommerceNetApp.Domain.Events;
 using ECommerceNetApp.Domain.Interfaces;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation
 {
     public class DomainEventService : IDomainEventService
     {
-        private readonly IPublisher _mediator;
+        private readonly IPublisher _publisher;
 
-        public DomainEventService(IPublisher mediator)
+        public DomainEventService(IPublisher publisher)
         {
-            _mediator = mediator;
+            _publisher = publisher;
         }
 
         /// <summary>
@@ -21,7 +20,7 @@ namespace ECommerceNetApp.Service.Implementation
         /// <returns>Task completed.</returns>
         public async Task PublishEventAsync(DomainEvent domainEvent, CancellationToken cancellationToken)
         {
-            await _mediator.Publish(domainEvent, cancellationToken).ConfigureAwait(false);
+            await _publisher.PublishAsync(domainEvent, cancellationToken).ConfigureAwait(false);
         }
     }
 }

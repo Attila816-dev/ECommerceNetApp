@@ -36,7 +36,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
                 .ReturnsAsync([category]);
 
             // Act
-            var result = await _queryHandler.Handle(new GetCategoriesByParentCategoryIdQuery(category.Id), CancellationToken.None);
+            var result = await _queryHandler.HandleAsync(new GetCategoriesByParentCategoryIdQuery(category.Id), CancellationToken.None);
 
             // Assert
             result.ShouldNotBeNull();

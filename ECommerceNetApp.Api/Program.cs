@@ -5,14 +5,13 @@ using Asp.Versioning.ApiExplorer;
 using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Api.HealthCheck;
 using ECommerceNetApp.Api.Services;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
-using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.Extensions;
 using ECommerceNetApp.Service.Implementation.Behaviors;
 using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
-using MediatR;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -75,10 +74,7 @@ namespace ECommerceNetApp.Api
 
             builder.Services.Configure<CartDbOptions>(builder.Configuration.GetSection(nameof(CartDbOptions)));
             builder.Services.Configure<ProductCatalogDbOptions>(builder.Configuration.GetSection(nameof(ProductCatalogDbOptions)));
-            builder.Services.AddMediatR(config =>
-            {
-                config.RegisterServicesFromAssembly(typeof(AddCartItemCommand).Assembly);
-            });
+            builder.Services.AddDispatcher();
 
             builder.Services.AddScoped<IHateoasLinkService, HateoasLinkService>();
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));

@@ -68,7 +68,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.Price,
                 null,
                 productDto.Amount);
-            var result = await _commandHandler.Handle(command, CancellationToken.None);
+            var result = await _commandHandler.HandleAsync(command, CancellationToken.None);
 
             // Assert
             _mockProductRepository.Verify(
@@ -106,7 +106,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 null,
                 productDto.Amount);
             var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
-                _commandHandler.Handle(command, CancellationToken.None));
+                _commandHandler.HandleAsync(command, CancellationToken.None));
 
             exception.Message.ShouldContain("Category with ID 999 not found");
         }

@@ -1,16 +1,16 @@
-﻿using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
     public class DeleteCategoryCommandHandler(
         IProductCatalogUnitOfWork productCatalogUnitOfWork)
-        : IRequestHandler<DeleteCategoryCommand>
+        : ICommandHandler<DeleteCategoryCommand>
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
 
-        public async Task Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(DeleteCategoryCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
 

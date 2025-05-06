@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using ECommerceNetApp.Domain.Events.Product;
-using MediatR;
+using ECommerceNetApp.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Product
@@ -17,7 +17,7 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Product
 
         private readonly ILogger<ProductCreatedNotificationHandler> _logger = logger;
 
-        public Task Handle(ProductCreatedEvent notification, CancellationToken cancellationToken)
+        public Task HandleAsync(ProductCreatedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);
             LogProductCreated(_logger, JsonSerializer.Serialize(notification), null);

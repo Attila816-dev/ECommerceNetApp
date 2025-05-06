@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
 
 namespace ECommerceNetApp.Service.Commands.Product
 {
@@ -12,5 +12,5 @@ namespace ECommerceNetApp.Service.Commands.Product
         decimal Price,
         string? Currency,
         int Amount)
-        : IRequest<int>;
+        : ICommand<int>;
 }

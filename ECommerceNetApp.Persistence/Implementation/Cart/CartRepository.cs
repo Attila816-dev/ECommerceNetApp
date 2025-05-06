@@ -7,11 +7,13 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
     public class CartRepository(CartDbContext cartDbContext, ICartUnitOfWork cartUnitOfWork) : ICartRepository
     {
-        private readonly CartDbContext _cartDbContext = cartDbContext;
-        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
+        private readonly CartDbContext _cartDbContext = cartDbContext ?? throw new ArgumentNullException(nameof(cartDbContext));
+        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork ?? throw new ArgumentNullException(nameof(cartUnitOfWork));
 
         public async Task<CartEntity?> GetByIdAsync(string cartId, CancellationToken cancellationToken)
         {
+            ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
+
             var collection = _cartDbContext.GetCollection<CartEntity>();
             var cart = await collection.FindByIdAsync(cartId).ConfigureAwait(false);
             return cart;
@@ -34,12 +36,8 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
 
             var collection = _cartDbContext.GetCollection<CartEntity>();
-            var cart = await collection.FindByIdAsync(cartId).ConfigureAwait(false);
-            if (cart == null)
-            {
-                throw InvalidCartException.CartNotFound(cartId);
-            }
-
+            var cart = (await collection.FindByIdAsync(cartId).ConfigureAwait(false))
+                ?? throw InvalidCartException.CartNotFound(cartId);
             cart.MarkAsDeleted();
             await collection.DeleteAsync(cartId).ConfigureAwait(false);
 
@@ -47,7 +45,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             _cartUnitOfWork.TrackEntity(cart);
         }
 
-        public async Task<bool> ExistsAsync(string cartId, CancellationToken cancellationToken)
+        public virtual async Task<bool> ExistsAsync(string cartId, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
 
@@ -57,17 +55,8 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
         public async Task<CartItem?> GetCartItemAsync(string cartId, int itemId, CancellationToken cancellationToken)
         {
-            ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
-
-            var collection = _cartDbContext.GetCollection<CartEntity>();
-            var cart = await collection.FindByIdAsync(cartId).ConfigureAwait(false);
-
-            if (cart == null)
-            {
-                throw InvalidCartException.CartNotFound(cartId);
-            }
-
-            return cart.Items.FirstOrDefault(item => item.Id == itemId);
+            var cart = (await GetByIdAsync(cartId, cancellationToken).ConfigureAwait(false)) ?? throw InvalidCartException.CartNotFound(cartId);
+            return cart.Items.FirstOrDefault(i => i.Id == itemId);
         }
     }
 }

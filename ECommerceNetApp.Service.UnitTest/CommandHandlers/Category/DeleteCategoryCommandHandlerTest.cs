@@ -42,7 +42,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
                 .Verifiable();
 
             // Act
-            await _commandHandler.Handle(new DeleteCategoryCommand(category.Id), CancellationToken.None);
+            await _commandHandler.HandleAsync(new DeleteCategoryCommand(category.Id), CancellationToken.None);
 
             // Assert
             _mockCategoryRepository.Verify(

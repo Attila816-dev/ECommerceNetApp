@@ -11,14 +11,14 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
     {
         private readonly UpdateCategoryCommandValidator _validator;
         private readonly Mock<ICategoryRepository> _categoryRepository;
-        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
+        private readonly Mock<IProductCatalogUnitOfWork> _productCatalogUnitOfWork;
 
         public UpdateCategoryCommandValidatorTest()
         {
             _categoryRepository = new Mock<ICategoryRepository>();
-            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
-            _mockUnitOfWork.Setup(u => u.CategoryRepository).Returns(_categoryRepository.Object);
-            _validator = new UpdateCategoryCommandValidator(_mockUnitOfWork.Object);
+            _productCatalogUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
+            _productCatalogUnitOfWork.SetupGet(x => x.CategoryRepository).Returns(_categoryRepository.Object);
+            _validator = new UpdateCategoryCommandValidator(_productCatalogUnitOfWork.Object);
         }
 
         [Fact]

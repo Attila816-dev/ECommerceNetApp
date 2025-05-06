@@ -42,7 +42,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 .Verifiable();
 
             // Act
-            await _commandHandler.Handle(new DeleteProductCommand(product.Id), CancellationToken.None);
+            await _commandHandler.HandleAsync(new DeleteProductCommand(product.Id), CancellationToken.None);
 
             // Assert
             _mockRepository.Verify(
@@ -64,7 +64,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
 
             // Act & Assert
             await Should.ThrowAsync<InvalidProductException>(() =>
-                _commandHandler.Handle(new DeleteProductCommand(productId), CancellationToken.None));
+                _commandHandler.HandleAsync(new DeleteProductCommand(productId), CancellationToken.None));
         }
     }
 }

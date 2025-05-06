@@ -1,16 +1,16 @@
 ﻿using ECommerceNetApp.Domain.Exceptions.Cart;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
     public class RemoveCartItemCommandHandler(ICartUnitOfWork cartUnitOfWork)
-        : IRequestHandler<RemoveCartItemCommand>
+        : ICommandHandler<RemoveCartItemCommand>
     {
         private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
 
-        public async Task Handle(RemoveCartItemCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(RemoveCartItemCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentException.ThrowIfNullOrEmpty(request.CartId, nameof(request.CartId));

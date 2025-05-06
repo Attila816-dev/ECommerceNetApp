@@ -1,20 +1,20 @@
-﻿using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces.Mappers.Product;
 using ECommerceNetApp.Service.Queries.Product;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
 {
     public class GetPaginatedProductsQueryHandler(
         IProductCatalogUnitOfWork productCatalogUnitOfWork,
         IProductMapper productMapper) :
-        IRequestHandler<GetPaginatedProductsQuery, PaginationResult<ProductDto>>
+        IQueryHandler<GetPaginatedProductsQuery, PaginationResult<ProductDto>>
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
         private readonly IProductMapper _productMapper = productMapper;
 
-        public async Task<PaginationResult<ProductDto>> Handle(
+        public async Task<PaginationResult<ProductDto>> HandleAsync(
             GetPaginatedProductsQuery request,
             CancellationToken cancellationToken)
         {

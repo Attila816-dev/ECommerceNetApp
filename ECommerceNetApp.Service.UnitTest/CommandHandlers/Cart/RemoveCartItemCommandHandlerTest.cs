@@ -37,7 +37,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
                 .ReturnsAsync(cart);
 
             // Act
-            await _commandHandler.Handle(new RemoveCartItemCommand(testCartId, 1), CancellationToken.None);
+            await _commandHandler.HandleAsync(new RemoveCartItemCommand(testCartId, 1), CancellationToken.None);
 
             // Assert
             _mockRepository.Verify(

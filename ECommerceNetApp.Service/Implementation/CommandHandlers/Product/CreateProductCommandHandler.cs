@@ -1,18 +1,19 @@
-﻿using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.Interfaces.Mappers.Product;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
 {
     public class CreateProductCommandHandler(
             IProductCatalogUnitOfWork productCatalogUnitOfWork,
-            IProductMapper productMapper) : IRequestHandler<CreateProductCommand, int>
+            IProductMapper productMapper)
+        : ICommandHandler<CreateProductCommand, int>
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
         private readonly IProductMapper _productMapper = productMapper;
 
-        public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+        public async Task<int> HandleAsync(CreateProductCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
 

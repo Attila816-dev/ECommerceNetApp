@@ -1,6 +1,6 @@
-﻿using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
 
 namespace ECommerceNetApp.Service.Commands.Category
 {
-    public record DeleteCategoryCommand(int Id) : IRequest;
+    public record DeleteCategoryCommand(int Id) : ICommand;
 }

@@ -1,17 +1,17 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
     public class AddCartItemCommandHandler(ICartUnitOfWork cartUnitOfWork)
-        : IRequestHandler<AddCartItemCommand>
+        : ICommandHandler<AddCartItemCommand>
     {
         private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
 
-        public async Task Handle(AddCartItemCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(AddCartItemCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
 

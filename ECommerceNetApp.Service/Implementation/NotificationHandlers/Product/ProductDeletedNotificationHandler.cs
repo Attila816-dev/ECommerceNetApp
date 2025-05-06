@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Events.Product;
-using MediatR;
+using ECommerceNetApp.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Product
@@ -15,7 +15,7 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Product
 
         private readonly ILogger<ProductDeletedNotificationHandler> _logger = logger;
 
-        public Task Handle(ProductDeletedEvent notification, CancellationToken cancellationToken)
+        public Task HandleAsync(ProductDeletedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);
             LogProductDeleted(_logger, notification.ProductId, null);

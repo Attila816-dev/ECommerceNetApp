@@ -1,18 +1,18 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
     public class UpdateCategoryCommandHandler(
             IProductCatalogUnitOfWork productCatalogUnitOfWork)
-        : IRequestHandler<UpdateCategoryCommand>
+        : ICommandHandler<UpdateCategoryCommand>
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
 
-        public async Task Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(UpdateCategoryCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
 

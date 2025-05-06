@@ -33,7 +33,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
                 .ReturnsAsync((CartEntity?)null);
 
             // Act
-            var result = await _queryHandler.Handle(new GetCartItemsQuery(testCartId), CancellationToken.None);
+            var result = await _queryHandler.HandleAsync(new GetCartItemsQuery(testCartId), CancellationToken.None);
 
             // Assert
             result.ShouldBeNull();
@@ -54,7 +54,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
                 .ReturnsAsync(cart);
 
             // Act
-            var result = await _queryHandler.Handle(new GetCartItemsQuery(testCartId), CancellationToken.None);
+            var result = await _queryHandler.HandleAsync(new GetCartItemsQuery(testCartId), CancellationToken.None);
 
             // Assert
             result.ShouldNotBeNull();

@@ -1,20 +1,20 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.Interfaces.Mappers.Category;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
     public class CreateCategoryCommandHandler(
             IProductCatalogUnitOfWork productCatalogUnitOfWork,
             ICategoryMapper categoryMapper)
-        : IRequestHandler<CreateCategoryCommand, int>
+        : ICommandHandler<CreateCategoryCommand, int>
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
         private readonly ICategoryMapper _categoryMapper = categoryMapper;
 
-        public async Task<int> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+        public async Task<int> HandleAsync(CreateCategoryCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
             CategoryEntity? parentCategory = null;

@@ -41,7 +41,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
                 .Verifiable();
 
             // Act
-            var result = await _commandHandler.Handle(new CreateCategoryCommand(categoryDto.Name, null, null), CancellationToken.None);
+            var result = await _commandHandler.HandleAsync(new CreateCategoryCommand(categoryDto.Name, null, null), CancellationToken.None);
 
             // Assert
             _mockRepository.Verify(
@@ -82,7 +82,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
                 .Verifiable();
 
             // Act
-            var result = await _commandHandler.Handle(command, CancellationToken.None);
+            var result = await _commandHandler.HandleAsync(command, CancellationToken.None);
 
             // Assert
             _mockUnitOfWork.Verify(

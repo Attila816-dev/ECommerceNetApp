@@ -71,7 +71,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.Price,
                 null,
                 productDto.Amount);
-            await _commandHandler.Handle(updateProductCommand, CancellationToken.None);
+            await _commandHandler.HandleAsync(updateProductCommand, CancellationToken.None);
 
             // Assert
             _mockProductRepository.Verify(
@@ -120,7 +120,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 null,
                 productDto.Amount);
             await Should.ThrowAsync<InvalidOperationException>(() =>
-                _commandHandler.Handle(command, CancellationToken.None));
+                _commandHandler.HandleAsync(command, CancellationToken.None));
         }
 
         [Fact]
@@ -162,7 +162,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.Amount);
 
             var exception = await Should.ThrowAsync<ArgumentException>(() =>
-                _commandHandler.Handle(command, CancellationToken.None));
+                _commandHandler.HandleAsync(command, CancellationToken.None));
 
             exception.Message.ShouldContain("Price cannot be negative");
         }
