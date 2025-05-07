@@ -4,7 +4,6 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Category;
-using ECommerceNetApp.Service.Implementation.Mappers.Category;
 using Moq;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
@@ -14,7 +13,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
         private readonly CreateCategoryCommandHandler _commandHandler;
         private readonly Mock<ICategoryRepository> _mockRepository;
         private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
-        private readonly CategoryMapper _categoryMapper;
 
         public CreateCategoryCommandHandlerTest()
         {
@@ -22,9 +20,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             _mockRepository = new Mock<ICategoryRepository>();
             _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
             _mockUnitOfWork.Setup(x => x.CategoryRepository).Returns(_mockRepository.Object);
-
-            _categoryMapper = new CategoryMapper();
-            _commandHandler = new CreateCategoryCommandHandler(_mockUnitOfWork.Object, _categoryMapper);
+            _commandHandler = new CreateCategoryCommandHandler(_mockUnitOfWork.Object);
         }
 
         [Fact]

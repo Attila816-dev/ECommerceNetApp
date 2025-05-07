@@ -1,9 +1,10 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
-using ECommerceNetApp.Service.Implementation.Mappers.Category;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Category;
 using ECommerceNetApp.Service.Queries.Category;
+using Microsoft.EntityFrameworkCore;
 using Moq;
+using Moq.EntityFrameworkCore;
 using Shouldly;
 
 namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
@@ -11,23 +12,13 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
     public class GetCategoryByIdQueryHandlerTest
     {
         private readonly GetCategoryByIdQueryHandler _queryHandler;
-        private readonly Mock<ICategoryRepository> _mockCategoryRepository;
-        private readonly Mock<IProductRepository> _mockProductRepository;
-        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
-        private readonly CategoryMapper _categoryMapper;
+        private readonly Mock<ProductCatalogDbContext> _mockDbContext;
 
         public GetCategoryByIdQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
-            _mockCategoryRepository = new Mock<ICategoryRepository>();
-            _mockProductRepository = new Mock<IProductRepository>();
-            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
-            _mockUnitOfWork.SetupGet(u => u.CategoryRepository).Returns(_mockCategoryRepository.Object);
-            _mockUnitOfWork.SetupGet(u => u.ProductRepository).Returns(_mockProductRepository.Object);
-
-            _categoryMapper = new CategoryMapper();
-
-            _queryHandler = new GetCategoryByIdQueryHandler(_mockUnitOfWork.Object, _categoryMapper);
+            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>());
+            _queryHandler = new GetCategoryByIdQueryHandler(_mockDbContext.Object);
         }
 
         [Fact]
@@ -36,12 +27,8 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
             // Arrange
             var category = CategoryEntity.Create("Test Category", null, null, 1);
 
-            _mockCategoryRepository
-                .Setup(r => r.GetByIdAsync(
-                    category.Id,
-                    It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
-                    CancellationToken.None))
-                .ReturnsAsync(category);
+            var categories = new List<CategoryEntity> { category }.AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             // Act
             var result = await _queryHandler.HandleAsync(new GetCategoryByIdQuery(category.Id), CancellationToken.None);

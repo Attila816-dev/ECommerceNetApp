@@ -4,7 +4,6 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
-using ECommerceNetApp.Service.Implementation.Mappers.Product;
 using Moq;
 using Shouldly;
 
@@ -16,7 +15,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         private readonly Mock<ICategoryRepository> _mockCategoryRepository;
         private readonly Mock<IProductRepository> _mockProductRepository;
         private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
-        private readonly ProductMapper _productMapper;
 
         public CreateProductCommandHandlerTest()
         {
@@ -26,9 +24,8 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
             _mockUnitOfWork.SetupGet(x => x.ProductRepository).Returns(_mockProductRepository.Object);
             _mockUnitOfWork.SetupGet(x => x.CategoryRepository).Returns(_mockCategoryRepository.Object);
-            _productMapper = new ProductMapper();
 
-            _commandHandler = new CreateProductCommandHandler(_mockUnitOfWork.Object, _productMapper);
+            _commandHandler = new CreateProductCommandHandler(_mockUnitOfWork.Object);
         }
 
         [Fact]

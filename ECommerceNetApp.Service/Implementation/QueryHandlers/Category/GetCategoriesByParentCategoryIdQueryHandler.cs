@@ -1,26 +1,32 @@
-﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.Interfaces;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.DTO;
-using ECommerceNetApp.Service.Interfaces.Mappers.Category;
 using ECommerceNetApp.Service.Queries.Category;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Category
 {
-    public class GetCategoriesByParentCategoryIdQueryHandler(
-        IProductCatalogUnitOfWork productCatalogUnitOfWork,
-        ICategoryMapper categoryMapper)
+    public class GetCategoriesByParentCategoryIdQueryHandler(ProductCatalogDbContext dbContext)
         : IQueryHandler<GetCategoriesByParentCategoryIdQuery, IEnumerable<CategoryDto>>
     {
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
-        private readonly ICategoryMapper _categoryMapper = categoryMapper;
+        private readonly ProductCatalogDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
 
         public async Task<IEnumerable<CategoryDto>> HandleAsync(GetCategoriesByParentCategoryIdQuery query, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(query);
-            IEnumerable<CategoryEntity> categories = await _productCatalogUnitOfWork.CategoryRepository
-                .GetByParentCategoryIdAsync(query.ParentCategoryId, cancellationToken).ConfigureAwait(false);
-            return categories.Select(_categoryMapper.MapToDto).ToList();
+            return await _dbContext.Categories.Include(c => c.ParentCategory)
+                .AsNoTracking()
+                .Where(c => c.ParentCategoryId == query.ParentCategoryId)
+                .Select(c => new CategoryDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    ImageUrl = c.Image != null ? c.Image.Url : null,
+                    ParentCategoryId = c.ParentCategoryId,
+                    ParentCategoryName = c.ParentCategory != null ? c.ParentCategory.Name : null,
+                })
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

@@ -1,18 +1,15 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
-using ECommerceNetApp.Service.Interfaces.Mappers.Category;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
-    public class CreateCategoryCommandHandler(
-            IProductCatalogUnitOfWork productCatalogUnitOfWork,
-            ICategoryMapper categoryMapper)
+    public class CreateCategoryCommandHandler(IProductCatalogUnitOfWork productCatalogUnitOfWork)
         : ICommandHandler<CreateCategoryCommand, int>
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
-        private readonly ICategoryMapper _categoryMapper = categoryMapper;
 
         public async Task<int> HandleAsync(CreateCategoryCommand command, CancellationToken cancellationToken)
         {
@@ -28,7 +25,9 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
                 }
             }
 
-            var category = _categoryMapper.MapToEntity(command, parentCategory);
+            var imageInfo = command.ImageUrl != null ? ImageInfo.Create(command.ImageUrl, null) : null;
+            var category = CategoryEntity.Create(command.Name, imageInfo, parentCategory);
+
             await _productCatalogUnitOfWork.CategoryRepository.AddAsync(category, cancellationToken).ConfigureAwait(false);
             await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
 

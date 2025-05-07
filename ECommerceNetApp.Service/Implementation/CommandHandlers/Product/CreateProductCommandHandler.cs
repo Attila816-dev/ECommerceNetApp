@@ -1,17 +1,15 @@
-﻿using ECommerceNetApp.Domain.Interfaces;
+﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
-using ECommerceNetApp.Service.Interfaces.Mappers.Product;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
 {
-    public class CreateProductCommandHandler(
-            IProductCatalogUnitOfWork productCatalogUnitOfWork,
-            IProductMapper productMapper)
+    public class CreateProductCommandHandler(IProductCatalogUnitOfWork productCatalogUnitOfWork)
         : ICommandHandler<CreateProductCommand, int>
     {
         private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
-        private readonly IProductMapper _productMapper = productMapper;
 
         public async Task<int> HandleAsync(CreateProductCommand command, CancellationToken cancellationToken)
         {
@@ -23,10 +21,17 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
                 throw new InvalidOperationException($"Category with id {command.CategoryId} not found");
             }
 
-            var productEntity = _productMapper.MapToEntity(command, category);
-            await _productCatalogUnitOfWork.ProductRepository.AddAsync(productEntity, cancellationToken).ConfigureAwait(false);
+            var product = ProductEntity.Create(
+                command.Name,
+                command.Description,
+                command.ImageUrl != null ? ImageInfo.Create(command.ImageUrl) : null,
+                category!,
+                Money.Create(command.Price, command.Currency),
+                command.Amount);
+
+            await _productCatalogUnitOfWork.ProductRepository.AddAsync(product, cancellationToken).ConfigureAwait(false);
             await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return productEntity.Id;
+            return product.Id;
         }
     }
 }
