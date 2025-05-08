@@ -26,11 +26,10 @@ namespace ECommerceNetApp.Api.Services
 
                 var handlers = scope.ServiceProvider.GetServices(handlerType);
 
-                foreach (var handler in handlers)
+                foreach (var handler in handlers.OfType<INotificationHandler>())
                 {
                     // Optionally invoke Register or HandleAsync via reflection
-                    var registerMethod = handlerType.GetMethod("Register");
-                    registerMethod?.Invoke(handler, new object[] { eventBus });
+                    handler.Register(_eventBus);
                 }
             }
 
