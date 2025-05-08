@@ -17,6 +17,12 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Category
 
         private readonly ILogger<CategoryCreatedNotificationHandler> _logger = logger;
 
+        public void Register(IEventBus eventBus)
+        {
+            ArgumentNullException.ThrowIfNull(eventBus, nameof(eventBus));
+            eventBus.Register(this);
+        }
+
         public Task HandleAsync(CategoryCreatedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);

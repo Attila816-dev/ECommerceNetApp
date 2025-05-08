@@ -8,6 +8,12 @@
         where TNotification : INotification
     {
         /// <summary>
+        /// Registers the handler with the event bus.
+        /// </summary>
+        /// <param name="eventBus">The event bus.</param>
+        void Register(IEventBus eventBus);
+
+        /// <summary>
         /// Handles a notification.
         /// </summary>
         /// <param name="notification">The notification.</param>

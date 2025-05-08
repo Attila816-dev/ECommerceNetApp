@@ -15,6 +15,12 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Product
 
         private readonly ILogger<ProductDeletedNotificationHandler> _logger = logger;
 
+        public void Register(IEventBus eventBus)
+        {
+            ArgumentNullException.ThrowIfNull(eventBus, nameof(eventBus));
+            eventBus.Register(this);
+        }
+
         public Task HandleAsync(ProductDeletedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);

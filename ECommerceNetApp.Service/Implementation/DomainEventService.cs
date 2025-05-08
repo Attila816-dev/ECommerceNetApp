@@ -5,11 +5,11 @@ namespace ECommerceNetApp.Service.Implementation
 {
     public class DomainEventService : IDomainEventService
     {
-        private readonly IPublisher _publisher;
+        private readonly IEventBus _eventBus;
 
-        public DomainEventService(IPublisher publisher)
+        public DomainEventService(IEventBus eventBus)
         {
-            _publisher = publisher;
+            _eventBus = eventBus;
         }
 
         /// <summary>
@@ -20,7 +20,7 @@ namespace ECommerceNetApp.Service.Implementation
         /// <returns>Task completed.</returns>
         public async Task PublishEventAsync(DomainEvent domainEvent, CancellationToken cancellationToken)
         {
-            await _publisher.PublishAsync(domainEvent, cancellationToken).ConfigureAwait(false);
+            await _eventBus.PublishAsync(domainEvent, cancellationToken).ConfigureAwait(false);
         }
     }
 }

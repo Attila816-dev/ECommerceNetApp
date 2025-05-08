@@ -19,6 +19,12 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Product
             _logger = logger;
         }
 
+        public void Register(IEventBus eventBus)
+        {
+            ArgumentNullException.ThrowIfNull(eventBus, nameof(eventBus));
+            eventBus.Register(this);
+        }
+
         public Task HandleAsync(ProductStockChangedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);

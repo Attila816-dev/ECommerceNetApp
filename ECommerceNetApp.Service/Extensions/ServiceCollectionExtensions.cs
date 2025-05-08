@@ -18,13 +18,18 @@ namespace ECommerceNetApp.Service.Extensions
         {
             var assembly = Assembly.GetExecutingAssembly();
             services.AddScoped<IDispatcher, Dispatcher>();
-            services.AddScoped<IPublisher, SimplePublisher>();
-            RegisterHandlers(services, assembly);
+            services.AddSingleton<InMemoryMessageQueue>();
+            services.AddSingleton<IEventBus, InMemoryEventBus>();
+
+            RegisterHandlers(services, assembly, typeof(ICommandHandler<>));
+            RegisterHandlers(services, assembly, typeof(ICommandHandler<,>));
+            RegisterHandlers(services, assembly, typeof(IQueryHandler<,>));
+            RegisterHandlers(services, assembly, typeof(INotificationHandler<>));
 
             return services;
         }
 
-        public static IServiceCollection RegisterHandlers(this IServiceCollection services, Assembly assembly)
+        private static IServiceCollection RegisterHandlers(this IServiceCollection services, Assembly assembly, Type interfaceType)
         {
             ArgumentNullException.ThrowIfNull(assembly, nameof(assembly));
             var handlerTypes = assembly.GetTypes()
@@ -32,11 +37,7 @@ namespace ECommerceNetApp.Service.Extensions
                 .Select(t => new
                 {
                     Implementation = t,
-                    Interfaces = t.GetInterfaces()
-                        .Where(i => i.IsGenericType && (
-                            i.GetGenericTypeDefinition() == typeof(ICommandHandler<>) ||
-                            i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>) ||
-                            i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))),
+                    Interfaces = t.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType),
                 })
                 .Where(t => t.Interfaces.Any());
 

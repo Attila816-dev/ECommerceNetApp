@@ -75,6 +75,7 @@ namespace ECommerceNetApp.Api
             builder.Services.Configure<CartDbOptions>(builder.Configuration.GetSection(nameof(CartDbOptions)));
             builder.Services.Configure<ProductCatalogDbOptions>(builder.Configuration.GetSection(nameof(ProductCatalogDbOptions)));
             builder.Services.AddDispatcher();
+            builder.Services.AddHostedService<EventBusBackgroundService>();
 
             builder.Services.AddScoped<IHateoasLinkService, HateoasLinkService>();
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));

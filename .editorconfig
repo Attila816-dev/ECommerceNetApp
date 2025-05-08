@@ -31,6 +31,11 @@ csharp_style_expression_bodied_accessors = true:silent
 csharp_style_expression_bodied_lambdas = true:silent
 csharp_style_expression_bodied_local_functions = false:silent
 dotnet_diagnostic.SA1206.severity = none
+csharp_style_prefer_local_over_anonymous_function = true:suggestion
+csharp_prefer_static_local_function = true:suggestion
+csharp_style_conditional_delegate_call = true:suggestion
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+dotnet_diagnostic.CA1812.severity = suggestion
 
 [*.{cs,vb}]
 #### Naming styles ####
@@ -92,3 +97,4 @@ dotnet_style_collection_initializer = true:suggestion
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 dotnet_style_prefer_conditional_expression_over_assignment = true:silent
 dotnet_style_prefer_conditional_expression_over_return = true:silent
+dotnet_style_predefined_type_for_locals_parameters_members = true:silent
