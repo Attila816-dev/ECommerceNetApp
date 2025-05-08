@@ -1,26 +1,27 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Category;
+using Microsoft.EntityFrameworkCore;
 using Moq;
+using Moq.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
 {
     public class CreateCategoryCommandHandlerTest
     {
         private readonly CreateCategoryCommandHandler _commandHandler;
-        private readonly Mock<ICategoryRepository> _mockRepository;
-        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
+        private readonly Mock<ProductCatalogDbContext> _mockDbContext;
 
         public CreateCategoryCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
-            _mockRepository = new Mock<ICategoryRepository>();
-            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
-            _mockUnitOfWork.Setup(x => x.CategoryRepository).Returns(_mockRepository.Object);
-            _commandHandler = new CreateCategoryCommandHandler(_mockUnitOfWork.Object);
+            var mockDomainEventService = new Mock<IDomainEventService>();
+            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), mockDomainEventService.Object);
+            _commandHandler = new CreateCategoryCommandHandler(_mockDbContext.Object);
         }
 
         [Fact]
@@ -29,26 +30,14 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             // Arrange
             var categoryDto = new CategoryDto { Name = "Electronics" };
 
-            _mockRepository.Setup(c => c.AddAsync(It.Is<CategoryEntity>(c => c.Name == categoryDto.Name), CancellationToken.None))
-                .Verifiable();
-
-            _mockUnitOfWork.Setup(x => x.CommitAsync(CancellationToken.None))
-                .Returns(Task.CompletedTask)
-                .Verifiable();
+            var categories = new List<CategoryEntity>().AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             // Act
             var result = await _commandHandler.HandleAsync(new CreateCategoryCommand(categoryDto.Name, null, null), CancellationToken.None);
 
             // Assert
-            _mockRepository.Verify(
-                r => r.AddAsync(
-                    It.Is<CategoryEntity>(c => c.Name == categoryDto.Name),
-                    CancellationToken.None),
-                Times.Once);
-
-            _mockUnitOfWork.Verify(
-                r => r.CommitAsync(CancellationToken.None),
-                Times.Once);
+            _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -60,39 +49,14 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Category
             var parentCategory = CategoryEntity.Create("Parent Category", ImageInfo.Create("parent.jpg"), null, parentCategoryId);
             var categoryEntity = CategoryEntity.Create("Test Category", ImageInfo.Create("image.jpg"), parentCategory, 123);
 
-            _mockUnitOfWork
-                .Setup(u => u.CategoryRepository.GetByIdAsync(
-                    parentCategoryId,
-                    It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(parentCategory);
-
-            _mockUnitOfWork
-                .Setup(u => u.CategoryRepository.AddAsync(categoryEntity, It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask)
-                .Verifiable();
-
-            _mockUnitOfWork
-                .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask)
-                .Verifiable();
+            var categories = new List<CategoryEntity> { parentCategory }.AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             // Act
             var result = await _commandHandler.HandleAsync(command, CancellationToken.None);
 
             // Assert
-            _mockUnitOfWork.Verify(
-                u => u.CategoryRepository.GetByIdAsync(
-                    parentCategoryId,
-                    It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
-
-            _mockUnitOfWork.Verify(
-                u => u.CategoryRepository.AddAsync(
-                    It.Is<CategoryEntity>(c => c.Name == command.Name && c.ParentCategory == parentCategory),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+            _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

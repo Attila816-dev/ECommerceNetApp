@@ -24,7 +24,6 @@ namespace ECommerceNetApp.Persistence.Extensions
                     configuration.GetConnectionString(ProductCatalogDbConnectionStringName),
                     b => b.MigrationsAssembly(typeof(ProductCatalogDbContext).Assembly)));
 
-            services.AddScoped<IProductCatalogUnitOfWork, ProductCatalogUnitOfWork>();
             services.AddScoped<ProductCatalogDataSeeder>();
             services.AddScoped<ProductCatalogDbMigrator>();
             services.AddProductCatalogDataSeeders();

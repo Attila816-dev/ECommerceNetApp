@@ -1,17 +1,18 @@
 using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Validators.Category
 {
     public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCommand>
     {
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork;
+        private readonly ProductCatalogDbContext _dbContext;
 
-        public CreateCategoryCommandValidator(IProductCatalogUnitOfWork productCatalogUnitOfWork)
+        public CreateCategoryCommandValidator(ProductCatalogDbContext dbContext)
         {
-            _productCatalogUnitOfWork = productCatalogUnitOfWork ?? throw new ArgumentNullException(nameof(productCatalogUnitOfWork));
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
 
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Category name is required.")
@@ -31,8 +32,8 @@ namespace ECommerceNetApp.Service.Validators.Category
                 return true;
             }
 
-            return await _productCatalogUnitOfWork.CategoryRepository
-                .ExistsAsync(parentCategoryId.Value, cancellationToken)
+            return await _dbContext.Categories
+                .AnyAsync(c => c.Id == parentCategoryId.Value, cancellationToken)
                 .ConfigureAwait(false);
         }
     }

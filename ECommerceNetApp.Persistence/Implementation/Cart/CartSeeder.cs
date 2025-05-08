@@ -1,8 +1,9 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -15,20 +16,20 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
         private readonly CartDbContext _dbContext;
         private readonly ICartUnitOfWork _cartUnitOfWork;
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork;
+        private readonly ProductCatalogDbContext _productCatalogDbContext;
         private readonly ILogger<CartSeeder> _logger;
         private readonly CartDbOptions _cartDbOptions;
 
         public CartSeeder(
             CartDbContext dbContext,
             ICartUnitOfWork cartUnitOfWork,
-            IProductCatalogUnitOfWork productCatalogUnitOfWork,
+            ProductCatalogDbContext productCatalogDbContext,
             IOptions<CartDbOptions> cartDbOptions,
             ILogger<CartSeeder> logger)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _cartUnitOfWork = cartUnitOfWork ?? throw new ArgumentNullException(nameof(cartUnitOfWork));
-            _productCatalogUnitOfWork = productCatalogUnitOfWork ?? throw new ArgumentNullException(nameof(productCatalogUnitOfWork));
+            _productCatalogDbContext = productCatalogDbContext ?? throw new ArgumentNullException(nameof(productCatalogDbContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cartDbOptions = cartDbOptions?.Value ?? throw new ArgumentNullException(nameof(cartDbOptions));
         }
@@ -113,7 +114,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
         private async Task AddProductToCartAsync(CartEntity cart, string productName, int quantity, CancellationToken cancellationToken)
         {
-            var product = (await _productCatalogUnitOfWork.ProductRepository
+            var product = (await _productCatalogDbContext.Products
                 .FirstOrDefaultAsync(p => p.Name == productName, cancellationToken: cancellationToken)
                 .ConfigureAwait(false)) ?? throw new InvalidOperationException(productName + " product not found.");
 

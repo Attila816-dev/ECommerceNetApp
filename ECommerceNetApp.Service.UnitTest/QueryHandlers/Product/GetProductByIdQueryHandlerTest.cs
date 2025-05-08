@@ -1,4 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Product;
@@ -18,7 +19,8 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
         public GetProductByIdQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
-            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>());
+            var mockDomainEventService = new Mock<IDomainEventService>();
+            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), mockDomainEventService.Object);
             _queryHandler = new GetProductByIdQueryHandler(_mockDbContext.Object);
         }
 

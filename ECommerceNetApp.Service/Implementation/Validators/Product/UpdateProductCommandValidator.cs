@@ -1,13 +1,23 @@
 using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Validators.Product
 {
     public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
     {
-        public UpdateProductCommandValidator()
+        private readonly ProductCatalogDbContext _dbContext;
+
+        public UpdateProductCommandValidator(ProductCatalogDbContext dbContext)
         {
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+
+            RuleFor(x => x.Id)
+                .MustAsync(ExistingProductIdAsync)
+                .WithMessage("Product does not exist.");
+
             RuleFor(command => command.Name)
                 .NotEmpty().WithMessage("Product name is required.")
                 .MaximumLength(ProductEntity.MaxProductNameLength)
@@ -20,7 +30,12 @@ namespace ECommerceNetApp.Service.Validators.Product
                 .GreaterThan(0).WithMessage("Product amount must be greater than zero.");
 
             RuleFor(command => command.CategoryId)
-                .GreaterThan(0).WithMessage("Category ID must be a valid positive number.");
+                .GreaterThan(0).WithMessage("Product CategoryId must be a valid positive number.");
+        }
+
+        private async Task<bool> ExistingProductIdAsync(UpdateProductCommand command, int productId, CancellationToken cancellationToken)
+        {
+            return await _dbContext.Products.AnyAsync(c => c.Id == productId, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 }
