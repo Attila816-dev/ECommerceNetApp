@@ -5,17 +5,17 @@ using ECommerceNetApp.Service.Commands.Cart;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
-    public class RemoveCartItemCommandHandler(ICartUnitOfWork cartUnitOfWork)
+    public class RemoveCartItemCommandHandler(ICartRepository cartRepository)
         : ICommandHandler<RemoveCartItemCommand>
     {
-        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
+        private readonly ICartRepository _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
 
         public async Task HandleAsync(RemoveCartItemCommand command, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(command);
             ArgumentException.ThrowIfNullOrEmpty(command.CartId, nameof(command.CartId));
 
-            var cart = await _cartUnitOfWork.CartRepository.GetByIdAsync(command.CartId, cancellationToken).ConfigureAwait(false);
+            var cart = await _cartRepository.GetByIdAsync(command.CartId, cancellationToken).ConfigureAwait(false);
 
             if (cart == null)
             {
@@ -23,8 +23,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
             }
 
             cart.RemoveItem(command.ItemId);
-            await _cartUnitOfWork.CartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
-            await _cartUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
+            await _cartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
         }
     }
 }

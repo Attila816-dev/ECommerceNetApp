@@ -11,15 +11,12 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
     {
         private readonly RemoveCartItemCommandHandler _commandHandler;
         private readonly Mock<ICartRepository> _mockRepository;
-        private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
 
         public RemoveCartItemCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICartRepository>();
-            _mockUnitOfWork = new Mock<ICartUnitOfWork>();
-            _mockUnitOfWork.Setup(u => u.CartRepository).Returns(_mockRepository.Object);
-            _commandHandler = new RemoveCartItemCommandHandler(_mockUnitOfWork.Object);
+            _commandHandler = new RemoveCartItemCommandHandler(_mockRepository.Object);
         }
 
         [Fact]

@@ -4,17 +4,17 @@ using ECommerceNetApp.Service.Queries.Cart;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
 {
-    public class GetCartTotalQueryHandler(ICartUnitOfWork cartUnitOfWork)
+    public class GetCartTotalQueryHandler(ICartRepository cartRepository)
         : IQueryHandler<GetCartTotalQuery, decimal?>
     {
-        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
+        private readonly ICartRepository _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
 
         public async Task<decimal?> HandleAsync(GetCartTotalQuery query, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(query);
             ArgumentException.ThrowIfNullOrEmpty(query.CartId, nameof(query.CartId));
 
-            var cart = await _cartUnitOfWork.CartRepository.GetByIdAsync(query.CartId, cancellationToken).ConfigureAwait(false);
+            var cart = await _cartRepository.GetByIdAsync(query.CartId, cancellationToken).ConfigureAwait(false);
 
             if (cart == null)
             {

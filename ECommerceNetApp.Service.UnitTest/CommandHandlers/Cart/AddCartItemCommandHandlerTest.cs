@@ -12,15 +12,12 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
     {
         private readonly AddCartItemCommandHandler _commandHandler;
         private readonly Mock<ICartRepository> _mockRepository;
-        private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
 
         public AddCartItemCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICartRepository>();
-            _mockUnitOfWork = new Mock<ICartUnitOfWork>();
-            _mockUnitOfWork.SetupGet(u => u.CartRepository).Returns(_mockRepository.Object);
-            _commandHandler = new AddCartItemCommandHandler(_mockUnitOfWork.Object);
+            _commandHandler = new AddCartItemCommandHandler(_mockRepository.Object);
         }
 
         [Fact]
@@ -31,8 +28,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
 
             var cart = CreateTestCart(testCartId);
             SetupMockRepository(cart);
-
-            _mockUnitOfWork.Setup(x => x.CommitAsync(CancellationToken.None)).Returns(Task.CompletedTask).Verifiable();
 
             var itemDto = new CartItemDto
             {
@@ -51,8 +46,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
                     It.Is<CartEntity>(c => c.Items.Count == 1 && c.Items.First().Name == "New Item"),
                     CancellationToken.None),
                 Times.Once);
-
-            _mockUnitOfWork.Verify(x => x.CommitAsync(CancellationToken.None), Times.Once);
         }
 
         [Fact]
@@ -64,8 +57,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
 
             cart.AddItem(1, "Existing Item", Money.From(15.99m), 1);
             SetupMockRepository(cart);
-
-            _mockUnitOfWork.Setup(x => x.CommitAsync(CancellationToken.None)).Returns(Task.CompletedTask).Verifiable();
 
             var itemDto = new CartItemDto
             {
@@ -84,8 +75,6 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
                     It.Is<CartEntity>(c => c.Items.Count == 1 && c.Items.First().Quantity == 3),
                     CancellationToken.None),
                 Times.Once);
-
-            _mockUnitOfWork.Verify(x => x.CommitAsync(CancellationToken.None), Times.Once);
         }
 
         private static CartEntity CreateTestCart(string cartId)

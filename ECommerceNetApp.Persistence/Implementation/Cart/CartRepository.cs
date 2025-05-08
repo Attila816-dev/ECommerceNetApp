@@ -1,14 +1,17 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Exceptions.Cart;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
 
 namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
-    public class CartRepository(CartDbContext cartDbContext, ICartUnitOfWork cartUnitOfWork) : ICartRepository
+    public class CartRepository(
+        CartDbContext cartDbContext,
+        IDomainEventService domainEventService) : ICartRepository
     {
         private readonly CartDbContext _cartDbContext = cartDbContext ?? throw new ArgumentNullException(nameof(cartDbContext));
-        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork ?? throw new ArgumentNullException(nameof(cartUnitOfWork));
+        private readonly IDomainEventService _domainEventService = domainEventService ?? throw new ArgumentNullException(nameof(domainEventService));
 
         public async Task<CartEntity?> GetByIdAsync(string cartId, CancellationToken cancellationToken)
         {
@@ -26,9 +29,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
             var collection = _cartDbContext.GetCollection<CartEntity>();
             await collection.UpsertAsync(cart).ConfigureAwait(false);
-
-            // Track the modified entity
-            _cartUnitOfWork.TrackEntity(cart);
+            await DispatchDomainEventsAsync(cart, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task DeleteAsync(string cartId, CancellationToken cancellationToken)
@@ -38,11 +39,10 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             var collection = _cartDbContext.GetCollection<CartEntity>();
             var cart = (await collection.FindByIdAsync(cartId).ConfigureAwait(false))
                 ?? throw InvalidCartException.CartNotFound(cartId);
+
             cart.MarkAsDeleted();
             await collection.DeleteAsync(cartId).ConfigureAwait(false);
-
-            // Track the modified entity
-            _cartUnitOfWork.TrackEntity(cart);
+            await DispatchDomainEventsAsync(cart, cancellationToken).ConfigureAwait(false);
         }
 
         public virtual async Task<bool> ExistsAsync(string cartId, CancellationToken cancellationToken)
@@ -57,6 +57,18 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
         {
             var cart = (await GetByIdAsync(cartId, cancellationToken).ConfigureAwait(false)) ?? throw InvalidCartException.CartNotFound(cartId);
             return cart.Items.FirstOrDefault(i => i.Id == itemId);
+        }
+
+        private async Task DispatchDomainEventsAsync(CartEntity cart, CancellationToken cancellationToken = default)
+        {
+            // Publish domain events for tracked entities
+            var events = cart.DomainEvents.ToList();
+            cart.ClearDomainEvents();
+
+            foreach (var domainEvent in events)
+            {
+                await _domainEventService.PublishEventAsync(domainEvent, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

@@ -6,17 +6,17 @@ using LiteDB;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
 {
-    public class GetCartQueryHandler(ICartUnitOfWork cartUnitOfWork)
+    public class GetCartQueryHandler(ICartRepository cartRepository)
         : IQueryHandler<GetCartQuery, CartDto?>
     {
-        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
+        private readonly ICartRepository _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
 
         public async Task<CartDto?> HandleAsync(GetCartQuery query, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(query);
             ArgumentException.ThrowIfNullOrWhiteSpace(query.CartId, nameof(query.CartId));
 
-            var cart = await _cartUnitOfWork.CartRepository.GetByIdAsync(query.CartId, cancellationToken).ConfigureAwait(false);
+            var cart = await _cartRepository.GetByIdAsync(query.CartId, cancellationToken).ConfigureAwait(false);
 
             if (cart == null)
             {

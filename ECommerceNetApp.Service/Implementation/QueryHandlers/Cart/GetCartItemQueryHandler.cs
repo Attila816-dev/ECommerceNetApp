@@ -5,17 +5,17 @@ using ECommerceNetApp.Service.Queries.Cart;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
 {
-    public class GetCartItemQueryHandler(ICartUnitOfWork cartUnitOfWork)
+    public class GetCartItemQueryHandler(ICartRepository cartRepository)
         : IQueryHandler<GetCartItemQuery, CartItemDto?>
     {
-        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
+        private readonly ICartRepository _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
 
         public async Task<CartItemDto?> HandleAsync(GetCartItemQuery query, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(query);
             ArgumentException.ThrowIfNullOrWhiteSpace(query.CartId, nameof(query.CartId));
 
-            var cartItem = await _cartUnitOfWork.CartRepository.GetCartItemAsync(query.CartId, query.ItemId, cancellationToken).ConfigureAwait(false);
+            var cartItem = await _cartRepository.GetCartItemAsync(query.CartId, query.ItemId, cancellationToken).ConfigureAwait(false);
 
             if (cartItem == null)
             {

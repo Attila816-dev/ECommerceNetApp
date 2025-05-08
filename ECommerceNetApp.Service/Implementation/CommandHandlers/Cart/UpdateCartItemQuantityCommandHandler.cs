@@ -6,16 +6,16 @@ using ECommerceNetApp.Service.Commands.Cart;
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
     public class UpdateCartItemQuantityCommandHandler(
-        ICartUnitOfWork cartUnitOfWork)
+        ICartRepository cartRepository)
         : ICommandHandler<UpdateCartItemQuantityCommand>
     {
-        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
+        private readonly ICartRepository _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
 
         public async Task HandleAsync(UpdateCartItemQuantityCommand command, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(command);
 
-            var cart = await _cartUnitOfWork.CartRepository.GetByIdAsync(command.CartId, cancellationToken).ConfigureAwait(false);
+            var cart = await _cartRepository.GetByIdAsync(command.CartId, cancellationToken).ConfigureAwait(false);
 
             if (cart == null)
             {
@@ -23,8 +23,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
             }
 
             cart.UpdateItemQuantity(command.ItemId, command.Quantity);
-            await _cartUnitOfWork.CartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
-            await _cartUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
+            await _cartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
         }
     }
 }
