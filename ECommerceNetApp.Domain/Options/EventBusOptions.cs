@@ -17,6 +17,8 @@
         /// <summary>
         /// Gets or sets the Azure Service Bus topic name. Required when Type is "Azure".
         /// </summary>
-        public string? TopicName { get; set; } = "ecommerce-events";
+        public string TopicName { get; set; } = "ecommerce-events";
+
+        public int DefaultMessageTimeToLiveInDays { get; set; } = 14;
     }
 }

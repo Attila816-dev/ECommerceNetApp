@@ -4,6 +4,7 @@ using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.Options;
+using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -28,6 +29,9 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
             LogLevel.Information,
             new EventId(1, nameof(AzureEventBus)),
             "Created subscription {SubscriptionName} for {EventType}");
+
+        private static readonly Action<ILogger, string, Exception?> LogTopicCreated =
+            LoggerMessage.Define<string>(LogLevel.Information, new EventId(1, nameof(AzureEventBus)), "Created topic {TopicName}");
 
         private static readonly Action<ILogger, string, string, Exception?> LogMessageReceived =
             LoggerMessage.Define<string, string>(
@@ -107,63 +111,25 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
 
         public async Task StartConsumingAsync(CancellationToken cancellationToken = default)
         {
-            // For each event type we handle, create a subscription
+            // First, ensure the topic exists
+            if (!await _adminClient.TopicExistsAsync(_eventBusOptions.Value.TopicName, cancellationToken).ConfigureAwait(false))
+            {
+                await _adminClient.CreateTopicAsync(new CreateTopicOptions(_eventBusOptions.Value.TopicName), cancellationToken).ConfigureAwait(false);
+                LogTopicCreated.Invoke(_logger, _eventBusOptions.Value.TopicName, null);
+            }
+
+            // For each event type we handle, ensure a subscription exists
             foreach (var eventType in _handlers.Keys)
             {
                 var subscriptionName = $"{_eventBusOptions.Value.TopicName}-{eventType.Name}";
 
-                // Ensure subscription exists
-                if (!await _adminClient.SubscriptionExistsAsync(_eventBusOptions.Value.TopicName, subscriptionName, cancellationToken).ConfigureAwait(false))
-                {
-                    // Create rule to filter by event type
-                    var rule = new CreateRuleOptions(
-                        $"{eventType.Name}Rule",
-                        new CorrelationRuleFilter { Subject = eventType.Name });
-
-                    await _adminClient.CreateSubscriptionAsync(
-                        new CreateSubscriptionOptions(_eventBusOptions.Value.TopicName, subscriptionName),
-                        rule,
-                        cancellationToken)
-                        .ConfigureAwait(false);
-
-                    LogSubscripitionCreated.Invoke(_logger, subscriptionName, eventType.Name, null);
-                }
+                await CreateSubscriptionIfNotExistAsync(eventType, subscriptionName, cancellationToken).ConfigureAwait(false);
 
                 // Create a processor for this subscription
                 var processor = _client.CreateProcessor(_eventBusOptions.Value.TopicName, subscriptionName);
 
                 // Handle messages
-                processor.ProcessMessageAsync += async args =>
-                {
-                    var message = args.Message.Body.ToString();
-                    var eventTypeName = args.Message.Subject;
-
-                    LogMessageReceived.Invoke(_logger, message, eventTypeName, null);
-
-                    if (_handlers.TryGetValue(eventType, out var handlers))
-                    {
-#pragma warning disable CA1031 // Do not catch general exception types
-                        try
-                        {
-                            var notification = JsonSerializer.Deserialize(message, eventType) as INotification;
-                            if (notification != null)
-                            {
-                                foreach (var handler in handlers)
-                                {
-                                    await handler(notification, cancellationToken).ConfigureAwait(false);
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            LogMessageProcessingError.Invoke(_logger, eventTypeName, ex);
-                        }
-#pragma warning restore CA1031 // Do not catch general exception types
-                    }
-
-                    // Complete the message
-                    await args.CompleteMessageAsync(args.Message).ConfigureAwait(false);
-                };
+                processor.ProcessMessageAsync += args => ProcessMessageAsync(args, eventType, cancellationToken);
 
                 // Handle errors
                 processor.ProcessErrorAsync += args =>
@@ -194,6 +160,82 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
 
             await _sender.DisposeAsync().ConfigureAwait(false);
             await _client.DisposeAsync().ConfigureAwait(false);
+        }
+
+        private async Task ProcessMessageAsync(ProcessMessageEventArgs eventArgs, Type eventType, CancellationToken cancellationToken)
+        {
+            var message = eventArgs.Message.Body.ToString();
+            var eventTypeName = eventArgs.Message.Subject;
+            var messageId = eventArgs.Message.MessageId;
+
+            LogMessageReceived.Invoke(_logger, message, eventTypeName, null);
+
+            if (_handlers.TryGetValue(eventType, out var handlers))
+            {
+#pragma warning disable CA1031 // Do not catch general exception types
+                try
+                {
+                    var notification = JsonSerializer.Deserialize(message, eventType) as INotification;
+                    if (notification != null)
+                    {
+                        foreach (var handler in handlers)
+                        {
+                            try
+                            {
+                                await handler(notification, cancellationToken).ConfigureAwait(false);
+                            }
+                            catch (Exception)
+                            {
+                                await eventArgs.AbandonMessageAsync(eventArgs.Message, cancellationToken: cancellationToken).ConfigureAwait(false);
+                                return;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Dead-letter the message as it's not properly formatted
+                        await eventArgs.DeadLetterMessageAsync(eventArgs.Message, "DeserializationFailed", $"Could not deserialize as {eventType.Name}", cancellationToken).ConfigureAwait(false);
+                    }
+
+                    // Complete the message
+                    await eventArgs.CompleteMessageAsync(eventArgs.Message, cancellationToken).ConfigureAwait(false);
+                }
+                catch (JsonException ex)
+                {
+                    // Dead-letter the message as it's not properly formatted
+                    await eventArgs.DeadLetterMessageAsync(eventArgs.Message, "JsonDeserializationFailed", ex.Message, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    LogMessageProcessingError.Invoke(_logger, eventTypeName, ex);
+                }
+#pragma warning restore CA1031 // Do not catch general exception types
+            }
+            else
+            {
+                // No handlers for this type - complete it anyway
+                await eventArgs.CompleteMessageAsync(eventArgs.Message, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task CreateSubscriptionIfNotExistAsync(Type eventType, string subscriptionName, CancellationToken cancellationToken)
+        {
+            if (!await _adminClient.SubscriptionExistsAsync(_eventBusOptions.Value.TopicName, subscriptionName, cancellationToken).ConfigureAwait(false))
+            {
+                // Create the subscription with a default rule that accepts all messages
+                var subscriptionCreationOptions = new CreateSubscriptionOptions(_eventBusOptions.Value.TopicName, subscriptionName)
+                {
+                    DefaultMessageTimeToLive = TimeSpan.FromDays(_eventBusOptions.Value.DefaultMessageTimeToLiveInDays), // Set message expiration
+                };
+
+                // Create rule to filter by event type
+                var rule = new CreateRuleOptions(
+                    $"{eventType.Name}Rule",
+                    new CorrelationRuleFilter { Subject = eventType.Name });
+
+                await _adminClient.CreateSubscriptionAsync(subscriptionCreationOptions, rule, cancellationToken).ConfigureAwait(false);
+                LogSubscripitionCreated.Invoke(_logger, subscriptionName, eventType.Name, null);
+            }
         }
     }
 }
