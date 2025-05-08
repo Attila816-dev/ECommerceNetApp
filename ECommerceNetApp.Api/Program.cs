@@ -12,6 +12,7 @@ using ECommerceNetApp.Service.Extensions;
 using ECommerceNetApp.Service.Implementation.Behaviors;
 using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -74,7 +75,10 @@ namespace ECommerceNetApp.Api
 
             builder.Services.Configure<CartDbOptions>(builder.Configuration.GetSection(nameof(CartDbOptions)));
             builder.Services.Configure<ProductCatalogDbOptions>(builder.Configuration.GetSection(nameof(ProductCatalogDbOptions)));
+            builder.Services.Configure<EventBusOptions>(builder.Configuration.GetSection(EventBusOptions.SectionName));
+
             builder.Services.AddDispatcher();
+            builder.Services.AddEventBus(builder.Services.BuildServiceProvider().GetService<IOptions<EventBusOptions>>()!);
             builder.Services.AddHostedService<EventBusBackgroundService>();
 
             builder.Services.AddScoped<IHateoasLinkService, HateoasLinkService>();

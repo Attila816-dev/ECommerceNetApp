@@ -1,7 +1,7 @@
 ﻿using System.Threading.Channels;
 using ECommerceNetApp.Domain.Interfaces;
 
-namespace ECommerceNetApp.Service.Implementation
+namespace ECommerceNetApp.Service.Implementation.EventBus
 {
     internal sealed class InMemoryMessageQueue
     {

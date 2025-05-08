@@ -1,6 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Interfaces;
 
-namespace ECommerceNetApp.Service.Implementation
+namespace ECommerceNetApp.Service.Implementation.EventBus
 {
     internal sealed class InMemoryEventBus(InMemoryMessageQueue queue) : IEventBus
     {

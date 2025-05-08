@@ -1,8 +1,11 @@
 ﻿using System.Reflection;
 using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Service.Implementation;
+using ECommerceNetApp.Service.Implementation.EventBus;
 using ECommerceNetApp.Service.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace ECommerceNetApp.Service.Extensions
 {
@@ -18,13 +21,34 @@ namespace ECommerceNetApp.Service.Extensions
         {
             var assembly = Assembly.GetExecutingAssembly();
             services.AddScoped<IDispatcher, Dispatcher>();
-            services.AddSingleton<InMemoryMessageQueue>();
-            services.AddSingleton<IEventBus, InMemoryEventBus>();
 
             RegisterHandlers(services, assembly, typeof(ICommandHandler<>));
             RegisterHandlers(services, assembly, typeof(ICommandHandler<,>));
             RegisterHandlers(services, assembly, typeof(IQueryHandler<,>));
             RegisterHandlers(services, assembly, typeof(INotificationHandler<>));
+
+            return services;
+        }
+
+        public static IServiceCollection AddEventBus(this IServiceCollection services, IOptions<EventBusOptions> eventBusOptions)
+        {
+            ArgumentNullException.ThrowIfNull(eventBusOptions, nameof(eventBusOptions));
+
+            // Register the appropriate event bus implementation
+            if (string.Equals(eventBusOptions.Value.Type, "Azure", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrEmpty(eventBusOptions.Value.ConnectionString))
+                {
+                    throw new InvalidOperationException("Azure Service Bus connection string must be provided when using Azure Event Bus");
+                }
+
+                services.AddSingleton<IEventBus, AzureEventBus>();
+            }
+            else
+            {
+                services.AddSingleton<InMemoryMessageQueue>();
+                services.AddSingleton<IEventBus, InMemoryEventBus>();
+            }
 
             return services;
         }
