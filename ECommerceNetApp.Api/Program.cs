@@ -84,6 +84,7 @@ namespace ECommerceNetApp.Api
             builder.Services.AddScoped<IHateoasLinkService, HateoasLinkService>();
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(RetryBehavior<,>));
             builder.Services.AddCartDb(builder.Configuration);
             builder.Services.AddProductCatalogDb(builder.Configuration);
             builder.Services.AddValidatorsFromAssemblyContaining<AddCartItemCommandValidator>();
