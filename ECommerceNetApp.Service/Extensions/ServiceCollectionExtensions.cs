@@ -5,7 +5,6 @@ using ECommerceNetApp.Service.Implementation;
 using ECommerceNetApp.Service.Implementation.EventBus;
 using ECommerceNetApp.Service.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace ECommerceNetApp.Service.Extensions
 {
@@ -30,18 +29,19 @@ namespace ECommerceNetApp.Service.Extensions
             return services;
         }
 
-        public static IServiceCollection AddEventBus(this IServiceCollection services, IOptions<EventBusOptions> eventBusOptions)
+        public static IServiceCollection AddEventBus(this IServiceCollection services, EventBusOptions eventBusOptions)
         {
             ArgumentNullException.ThrowIfNull(eventBusOptions, nameof(eventBusOptions));
 
             // Register the appropriate event bus implementation
-            if (string.Equals(eventBusOptions.Value.Type, "Azure", StringComparison.OrdinalIgnoreCase))
+            if (eventBusOptions.UseAzureEventBus)
             {
-                if (string.IsNullOrEmpty(eventBusOptions.Value.ConnectionString))
+                if (string.IsNullOrWhiteSpace(eventBusOptions.ConnectionString))
                 {
                     throw new InvalidOperationException("Azure Service Bus connection string must be provided when using Azure Event Bus");
                 }
 
+                services.AddSingleton<AzureServiceBusFactory>();
                 services.AddSingleton<IEventBus, AzureEventBus>();
             }
             else
