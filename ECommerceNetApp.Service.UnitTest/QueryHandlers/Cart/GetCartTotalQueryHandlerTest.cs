@@ -12,15 +12,12 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
     {
         private readonly GetCartTotalQueryHandler _queryHandler;
         private readonly Mock<ICartRepository> _mockRepository;
-        private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
 
         public GetCartTotalQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies.
             _mockRepository = new Mock<ICartRepository>();
-            _mockUnitOfWork = new Mock<ICartUnitOfWork>();
-            _mockUnitOfWork.Setup(u => u.CartRepository).Returns(_mockRepository.Object);
-            _queryHandler = new GetCartTotalQueryHandler(_mockUnitOfWork.Object);
+            _queryHandler = new GetCartTotalQueryHandler(_mockRepository.Object);
         }
 
         [Fact]
@@ -37,7 +34,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
                 .ReturnsAsync(cart);
 
             // Act
-            var cartTotal = await _queryHandler.Handle(new GetCartTotalQuery(testCartId), CancellationToken.None);
+            var cartTotal = await _queryHandler.HandleAsync(new GetCartTotalQuery(testCartId), CancellationToken.None);
 
             // Assert
             cartTotal.ShouldBe(52.97m); // 10.99 + (20.99 * 2)
@@ -52,7 +49,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
                 .ReturnsAsync((CartEntity?)null);
 
             // Act
-            var cartTotal = await _queryHandler.Handle(new GetCartTotalQuery(testCartId), CancellationToken.None);
+            var cartTotal = await _queryHandler.HandleAsync(new GetCartTotalQuery(testCartId), CancellationToken.None);
 
             // Assert
             cartTotal.ShouldBeNull();

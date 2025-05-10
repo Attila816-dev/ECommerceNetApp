@@ -2,6 +2,7 @@
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -18,20 +19,20 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
         private static readonly Action<ILogger, Exception?> _LogProductCatalogSeedingError =
             LoggerMessage.Define(LogLevel.Error, new EventId(3, nameof(_LogProductCatalogSeedingError)), "An error occurred while seeding the database");
 
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork;
+        private readonly ProductCatalogDbContext _dbContext;
         private readonly IEnumerable<IProductDataSeeder> _productSeeders;
         private readonly IEnumerable<ICategoryDataSeeder> _categorySeeders;
         private readonly ILogger<ProductCatalogDataSeeder> _logger;
         private readonly IOptions<ProductCatalogDbOptions> _options;
 
         public ProductCatalogDataSeeder(
-            IProductCatalogUnitOfWork productCatalogUnitOfWork,
+            ProductCatalogDbContext dbContext,
             IEnumerable<IProductDataSeeder> productSeeders,
             IEnumerable<ICategoryDataSeeder> categorySeeders,
             ILogger<ProductCatalogDataSeeder> logger,
             IOptions<ProductCatalogDbOptions> options)
         {
-            _productCatalogUnitOfWork = productCatalogUnitOfWork;
+            _dbContext = dbContext;
             _productSeeders = productSeeders;
             _categorySeeders = categorySeeders;
             _logger = logger;
@@ -48,8 +49,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
                 }
 
                 // Only seed if database is empty
-                bool hasAnyCategories = await _productCatalogUnitOfWork.CategoryRepository.AnyAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-                bool hasAnyProducts = await _productCatalogUnitOfWork.ProductRepository.AnyAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                bool hasAnyCategories = await _dbContext.Categories.AnyAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                bool hasAnyProducts = await _dbContext.Products.AnyAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (!hasAnyCategories && !hasAnyProducts)
                 {
                     _LogProductCatalogSeeding.Invoke(_logger, null);
@@ -72,29 +73,29 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
                 ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}groceries.jpg"),
                 null);
 
-            await _productCatalogUnitOfWork.CategoryRepository.AddAsync(groceriesCategory, cancellationToken).ConfigureAwait(false);
+            await _dbContext.Categories.AddAsync(groceriesCategory, cancellationToken).ConfigureAwait(false);
 
             var householdCategory = CategoryEntity.Create(
                 ProductCatalogConstants.CategoryNames.Root.Household,
                 ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}household.jpg"),
                 null);
 
-            await _productCatalogUnitOfWork.CategoryRepository.AddAsync(householdCategory, cancellationToken).ConfigureAwait(false);
+            await _dbContext.Categories.AddAsync(householdCategory, cancellationToken).ConfigureAwait(false);
 
             var electronicsCategory = CategoryEntity.Create(
                 ProductCatalogConstants.CategoryNames.Root.Electronics,
                 ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}electronics.jpg"),
                 null);
 
-            await _productCatalogUnitOfWork.CategoryRepository.AddAsync(electronicsCategory, cancellationToken).ConfigureAwait(false);
+            await _dbContext.Categories.AddAsync(electronicsCategory, cancellationToken).ConfigureAwait(false);
 
             var clothingCategory = CategoryEntity.Create(
                 ProductCatalogConstants.CategoryNames.Root.Clothing,
                 ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}clothing.jpg"),
                 null);
 
-            await _productCatalogUnitOfWork.CategoryRepository.AddAsync(clothingCategory, cancellationToken).ConfigureAwait(false);
-            await _productCatalogUnitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await _dbContext.Categories.AddAsync(clothingCategory, cancellationToken).ConfigureAwait(false);
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var categorySeeder in _categorySeeders)
             {

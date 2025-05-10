@@ -41,15 +41,10 @@ namespace ECommerceNetApp.IntegrationTests
                         o.EnableDatabaseMigration = false;
                         o.SeedSampleData = false;
                     });
-
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(CartDbContext));
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
+                    services.Configure<EventBusOptions>(o => o.Type = "InMemory");
 
                     // Register the test CartDbContext with the test connection string
-                    services.AddScoped(provider => new CartDbContext($"Filename={testDbPath};Mode=Shared"));
+                    services.AddSingleton<ICartDbContextFactory>(new CartDbContextFactory($"Filename={testDbPath};Mode=Shared"));
                 });
             });
 
@@ -63,9 +58,12 @@ namespace ECommerceNetApp.IntegrationTests
             var cartId = "test-cart-id-1";
             using (var scope = _factory.Services.CreateScope())
             {
-                var cartDbContext = scope.ServiceProvider.GetService<CartDbContext>();
-                cartDbContext!.CreateCollection<CartEntity>();
-                await cartDbContext.GetCollection<CartEntity>().InsertAsync(CartEntity.Create(cartId));
+                var cartDbContextFactory = scope.ServiceProvider.GetService<ICartDbContextFactory>();
+                using (var cartDbContext = cartDbContextFactory!.CreateDbContext())
+                {
+                    cartDbContext!.CreateCollection<CartEntity>();
+                    await cartDbContext.GetCollection<CartEntity>().InsertAsync(CartEntity.Create(cartId));
+                }
             }
 
             // Act

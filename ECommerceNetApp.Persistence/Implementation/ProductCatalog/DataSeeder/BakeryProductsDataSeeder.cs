@@ -4,8 +4,8 @@ using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
 {
-    internal class BakeryProductsDataSeeder(IProductCatalogUnitOfWork productCatalogUnitOfWork)
-        : BaseProductsDataSeeder(productCatalogUnitOfWork), IProductDataSeeder
+    internal class BakeryProductsDataSeeder(ProductCatalogDbContext dbContext)
+        : BaseProductsDataSeeder(dbContext), IProductDataSeeder
     {
         public async Task SeedProductsAsync(CancellationToken cancellationToken = default)
         {

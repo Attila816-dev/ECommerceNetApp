@@ -13,6 +13,10 @@ namespace ECommerceNetApp.Persistence.Interfaces.Cart
 
         Task<bool> ExistsAsync(string cartId, CancellationToken cancellationToken);
 
+        Task<int> CountAsync(CancellationToken cancellationToken);
+
+        Task<IEnumerable<CartEntity>> GetCartsContainingProductAsync(int productId, CancellationToken cancellationToken);
+
         /// <summary>
         /// Gets a specific item from the cart.
         /// </summary>

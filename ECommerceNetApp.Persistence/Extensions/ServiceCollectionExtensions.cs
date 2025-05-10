@@ -24,7 +24,6 @@ namespace ECommerceNetApp.Persistence.Extensions
                     configuration.GetConnectionString(ProductCatalogDbConnectionStringName),
                     b => b.MigrationsAssembly(typeof(ProductCatalogDbContext).Assembly)));
 
-            services.AddScoped<IProductCatalogUnitOfWork, ProductCatalogUnitOfWork>();
             services.AddScoped<ProductCatalogDataSeeder>();
             services.AddScoped<ProductCatalogDbMigrator>();
             services.AddProductCatalogDataSeeders();
@@ -39,15 +38,11 @@ namespace ECommerceNetApp.Persistence.Extensions
             var cartDbConnectionString = configuration.GetConnectionString(CartDbConnectionStringName);
             ArgumentNullException.ThrowIfNull(cartDbConnectionString);
 
-            services.AddScoped(provider =>
-            {
-                return new CartDbContext(cartDbConnectionString);
-            });
+            services.AddSingleton<ICartDbContextFactory>(new CartDbContextFactory(cartDbConnectionString));
 
             services.AddScoped<CartDbInitializer>();
             services.AddScoped<CartSeeder>();
-            services.AddScoped<ICartRepositoryFactory, CartRepositoryFactory>();
-            services.AddScoped<ICartUnitOfWork, CartUnitOfWork>();
+            services.AddScoped<ICartRepository, CartRepository>();
             return services;
         }
 

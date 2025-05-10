@@ -1,12 +1,13 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Persistence.Implementation.Cart;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace ECommerceNetApp.Api.HealthCheck
 {
-    public class CartDbHealthCheck(CartDbContext dbContext) : IHealthCheck
+    public class CartDbHealthCheck(ICartRepository cartRepository) : IHealthCheck
     {
-        private readonly CartDbContext _dbContext = dbContext;
+        private readonly ICartRepository _cartRepository = cartRepository;
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
@@ -14,8 +15,7 @@ namespace ECommerceNetApp.Api.HealthCheck
             try
             {
                 // Perform a simple query to check if the database is accessible
-                var collection = _dbContext.GetCollection<CartEntity>();
-                await collection.CountAsync().ConfigureAwait(false);
+                var collection = await _cartRepository.CountAsync(cancellationToken).ConfigureAwait(false);
                 return HealthCheckResult.Healthy("CartDb is operational");
             }
             catch (Exception ex)

@@ -4,23 +4,26 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
     public class CartDbInitializer
     {
-        private readonly CartDbContext _dbContext;
+        private readonly ICartDbContextFactory _cartDbContextFactory;
 
-        public CartDbInitializer(CartDbContext dbContext)
+        public CartDbInitializer(ICartDbContextFactory cartDbContextFactory)
         {
-            _dbContext = dbContext;
+            _cartDbContextFactory = cartDbContextFactory;
         }
 
         public async Task InitializeDatabaseAsync(CancellationToken cancellationToken)
         {
             // Create Cart collection if it doesn't exist
-            if (!await _dbContext.CollectionExistsAsync<CartEntity>().ConfigureAwait(false))
+            using (var dbContext = _cartDbContextFactory.CreateDbContext())
             {
-                _dbContext.CreateCollection<CartEntity>();
+                if (!await dbContext.CollectionExistsAsync<CartEntity>().ConfigureAwait(false))
+                {
+                    dbContext.CreateCollection<CartEntity>();
 
-                // You can add indexes here if needed
-                var cartCollection = _dbContext.GetCollection<CartEntity>();
-                await cartCollection.EnsureIndexAsync(x => x.Id).ConfigureAwait(false);
+                    // You can add indexes here if needed
+                    var cartCollection = dbContext.GetCollection<CartEntity>();
+                    await cartCollection.EnsureIndexAsync(x => x.Id).ConfigureAwait(false);
+                }
             }
         }
     }

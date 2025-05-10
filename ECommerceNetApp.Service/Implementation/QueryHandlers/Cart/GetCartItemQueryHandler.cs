@@ -1,21 +1,21 @@
-﻿using ECommerceNetApp.Persistence.Interfaces.Cart;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Queries.Cart;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
 {
-    public class GetCartItemQueryHandler(ICartUnitOfWork cartUnitOfWork)
-        : IRequestHandler<GetCartItemQuery, CartItemDto?>
+    public class GetCartItemQueryHandler(ICartRepository cartRepository)
+        : IQueryHandler<GetCartItemQuery, CartItemDto?>
     {
-        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
+        private readonly ICartRepository _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
 
-        public async Task<CartItemDto?> Handle(GetCartItemQuery request, CancellationToken cancellationToken)
+        public async Task<CartItemDto?> HandleAsync(GetCartItemQuery query, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
-            ArgumentException.ThrowIfNullOrWhiteSpace(request.CartId, nameof(request.CartId));
+            ArgumentNullException.ThrowIfNull(query);
+            ArgumentException.ThrowIfNullOrWhiteSpace(query.CartId, nameof(query.CartId));
 
-            var cartItem = await _cartUnitOfWork.CartRepository.GetCartItemAsync(request.CartId, request.ItemId, cancellationToken).ConfigureAwait(false);
+            var cartItem = await _cartRepository.GetCartItemAsync(query.CartId, query.ItemId, cancellationToken).ConfigureAwait(false);
 
             if (cartItem == null)
             {

@@ -15,16 +15,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{02EA681E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.Service.UnitTest", "ECommerceNetApp.Service.UnitTest\ECommerceNetApp.Service.UnitTest.csproj", "{F67BD357-72EE-4304-870D-95A618B86120}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.Persistence.UnitTest", "ECommerceNetApp.Persistence.UnitTest\ECommerceNetApp.Persistence.UnitTest.csproj", "{E721E502-A126-4207-87D2-C6A515DF0050}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.IntegrationTests", "ECommerceNetApp.IntegrationTests\ECommerceNetApp.IntegrationTests.csproj", "{C1494384-E98E-43AE-8850-F9D78ACC7B9C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.Domain.UnitTest", "ECommerceNetApp.Domain.UnitTest\ECommerceNetApp.Domain.UnitTest.csproj", "{A998E027-98C7-A65E-BFCB-E7EDF7A26D01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.Persistence.UnitTest", "ECommerceNetApp.Persistence.UnitTest\ECommerceNetApp.Persistence.UnitTest.csproj", "{2873E683-3795-DE17-90F6-8F9B62E9A2E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,10 +53,6 @@ Global
 		{F67BD357-72EE-4304-870D-95A618B86120}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F67BD357-72EE-4304-870D-95A618B86120}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F67BD357-72EE-4304-870D-95A618B86120}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E721E502-A126-4207-87D2-C6A515DF0050}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E721E502-A126-4207-87D2-C6A515DF0050}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E721E502-A126-4207-87D2-C6A515DF0050}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E721E502-A126-4207-87D2-C6A515DF0050}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C1494384-E98E-43AE-8850-F9D78ACC7B9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C1494384-E98E-43AE-8850-F9D78ACC7B9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C1494384-E98E-43AE-8850-F9D78ACC7B9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -64,15 +61,19 @@ Global
 		{A998E027-98C7-A65E-BFCB-E7EDF7A26D01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A998E027-98C7-A65E-BFCB-E7EDF7A26D01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A998E027-98C7-A65E-BFCB-E7EDF7A26D01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2873E683-3795-DE17-90F6-8F9B62E9A2E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2873E683-3795-DE17-90F6-8F9B62E9A2E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2873E683-3795-DE17-90F6-8F9B62E9A2E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2873E683-3795-DE17-90F6-8F9B62E9A2E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F67BD357-72EE-4304-870D-95A618B86120} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{E721E502-A126-4207-87D2-C6A515DF0050} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{C1494384-E98E-43AE-8850-F9D78ACC7B9C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{A998E027-98C7-A65E-BFCB-E7EDF7A26D01} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{2873E683-3795-DE17-90F6-8F9B62E9A2E7} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C305253A-5128-477F-B519-AD425166033B}

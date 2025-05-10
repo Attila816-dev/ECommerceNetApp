@@ -1,6 +1,6 @@
 ﻿using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Api.Services;
-using MediatR;
+using ECommerceNetApp.Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceNetApp.Api.Controllers
@@ -11,7 +11,7 @@ namespace ECommerceNetApp.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public abstract class BaseApiController(IHateoasLinkService linkService, IMediator mediator) : ControllerBase
+    public abstract class BaseApiController(IHateoasLinkService linkService, IDispatcher dispatcher) : ControllerBase
     {
         /// <summary>
         /// Gets the service for creating HATEOAS links.
@@ -19,9 +19,9 @@ namespace ECommerceNetApp.Api.Controllers
         protected IHateoasLinkService LinkService { get; } = linkService;
 
         /// <summary>
-        /// Gets the mediator for handling requests and commands.
+        /// Gets the dispatcher for handling queries and commands.
         /// </summary>
-        protected IMediator Mediator { get; } = mediator;
+        protected IDispatcher Dispatcher { get; } = dispatcher;
 
         /// <summary>
         /// Creates a standard resource response with HATEOAS links.

@@ -1,36 +1,32 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
-    public class AddCartItemCommandHandler(ICartUnitOfWork cartUnitOfWork)
-        : IRequestHandler<AddCartItemCommand>
+    public class AddCartItemCommandHandler(ICartRepository cartRepository)
+        : ICommandHandler<AddCartItemCommand>
     {
-        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
+        private readonly ICartRepository _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
 
-        public async Task Handle(AddCartItemCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(AddCartItemCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(command);
 
-            var cart = await _cartUnitOfWork.CartRepository
-                .GetByIdAsync(request.CartId, cancellationToken)
-                .ConfigureAwait(false);
-
-            cart ??= CartEntity.Create(request.CartId);
+            var cart = (await _cartRepository.GetByIdAsync(command.CartId, cancellationToken).ConfigureAwait(false))
+                ?? CartEntity.Create(command.CartId);
 
             // Use domain logic to add item
             cart.AddItem(
-                request.Item.Id,
-                request.Item.Name,
-                Money.Create(request.Item.Price, request.Item.Currency),
-                request.Item.Quantity,
-                string.IsNullOrEmpty(request.Item.ImageUrl) ? null : ImageInfo.Create(request.Item.ImageUrl, request.Item.ImageAltText));
+                command.Item.Id,
+                command.Item.Name,
+                Money.Create(command.Item.Price, command.Item.Currency),
+                command.Item.Quantity,
+                string.IsNullOrEmpty(command.Item.ImageUrl) ? null : ImageInfo.Create(command.Item.ImageUrl, command.Item.ImageAltText));
 
-            await _cartUnitOfWork.CartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
-            await _cartUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
+            await _cartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
         }
     }
 }

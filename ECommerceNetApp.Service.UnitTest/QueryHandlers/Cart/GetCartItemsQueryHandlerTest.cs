@@ -12,15 +12,12 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
     {
         private readonly GetCartItemsQueryHandler _queryHandler;
         private readonly Mock<ICartRepository> _mockRepository;
-        private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
 
         public GetCartItemsQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICartRepository>();
-            _mockUnitOfWork = new Mock<ICartUnitOfWork>();
-            _mockUnitOfWork.Setup(u => u.CartRepository).Returns(_mockRepository.Object);
-            _queryHandler = new GetCartItemsQueryHandler(_mockUnitOfWork.Object);
+            _queryHandler = new GetCartItemsQueryHandler(_mockRepository.Object);
         }
 
         [Fact]
@@ -33,7 +30,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
                 .ReturnsAsync((CartEntity?)null);
 
             // Act
-            var result = await _queryHandler.Handle(new GetCartItemsQuery(testCartId), CancellationToken.None);
+            var result = await _queryHandler.HandleAsync(new GetCartItemsQuery(testCartId), CancellationToken.None);
 
             // Assert
             result.ShouldBeNull();
@@ -54,7 +51,7 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Cart
                 .ReturnsAsync(cart);
 
             // Act
-            var result = await _queryHandler.Handle(new GetCartItemsQuery(testCartId), CancellationToken.None);
+            var result = await _queryHandler.HandleAsync(new GetCartItemsQuery(testCartId), CancellationToken.None);
 
             // Assert
             result.ShouldNotBeNull();

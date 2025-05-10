@@ -1,7 +1,7 @@
-﻿using ECommerceNetApp.Service.DTO;
-using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Service.DTO;
 
 namespace ECommerceNetApp.Service.Queries.Cart
 {
-    public record GetCartItemsQuery(string CartId) : IRequest<List<CartItemDto>?>;
+    public record GetCartItemsQuery(string CartId) : IQuery<List<CartItemDto>?>;
 }
