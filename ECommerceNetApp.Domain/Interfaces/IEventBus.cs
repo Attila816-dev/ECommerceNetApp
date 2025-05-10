@@ -6,7 +6,7 @@
            where TNotification : INotification;
 
         Task PublishAsync<TNotification>(
-           TNotification integrationEvent,
+           TNotification notification,
            CancellationToken cancellationToken = default)
            where TNotification : class, INotification;
 
