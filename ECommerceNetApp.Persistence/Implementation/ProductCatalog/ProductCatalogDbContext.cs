@@ -7,14 +7,14 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 {
     public class ProductCatalogDbContext : DbContext
     {
-        private readonly IDomainEventService? _domainEventService;
+        private readonly IEventBus? _eventBus;
 
         public ProductCatalogDbContext(
             DbContextOptions<ProductCatalogDbContext> options,
-            IDomainEventService? domainEventService)
+            IEventBus? eventBus)
             : base(options)
         {
-            _domainEventService = domainEventService;
+            _eventBus = eventBus;
         }
 
         public virtual DbSet<CategoryEntity> Categories { get; set; } = null!;
@@ -39,7 +39,7 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 
         private async Task DispatchDomainEventsAsync(CancellationToken cancellationToken)
         {
-            if (_domainEventService == null)
+            if (_eventBus == null)
             {
                 return;
             }
@@ -57,7 +57,7 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 
                 foreach (var domainEvent in events)
                 {
-                    await _domainEventService.PublishEventAsync(domainEvent, cancellationToken).ConfigureAwait(false);
+                    await _eventBus.PublishAsync(domainEvent, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

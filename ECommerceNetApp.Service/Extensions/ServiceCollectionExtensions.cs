@@ -10,12 +10,6 @@ namespace ECommerceNetApp.Service.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddECommerceServices(this IServiceCollection services)
-        {
-            services.AddScoped<IDomainEventService, DomainEventService>();
-            return services;
-        }
-
         public static IServiceCollection AddDispatcher(this IServiceCollection services)
         {
             var assembly = Assembly.GetExecutingAssembly();

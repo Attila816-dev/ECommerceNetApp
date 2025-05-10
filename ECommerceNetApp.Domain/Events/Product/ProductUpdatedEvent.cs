@@ -7,7 +7,7 @@ namespace ECommerceNetApp.Domain.Events.Product
         string? Description,
         int CategoryId,
 #pragma warning disable CA1054 // URI-like parameters should not be strings
-        ImageInfo? ImageUrl,
+        ImageInfo? ImageInfo,
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         Money Price,
         int Amount)

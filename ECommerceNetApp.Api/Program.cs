@@ -89,7 +89,6 @@ namespace ECommerceNetApp.Api
             builder.Services.AddCartDb(builder.Configuration);
             builder.Services.AddProductCatalogDb(builder.Configuration);
             builder.Services.AddValidatorsFromAssemblyContaining<AddCartItemCommandValidator>();
-            builder.Services.AddECommerceServices();
             builder.Services.AddHostedService<DatabaseInitializer>();
             ConfigureHealthCheck(builder);
         }

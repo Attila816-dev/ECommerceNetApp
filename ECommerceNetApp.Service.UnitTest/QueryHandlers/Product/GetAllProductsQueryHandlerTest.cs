@@ -15,12 +15,13 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
     {
         private readonly GetAllProductsQueryHandler _queryHandler;
         private readonly Mock<ProductCatalogDbContext> _mockDbContext;
+        private readonly Mock<IEventBus> _mockEventBus;
 
         public GetAllProductsQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
-            var mockDomainEventService = new Mock<IDomainEventService>();
-            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), mockDomainEventService.Object);
+            _mockEventBus = new Mock<IEventBus>();
+            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), _mockEventBus.Object);
             _queryHandler = new GetAllProductsQueryHandler(_mockDbContext.Object);
         }
 

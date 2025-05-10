@@ -16,12 +16,13 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
     {
         private readonly DeleteProductCommandHandler _commandHandler;
         private readonly Mock<ProductCatalogDbContext> _mockDbContext;
+        private readonly Mock<IEventBus> _mockEventBus;
 
         public DeleteProductCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
-            var mockDomainEventService = new Mock<IDomainEventService>();
-            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), mockDomainEventService.Object);
+            _mockEventBus = new Mock<IEventBus>();
+            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), _mockEventBus.Object);
             _commandHandler = new DeleteProductCommandHandler(_mockDbContext.Object);
         }
 

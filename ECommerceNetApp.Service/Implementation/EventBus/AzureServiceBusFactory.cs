@@ -10,6 +10,7 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
     /// </summary>
     public class AzureServiceBusFactory : IAsyncDisposable
     {
+        private readonly object _lock = new();
         private readonly EventBusOptions _options;
         private ServiceBusClient? _client;
         private ServiceBusAdministrationClient? _adminClient;
@@ -24,17 +25,23 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
         {
             if (_client == null)
             {
-                if (string.IsNullOrEmpty(_options.ConnectionString))
+                lock (_lock)
                 {
-                    throw new InvalidOperationException("Azure Service Bus connection string is not configured");
+                    if (_client == null)
+                    {
+                        if (string.IsNullOrEmpty(_options.ConnectionString))
+                        {
+                            throw new InvalidOperationException("Azure Service Bus connection string is not configured");
+                        }
+
+                        var clientOptions = new ServiceBusClientOptions
+                        {
+                            TransportType = ServiceBusTransportType.AmqpWebSockets,
+                        };
+
+                        _client = new ServiceBusClient(_options.ConnectionString, clientOptions);
+                    }
                 }
-
-                var clientOptions = new ServiceBusClientOptions
-                {
-                    TransportType = ServiceBusTransportType.AmqpWebSockets,
-                };
-
-                _client = new ServiceBusClient(_options.ConnectionString, clientOptions);
             }
 
             return _client;
@@ -57,11 +64,21 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
 
         public ServiceBusSender CreateSender()
         {
+            if (string.IsNullOrEmpty(_options.TopicName))
+            {
+                throw new InvalidOperationException("Azure Service Bus topic name is not configured");
+            }
+
             return CreateClient().CreateSender(_options.TopicName);
         }
 
         public ServiceBusProcessor CreateProcessor(string subscriptionName)
         {
+            if (string.IsNullOrEmpty(_options.TopicName))
+            {
+                throw new InvalidOperationException("Azure Service Bus topic name is not configured");
+            }
+
             var options = new ServiceBusProcessorOptions
             {
                 MaxConcurrentCalls = _options.MaxConcurrentCalls,

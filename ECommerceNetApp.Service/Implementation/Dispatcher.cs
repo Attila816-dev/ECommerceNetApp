@@ -12,12 +12,16 @@ namespace ECommerceNetApp.Service.Implementation
             where TQuery : IQuery<TResponse>
         {
             ArgumentNullException.ThrowIfNull(query, nameof(query));
-            var handler = _serviceProvider.GetService<IQueryHandler<TQuery, TResponse>>()
-                ?? throw new InvalidOperationException($"Handler for query {query.GetType().Name} not found.");
+
+            RequestHandlerDelegate<TResponse> handlerDelegate = async (ct) =>
+            {
+                var handler = _serviceProvider.GetService<IQueryHandler<TQuery, TResponse>>()
+                    ?? throw new InvalidOperationException($"Handler for query {query.GetType().Name} not found.");
+                var result = await handler.HandleAsync(query, ct).ConfigureAwait(false);
+                return result;
+            };
 
             var behaviors = serviceProvider.GetServices<IPipelineBehavior<TQuery, TResponse>>().Reverse();
-
-            RequestHandlerDelegate<TResponse> handlerDelegate = (ct) => handler.HandleAsync(query, ct);
             foreach (var behavior in behaviors)
             {
                 var next = handlerDelegate;
@@ -31,17 +35,16 @@ namespace ECommerceNetApp.Service.Implementation
             where TCommand : ICommand
         {
             ArgumentNullException.ThrowIfNull(command, nameof(command));
-            var handler = _serviceProvider.GetService<ICommandHandler<TCommand>>()
-                ?? throw new InvalidOperationException($"Handler for command {command.GetType().Name} not found.");
-
-            var behaviors = serviceProvider.GetServices<IPipelineBehavior<TCommand, bool>>().Reverse();
 
             RequestHandlerDelegate<bool> handlerDelegate = async (ct) =>
             {
+                var handler = _serviceProvider.GetService<ICommandHandler<TCommand>>()
+                    ?? throw new InvalidOperationException($"Handler for command {command.GetType().Name} not found.");
                 await handler.HandleAsync(command, ct).ConfigureAwait(false);
                 return true;
             };
 
+            var behaviors = serviceProvider.GetServices<IPipelineBehavior<TCommand, bool>>().Reverse();
             foreach (var behavior in behaviors)
             {
                 var next = handlerDelegate;
@@ -55,12 +58,16 @@ namespace ECommerceNetApp.Service.Implementation
             where TCommand : ICommand<TResponse>
         {
             ArgumentNullException.ThrowIfNull(command, nameof(command));
-            var handler = _serviceProvider.GetService<ICommandHandler<TCommand, TResponse>>()
-                ?? throw new InvalidOperationException($"Handler for command {command.GetType().Name} not found.");
+
+            RequestHandlerDelegate<TResponse> handlerDelegate = async (ct) =>
+            {
+                var handler = _serviceProvider.GetService<ICommandHandler<TCommand, TResponse>>()
+                    ?? throw new InvalidOperationException($"Handler for command {command.GetType().Name} not found.");
+                var result = await handler.HandleAsync(command, ct).ConfigureAwait(false);
+                return result;
+            };
 
             var behaviors = serviceProvider.GetServices<IPipelineBehavior<TCommand, TResponse>>().Reverse();
-
-            RequestHandlerDelegate<TResponse> handlerDelegate = (ct) => handler.HandleAsync(command, ct);
             foreach (var behavior in behaviors)
             {
                 var next = handlerDelegate;

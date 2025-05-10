@@ -15,11 +15,12 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
     {
         private readonly UpdateProductCommandValidator _validator;
         private readonly Mock<ProductCatalogDbContext> _mockDbContext;
+        private readonly Mock<IEventBus> _mockEventBus;
 
         public UpdateProductCommandValidatorTest()
         {
-            var domainEventService = new Mock<IDomainEventService>();
-            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), domainEventService.Object);
+            _mockEventBus = new Mock<IEventBus>();
+            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), _mockEventBus.Object);
             _validator = new UpdateProductCommandValidator(_mockDbContext.Object);
         }
 

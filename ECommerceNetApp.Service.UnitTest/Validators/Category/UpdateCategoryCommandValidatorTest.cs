@@ -14,11 +14,12 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
     {
         private readonly UpdateCategoryCommandValidator _validator;
         private readonly Mock<ProductCatalogDbContext> _mockDbContext;
+        private readonly Mock<IEventBus> _mockEventBus;
 
         public UpdateCategoryCommandValidatorTest()
         {
-            var domainEventService = new Mock<IDomainEventService>();
-            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), domainEventService.Object);
+            _mockEventBus = new Mock<IEventBus>();
+            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), _mockEventBus.Object);
             _validator = new UpdateCategoryCommandValidator(_mockDbContext.Object);
         }
 

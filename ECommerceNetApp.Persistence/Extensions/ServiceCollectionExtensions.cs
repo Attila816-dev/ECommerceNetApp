@@ -38,10 +38,7 @@ namespace ECommerceNetApp.Persistence.Extensions
             var cartDbConnectionString = configuration.GetConnectionString(CartDbConnectionStringName);
             ArgumentNullException.ThrowIfNull(cartDbConnectionString);
 
-            services.AddScoped(provider =>
-            {
-                return new CartDbContext(cartDbConnectionString);
-            });
+            services.AddSingleton<ICartDbContextFactory>(new CartDbContextFactory(cartDbConnectionString));
 
             services.AddScoped<CartDbInitializer>();
             services.AddScoped<CartSeeder>();
