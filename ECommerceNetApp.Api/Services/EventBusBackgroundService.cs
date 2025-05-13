@@ -14,8 +14,14 @@ namespace ECommerceNetApp.Api.Services
         private static readonly Action<ILogger, Exception?> LogEventBusBackgroundServiceError =
             LoggerMessage.Define(
             LogLevel.Error,
-            new EventId(1, nameof(EventBusBackgroundService)),
+            new EventId(2, nameof(EventBusBackgroundService)),
             "Error occurred while running the event bus consumer");
+
+        private static readonly Action<ILogger, Exception?> LogEventBusDisposeError =
+            LoggerMessage.Define(
+            LogLevel.Warning,
+            new EventId(3, nameof(EventBusBackgroundService)),
+            "Error disposing event bus during shutdown");
 
         private readonly IEventBus _eventBus = eventBus ?? throw new ArgumentNullException(nameof(eventBus));
         private readonly ILogger<EventBusBackgroundService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -23,12 +29,24 @@ namespace ECommerceNetApp.Api.Services
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            if (_eventBus is IAsyncDisposable disposable)
+#pragma warning disable CA1031 // Do not catch general exception types
+            try
             {
-                await disposable.DisposeAsync().ConfigureAwait(false);
+                if (_eventBus is IAsyncDisposable disposable)
+                {
+                    await disposable.DisposeAsync().ConfigureAwait(false);
+                }
             }
-
-            await base.StopAsync(cancellationToken).ConfigureAwait(false);
+            catch (SystemException ex)
+            {
+                // Log but don't rethrow to prevent shutdown issues
+                LogEventBusDisposeError(_logger, ex);
+            }
+            finally
+            {
+                await base.StopAsync(cancellationToken).ConfigureAwait(false);
+            }
+#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

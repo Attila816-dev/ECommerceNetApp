@@ -5,6 +5,7 @@ using Polly.Retry;
 
 namespace ECommerceNetApp.Service.Implementation.EventBus
 {
+#pragma warning disable CA1031 // Do not catch general exception types
     internal sealed class InMemoryEventBus(InMemoryMessageQueue queue, ILogger<InMemoryEventBus> logger)
         : IEventBus, IAsyncDisposable
     {
@@ -38,10 +39,16 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
             new EventId(6, nameof(InMemoryEventBus)),
             "Unhandled error processing message of type {EventType}");
 
+        private static readonly Action<ILogger, Exception?> LogInMemoryEventBusDisposeError =
+            LoggerMessage.Define(
+            LogLevel.Warning,
+            new EventId(7, nameof(InMemoryEventBus)),
+            "Error during InMemoryEventBus disposal");
+
         private readonly object _handlersLock = new();
         private readonly Dictionary<Type, List<Func<INotification, CancellationToken, Task>>> _handlers = new();
-        private readonly InMemoryMessageQueue _queue = queue;
-        private readonly ILogger<InMemoryEventBus> _logger = logger;
+        private readonly InMemoryMessageQueue _queue = queue ?? throw new ArgumentNullException(nameof(queue));
+        private readonly ILogger<InMemoryEventBus> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         private bool _isStarted;
         private CancellationTokenSource? _cts;
 
@@ -108,28 +115,35 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
 
         public async ValueTask DisposeAsync()
         {
-            if (_cts != null)
+            try
             {
-                await _cts.CancelAsync().ConfigureAwait(false);
-                _cts.Dispose();
-                _cts = null;
+                if (_cts != null)
+                {
+                    await _cts.CancelAsync().ConfigureAwait(false);
+                    _cts.Dispose();
+                    _cts = null;
+                }
+
+                _isStarted = false;
+
+                if (_queue?.Writer != null)
+                {
+                    _queue.Writer.TryComplete();
+                }
             }
-
-            _isStarted = false;
-
-            // Complete the writer to signal no more items will be added
-            if (_queue?.Writer != null)
+            catch (Exception ex)
             {
-                _queue.Writer.TryComplete();
+                // Catch any exceptions during disposal to prevent them from bubbling up
+                LogInMemoryEventBusDisposeError(_logger, ex);
             }
-
-            await Task.CompletedTask.ConfigureAwait(false);
-            GC.SuppressFinalize(this);
+            finally
+            {
+                GC.SuppressFinalize(this);
+            }
         }
 
         private async Task TryProcessMessageAsync(INotification notification, Type eventType, AsyncRetryPolicy retryPolicy, Func<INotification, CancellationToken, Task> handler)
         {
-#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 // Use retry policy for each handler
@@ -157,7 +171,7 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
                 // Log the error but continue processing other handlers
                 LogMessageProcessingError(_logger, eventType.Name, ex);
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
     }
+#pragma warning restore CA1031 // Do not catch general exception types
 }
