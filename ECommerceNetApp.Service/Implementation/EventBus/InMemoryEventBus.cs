@@ -118,7 +118,7 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
             _isStarted = false;
 
             // Complete the writer to signal no more items will be added
-            _queue.Writer?.TryComplete();
+            _queue?.Writer?.TryComplete();
 
             await Task.CompletedTask.ConfigureAwait(false);
             GC.SuppressFinalize(this);
