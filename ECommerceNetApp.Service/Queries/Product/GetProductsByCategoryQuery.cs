@@ -1,7 +1,7 @@
-﻿using ECommerceNetApp.Service.DTO;
-using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Service.DTO;
 
 namespace ECommerceNetApp.Service.Queries.Product
 {
-    public record GetProductsByCategoryQuery(int CategoryId) : IRequest<IEnumerable<ProductDto>>;
+    public record GetProductsByCategoryQuery(int CategoryId) : IQuery<IEnumerable<ProductDto>>;
 }

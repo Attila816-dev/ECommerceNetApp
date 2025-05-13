@@ -1,9 +1,9 @@
-﻿using ECommerceNetApp.Service.DTO;
-using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Service.DTO;
 
 namespace ECommerceNetApp.Service.Queries.Product
 {
-    public record GetPaginatedProductsQuery : IRequest<PaginationResult<ProductDto>>
+    public record GetPaginatedProductsQuery : IQuery<PaginationResult<ProductDto>>
     {
         public GetPaginatedProductsQuery(int pageNumber, int pageSize, int? categoryId = null)
         {

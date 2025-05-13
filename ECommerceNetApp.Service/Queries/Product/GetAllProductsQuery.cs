@@ -1,7 +1,7 @@
-﻿using ECommerceNetApp.Service.DTO;
-using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Service.DTO;
 
 namespace ECommerceNetApp.Service.Queries.Product
 {
-    public record GetAllProductsQuery : IRequest<IEnumerable<ProductDto>>;
+    public record GetAllProductsQuery : IQuery<IEnumerable<ProductDto>>;
 }

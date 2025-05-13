@@ -1,25 +1,28 @@
 ﻿using ECommerceNetApp.Domain.Exceptions.Product;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
 {
-    public class DeleteProductCommandHandler(IProductCatalogUnitOfWork productCatalogUnitOfWork) : IRequestHandler<DeleteProductCommand>
+    public class DeleteProductCommandHandler(ProductCatalogDbContext dbContext)
+        : ICommandHandler<DeleteProductCommand>
     {
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
+        private readonly ProductCatalogDbContext _dbContext = dbContext;
 
-        public async Task Handle(DeleteProductCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(DeleteProductCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
-            var exists = await _productCatalogUnitOfWork.ProductRepository.ExistsAsync(request.Id, cancellationToken).ConfigureAwait(false);
-            if (!exists)
+            ArgumentNullException.ThrowIfNull(command);
+            var existingProduct = await _dbContext.Products.FirstOrDefaultAsync(p => p.Id == command.Id, cancellationToken).ConfigureAwait(false);
+            if (existingProduct == null)
             {
-                throw InvalidProductException.NotFound(request.Id);
+                throw InvalidProductException.NotFound(command.Id);
             }
 
-            await _productCatalogUnitOfWork.ProductRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);
-            await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
+            existingProduct.MarkAsDeleted();
+            _dbContext.Products.Remove(existingProduct);
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

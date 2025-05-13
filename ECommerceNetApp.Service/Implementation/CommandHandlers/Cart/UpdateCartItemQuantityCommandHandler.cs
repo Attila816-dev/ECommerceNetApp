@@ -1,30 +1,29 @@
 ﻿using ECommerceNetApp.Domain.Exceptions.Cart;
+using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Interfaces.Cart;
 using ECommerceNetApp.Service.Commands.Cart;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
 {
     public class UpdateCartItemQuantityCommandHandler(
-        ICartUnitOfWork cartUnitOfWork)
-        : IRequestHandler<UpdateCartItemQuantityCommand>
+        ICartRepository cartRepository)
+        : ICommandHandler<UpdateCartItemQuantityCommand>
     {
-        private readonly ICartUnitOfWork _cartUnitOfWork = cartUnitOfWork;
+        private readonly ICartRepository _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
 
-        public async Task Handle(UpdateCartItemQuantityCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(UpdateCartItemQuantityCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(command);
 
-            var cart = await _cartUnitOfWork.CartRepository.GetByIdAsync(request.CartId, cancellationToken).ConfigureAwait(false);
+            var cart = await _cartRepository.GetByIdAsync(command.CartId, cancellationToken).ConfigureAwait(false);
 
             if (cart == null)
             {
-                throw InvalidCartException.CartNotFound(request.CartId);
+                throw InvalidCartException.CartNotFound(command.CartId);
             }
 
-            cart.UpdateItemQuantity(request.ItemId, request.Quantity);
-            await _cartUnitOfWork.CartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
-            await _cartUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
+            cart.UpdateItemQuantity(command.ItemId, command.Quantity);
+            await _cartRepository.SaveAsync(cart, cancellationToken).ConfigureAwait(false);
         }
     }
 }

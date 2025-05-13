@@ -69,6 +69,11 @@ namespace ECommerceNetApp.Domain.ValueObjects
             return this with { Quantity = newQuantity };
         }
 
+        public CartItem WithUpdatedProperties(string newName, Money newPrice, ImageInfo? newImage = null)
+        {
+            return this with { Price = newPrice, Name = newName, Image = newImage ?? Image };
+        }
+
         public CartItem WithIncreasedQuantity(int additionalQuantity)
         {
             if (additionalQuantity <= 0)

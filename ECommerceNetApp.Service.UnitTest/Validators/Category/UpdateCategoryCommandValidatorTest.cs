@@ -1,24 +1,26 @@
 using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.Validators.Category;
 using FluentValidation.TestHelper;
+using Microsoft.EntityFrameworkCore;
 using Moq;
+using Moq.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.UnitTest.Validators.Category
 {
     public class UpdateCategoryCommandValidatorTest
     {
         private readonly UpdateCategoryCommandValidator _validator;
-        private readonly Mock<ICategoryRepository> _categoryRepository;
-        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
+        private readonly Mock<ProductCatalogDbContext> _mockDbContext;
+        private readonly Mock<IEventBus> _mockEventBus;
 
         public UpdateCategoryCommandValidatorTest()
         {
-            _categoryRepository = new Mock<ICategoryRepository>();
-            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
-            _mockUnitOfWork.Setup(u => u.CategoryRepository).Returns(_categoryRepository.Object);
-            _validator = new UpdateCategoryCommandValidator(_mockUnitOfWork.Object);
+            _mockEventBus = new Mock<IEventBus>();
+            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), _mockEventBus.Object);
+            _validator = new UpdateCategoryCommandValidator(_mockDbContext.Object);
         }
 
         [Fact]
@@ -27,8 +29,10 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
             // Arrange
             var command = new UpdateCategoryCommand(1, "Valid Category Name", null, null);
 
-            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
+            var category = CategoryEntity.Create("test-category", null, null, 1);
+
+            var categories = new List<CategoryEntity> { category }.AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             // Act
             var result = await _validator.TestValidateAsync(command);
@@ -42,9 +46,10 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
         {
             // Arrange
             var command = new UpdateCategoryCommand(1, string.Empty, null, null);
+            var category = CategoryEntity.Create("test-category", null, null, 1);
 
-            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
+            var categories = new List<CategoryEntity> { category }.AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             // Act
             var result = await _validator.TestValidateAsync(command);
@@ -61,8 +66,10 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
             var categoryName = new string('A', CategoryEntity.MaxCategoryNameLength + 1);
             var command = new UpdateCategoryCommand(1, categoryName, null, null);
 
-            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
+            var category = CategoryEntity.Create("test-category", null, null, 1);
+
+            var categories = new List<CategoryEntity> { category }.AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             // Act
             var result = await _validator.TestValidateAsync(command);
@@ -78,11 +85,10 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
             // Arrange
             var command = new UpdateCategoryCommand(1, "Valid Category Name", null, 0);
 
-            _categoryRepository.Setup(repo => repo.ExistsAsync(It.Is<int>(x => x == 1), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
+            var category = CategoryEntity.Create("test-category", null, null, 1);
 
-            _categoryRepository.Setup(repo => repo.ExistsAsync(It.Is<int>(x => x == 0), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(false);
+            var categories = new List<CategoryEntity> { category }.AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             // Act
             var result = await _validator.TestValidateAsync(command);
@@ -98,8 +104,10 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
             // Arrange
             var command = new UpdateCategoryCommand(1, "Valid Category Name", null, null);
 
-            _categoryRepository.Setup(repo => repo.ExistsAsync(It.Is<int>(x => x == 1), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(false);
+            var category = CategoryEntity.Create("test-category", null, null, 2);
+
+            var categories = new List<CategoryEntity> { category }.AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             // Act
             var result = await _validator.TestValidateAsync(command);
@@ -114,9 +122,10 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
         {
             // Arrange
             var command = new UpdateCategoryCommand(1, "Valid Category Name", null, null);
+            var category = CategoryEntity.Create("test-category", null, null, 1);
 
-            _categoryRepository.Setup(repo => repo.ExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
+            var categories = new List<CategoryEntity> { category }.AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             // Act
             var result = await _validator.TestValidateAsync(command);

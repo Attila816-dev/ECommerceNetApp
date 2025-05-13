@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
-using MediatR;
+using ECommerceNetApp.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace ECommerceNetApp.Service.Implementation.Behaviors
 {
     public class LoggingBehavior<TRequest, TResponse>(
-                ILogger<LoggingBehavior<TRequest, TResponse>> logger)
-                : IPipelineBehavior<TRequest, TResponse>
-                where TRequest : notnull
+        ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+        : IPipelineBehavior<TRequest, TResponse>
+        where TRequest : notnull
     {
         private static readonly Action<ILogger, string, string, string, Exception?> LogHandlingRequest =
             LoggerMessage.Define<string, string, string>(
@@ -24,7 +24,7 @@ namespace ECommerceNetApp.Service.Implementation.Behaviors
 
         private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger = logger;
 
-        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        public async Task<TResponse> HandleAsync(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(next, nameof(next));
             var requestName = request.GetType().Name;

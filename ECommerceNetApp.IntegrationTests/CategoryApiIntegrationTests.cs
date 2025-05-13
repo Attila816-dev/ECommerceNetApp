@@ -28,11 +28,7 @@ namespace ECommerceNetApp.IntegrationTests
             {
                 builder.ConfigureServices(services =>
                 {
-                    services.Remove(services.Single(d => d.ServiceType == typeof(CartDbContext)));
-                    services.AddScoped(provider =>
-                    {
-                        return new CartDbContext("Filename=:memory:;Mode=Memory;Cache=Shared");
-                    });
+                    services.AddSingleton<ICartDbContextFactory>(new CartDbContextFactory("Filename=:memory:;Mode=Memory;Cache=Shared"));
 
                     var optionsConfig = services
                         .Where(r => r.ServiceType.IsGenericType && r.ServiceType.GetGenericTypeDefinition() == typeof(IDbContextOptionsConfiguration<>)).ToArray();
@@ -50,6 +46,7 @@ namespace ECommerceNetApp.IntegrationTests
                         o.EnableDatabaseMigration = false;
                         o.SeedSampleData = false;
                     });
+                    services.Configure<EventBusOptions>(o => o.Type = "InMemory");
                 });
             });
 

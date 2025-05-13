@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
 
 namespace ECommerceNetApp.Domain.Events
 {
