@@ -112,9 +112,11 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
         private readonly ServiceBusAdministrationClient _adminClient;
         private readonly ServiceBusSender _sender;
         private readonly ILogger<AzureEventBus> _logger;
-        private readonly IOptions<EventBusOptions> _eventBusOptions;
         private readonly Dictionary<Type, List<Func<INotification, CancellationToken, Task>>> _handlers = new();
         private readonly List<ServiceBusProcessor> _processors = new();
+        private readonly string _topicName;
+        private readonly bool _autoCreateEntities;
+        private readonly TimeSpan _defaultMessageTimeToLive;
         private bool _isStarted;
 
         public AzureEventBus(
@@ -123,10 +125,12 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
             ILogger<AzureEventBus> logger)
         {
             _serviceBusFactory = serviceBusFactory;
-            _eventBusOptions = eventBusOptions;
             _logger = logger;
             _adminClient = _serviceBusFactory.CreateAdministrationClient();
             _sender = _serviceBusFactory.CreateSender();
+            _topicName = eventBusOptions.Value.AzureOptions!.TopicName;
+            _autoCreateEntities = eventBusOptions.Value.AutoCreateEntities;
+            _defaultMessageTimeToLive = TimeSpan.FromDays(eventBusOptions.Value.DefaultMessageTimeToLiveInDays); // Set message expiration
         }
 
         public void Register<TNotification>(INotificationHandler<TNotification> handler)
@@ -181,10 +185,10 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
             }
 
             // First, ensure the topic exists
-            if (_eventBusOptions.Value.AutoCreateEntities && !await _adminClient.TopicExistsAsync(_eventBusOptions.Value.TopicName, cancellationToken).ConfigureAwait(false))
+            if (_autoCreateEntities && !await _adminClient.TopicExistsAsync(_topicName, cancellationToken).ConfigureAwait(false))
             {
-                await _adminClient.CreateTopicAsync(new CreateTopicOptions(_eventBusOptions.Value.TopicName), cancellationToken).ConfigureAwait(false);
-                LogTopicCreated(_logger, _eventBusOptions.Value.TopicName!, null);
+                await _adminClient.CreateTopicAsync(new CreateTopicOptions(_topicName), cancellationToken).ConfigureAwait(false);
+                LogTopicCreated(_logger, _topicName!, null);
             }
 
             // For each event type we handle, ensure a subscription exists
@@ -213,10 +217,10 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
 
         private async Task SetupSubscriptionAndProcessorAsync(Type eventType, CancellationToken cancellationToken)
         {
-            var subscriptionName = $"{_eventBusOptions.Value.TopicName}-{eventType.Name}";
-            await CreateSubscriptionIfNotExistAsync(eventType, subscriptionName, cancellationToken).ConfigureAwait(false);
+            await CreateSubscriptionIfNotExistAsync(eventType, cancellationToken).ConfigureAwait(false);
 
             // Create a processor for this subscription
+            var subscriptionName = GetSubscriptionName(eventType);
             var processor = _serviceBusFactory.CreateProcessor(subscriptionName);
 
             // Handle messages
@@ -322,34 +326,28 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
             }
         }
 
-        private async Task CreateSubscriptionIfNotExistAsync(Type eventType, string subscriptionName, CancellationToken cancellationToken)
+        private async Task CreateSubscriptionIfNotExistAsync(Type eventType, CancellationToken cancellationToken)
         {
-            if (!_eventBusOptions.Value.AutoCreateEntities
-                || await _adminClient.SubscriptionExistsAsync(_eventBusOptions.Value.TopicName, subscriptionName, cancellationToken).ConfigureAwait(false))
+            var subscriptionName = GetSubscriptionName(eventType);
+            if (!_autoCreateEntities || await _adminClient.SubscriptionExistsAsync(_topicName, subscriptionName, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
 
-            // Create the subscription with a default rule that accepts all messages
-            var subscriptionCreationOptions = new CreateSubscriptionOptions(_eventBusOptions.Value.TopicName, subscriptionName)
-            {
-                DefaultMessageTimeToLive = TimeSpan.FromDays(_eventBusOptions.Value.DefaultMessageTimeToLiveInDays), // Set message expiration
-            };
-
-            await _adminClient.CreateSubscriptionAsync(subscriptionCreationOptions, cancellationToken).ConfigureAwait(false);
+            await _adminClient.CreateSubscriptionAsync(GetSubscriptionCreationOptions(eventType), cancellationToken).ConfigureAwait(false);
             LogSubscripitionCreated(_logger, subscriptionName, eventType.Name, null);
 
             try
             {
                 // Delete the default rule
-                await _adminClient.DeleteRuleAsync(_eventBusOptions.Value.TopicName, subscriptionName, "$Default", cancellationToken).ConfigureAwait(false);
+                await _adminClient.DeleteRuleAsync(_topicName, subscriptionName, "$Default", cancellationToken).ConfigureAwait(false);
 
                 // Create rule to filter by event type
                 var rule = new CreateRuleOptions(
                     $"{eventType.Name}Rule",
                     new CorrelationRuleFilter { Subject = eventType.Name });
 
-                await _adminClient.CreateRuleAsync(_eventBusOptions.Value.TopicName, subscriptionName, rule, cancellationToken).ConfigureAwait(false);
+                await _adminClient.CreateRuleAsync(_topicName, subscriptionName, rule, cancellationToken).ConfigureAwait(false);
                 LogCreatedSubscriptionFilterRule(_logger, eventType.Name, subscriptionName, null);
             }
             catch (Exception ex)
@@ -359,6 +357,14 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
                 throw;
             }
         }
+
+        private string GetSubscriptionName(Type eventType) => $"{_topicName}-{eventType.Name}";
+
+        private CreateSubscriptionOptions GetSubscriptionCreationOptions(Type eventType)
+            => new CreateSubscriptionOptions(_topicName, GetSubscriptionName(eventType))
+            {
+                DefaultMessageTimeToLive = _defaultMessageTimeToLive,
+            };
     }
 #pragma warning restore CA1031 // Do not catch general exception types
 }

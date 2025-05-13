@@ -28,15 +28,20 @@ namespace ECommerceNetApp.Service.Extensions
             ArgumentNullException.ThrowIfNull(eventBusOptions, nameof(eventBusOptions));
 
             // Register the appropriate event bus implementation
-            if (eventBusOptions.UseAzureEventBus)
+            if (eventBusOptions.UseAzure)
             {
-                if (string.IsNullOrWhiteSpace(eventBusOptions.ConnectionString))
+                if (string.IsNullOrWhiteSpace(eventBusOptions.AzureOptions?.ConnectionString))
                 {
                     throw new InvalidOperationException("Azure Service Bus connection string must be provided when using Azure Event Bus");
                 }
 
                 services.AddSingleton<AzureServiceBusFactory>();
                 services.AddSingleton<IEventBus, AzureEventBus>();
+            }
+            else if (eventBusOptions.UseAws)
+            {
+                services.AddSingleton<AWSEventBusFactory>();
+                services.AddSingleton<IEventBus, AwsEventBus>();
             }
             else
             {

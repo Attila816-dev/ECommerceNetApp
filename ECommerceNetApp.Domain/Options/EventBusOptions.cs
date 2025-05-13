@@ -10,33 +10,32 @@
         public required string Type { get; set; }
 
         /// <summary>
-        /// Gets or sets the Azure Service Bus connection string. Required when Type is "Azure".
-        /// </summary>
-        public string? ConnectionString { get; set; }
-
-        /// <summary>
-        /// Gets or sets the Azure Service Bus topic name. Required when Type is "Azure".
-        /// </summary>
-        public string? TopicName { get; set; }
-
-        /// <summary>
         /// Gets or sets the default time to live for messages in days.
         /// </summary>
-        public int DefaultMessageTimeToLiveInDays { get; set; } = 14;
+        public required int DefaultMessageTimeToLiveInDays { get; set; }
 
         /// <summary>
         /// Gets or sets the maximum number of concurrent calls to process messages.
         /// </summary>
-        public int MaxConcurrentCalls { get; set; } = 10;
+        public required int MaxConcurrentCalls { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether whether to auto-create topics and subscriptions if they don't exist.
         /// </summary>
-        public bool AutoCreateEntities { get; set; } = true;
+        public bool AutoCreateEntities { get; set; }
+
+        public AzureEventBusOptions? AzureOptions { get; set; }
+
+        public AWSEventBusOptions? AWSOptions { get; set; }
 
         /// <summary>
-        /// Gets a value indicating whether to use the Azure Event Bus.
+        /// Gets a value indicating whether to use the Azure.
         /// </summary>
-        public bool UseAzureEventBus => string.Equals(Type, "Azure", StringComparison.OrdinalIgnoreCase);
+        public bool UseAzure => string.Equals(Type, "Azure", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Gets a value indicating whether to use the AWS.
+        /// </summary>
+        public bool UseAws => string.Equals(Type, "AWS", StringComparison.OrdinalIgnoreCase);
     }
 }

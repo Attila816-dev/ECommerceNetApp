@@ -11,14 +11,21 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
     public class AzureServiceBusFactory : IAsyncDisposable
     {
         private readonly object _lock = new();
-        private readonly EventBusOptions _options;
+        private readonly AzureEventBusOptions _azureEventBusOptions;
         private ServiceBusClient? _client;
         private ServiceBusAdministrationClient? _adminClient;
+        private ServiceBusProcessorOptions _serviceBusProcessorOptions;
 
         public AzureServiceBusFactory(IOptions<EventBusOptions> options)
         {
             ArgumentNullException.ThrowIfNull(options, nameof(options));
-            _options = options.Value;
+            _azureEventBusOptions = options.Value.AzureOptions ?? throw new InvalidOperationException("Azure Service Bus options are not configured");
+            _serviceBusProcessorOptions = new ServiceBusProcessorOptions
+            {
+                MaxConcurrentCalls = options.Value.MaxConcurrentCalls,
+                AutoCompleteMessages = false,
+                PrefetchCount = options.Value.MaxConcurrentCalls * 3,
+            };
         }
 
         public ServiceBusClient CreateClient()
@@ -29,7 +36,7 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
                 {
                     if (_client == null)
                     {
-                        if (string.IsNullOrEmpty(_options.ConnectionString))
+                        if (string.IsNullOrEmpty(_azureEventBusOptions.ConnectionString))
                         {
                             throw new InvalidOperationException("Azure Service Bus connection string is not configured");
                         }
@@ -39,7 +46,7 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
                             TransportType = ServiceBusTransportType.AmqpWebSockets,
                         };
 
-                        _client = new ServiceBusClient(_options.ConnectionString, clientOptions);
+                        _client = new ServiceBusClient(_azureEventBusOptions.ConnectionString, clientOptions);
                     }
                 }
             }
@@ -51,12 +58,12 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
         {
             if (_adminClient == null)
             {
-                if (string.IsNullOrEmpty(_options.ConnectionString))
+                if (string.IsNullOrEmpty(_azureEventBusOptions.ConnectionString))
                 {
                     throw new InvalidOperationException("Azure Service Bus connection string is not configured");
                 }
 
-                _adminClient = new ServiceBusAdministrationClient(_options.ConnectionString);
+                _adminClient = new ServiceBusAdministrationClient(_azureEventBusOptions.ConnectionString);
             }
 
             return _adminClient;
@@ -64,29 +71,22 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
 
         public ServiceBusSender CreateSender()
         {
-            if (string.IsNullOrEmpty(_options.TopicName))
+            if (string.IsNullOrEmpty(_azureEventBusOptions.TopicName))
             {
                 throw new InvalidOperationException("Azure Service Bus topic name is not configured");
             }
 
-            return CreateClient().CreateSender(_options.TopicName);
+            return CreateClient().CreateSender(_azureEventBusOptions.TopicName);
         }
 
         public ServiceBusProcessor CreateProcessor(string subscriptionName)
         {
-            if (string.IsNullOrEmpty(_options.TopicName))
+            if (string.IsNullOrEmpty(_azureEventBusOptions.TopicName))
             {
                 throw new InvalidOperationException("Azure Service Bus topic name is not configured");
             }
 
-            var options = new ServiceBusProcessorOptions
-            {
-                MaxConcurrentCalls = _options.MaxConcurrentCalls,
-                AutoCompleteMessages = false,
-                PrefetchCount = _options.MaxConcurrentCalls * 3,
-            };
-
-            return CreateClient().CreateProcessor(_options.TopicName, subscriptionName, options);
+            return CreateClient().CreateProcessor(_azureEventBusOptions.TopicName, subscriptionName, _serviceBusProcessorOptions);
         }
 
         public async ValueTask DisposeAsync()

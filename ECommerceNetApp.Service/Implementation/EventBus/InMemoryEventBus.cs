@@ -26,12 +26,6 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
             new EventId(3, nameof(InMemoryEventBus)),
             "Started processing messages for event type {EventType}");
 
-        private static readonly Action<ILogger, Exception?> LogStoppingEventConsumer =
-            LoggerMessage.Define(
-            LogLevel.Information,
-            new EventId(4, nameof(InMemoryEventBus)),
-            "Stopping in-memory event consumer");
-
         private static readonly Action<ILogger, string, string, Exception?> LogMessageProcessingErrorInHandler =
             LoggerMessage.Define<string, string>(
             LogLevel.Error,
@@ -92,31 +86,23 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
             // Create a linked token source that will be canceled when either the provided token is canceled or when DisposeAsync is called
             _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            try
+            await foreach (var notification in _queue.Reader.ReadAllAsync(_cts.Token).ConfigureAwait(false))
             {
-                await foreach (var notification in _queue.Reader.ReadAllAsync(_cts.Token).ConfigureAwait(false))
+                var eventType = notification.GetType();
+                LogStartOfProcessingMessages(_logger, eventType.Name, null);
+
+                if (_handlers.TryGetValue(eventType, out var handlers))
                 {
-                    var eventType = notification.GetType();
-                    LogStartOfProcessingMessages(_logger, eventType.Name, null);
+                    // Create a retry policy for event processing
+                    var retryPolicy = Policy
+                        .Handle<Exception>()
+                        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
-                    if (_handlers.TryGetValue(eventType, out var handlers))
+                    foreach (var handler in handlers)
                     {
-                        // Create a retry policy for event processing
-                        var retryPolicy = Policy
-                            .Handle<Exception>()
-                            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
-
-                        foreach (var handler in handlers)
-                        {
-                            await TryProcessMessageAsync(notification, eventType, retryPolicy, handler).ConfigureAwait(false);
-                        }
+                        await TryProcessMessageAsync(notification, eventType, retryPolicy, handler).ConfigureAwait(false);
                     }
                 }
-            }
-            catch (OperationCanceledException) when (_cts.Token.IsCancellationRequested)
-            {
-                // This is expected when shutting down
-                LogStoppingEventConsumer(_logger, null);
             }
         }
 
