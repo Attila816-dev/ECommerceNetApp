@@ -1,10 +1,12 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Exceptions.Product;
 using ECommerceNetApp.Domain.ValueObjects;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
+using ECommerceNetApp.Service.UnitTest.Extensions;
 using Moq;
+using Moq.EntityFrameworkCore;
 using Shouldly;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
@@ -12,16 +14,13 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
     public class DeleteProductCommandHandlerTest
     {
         private readonly DeleteProductCommandHandler _commandHandler;
-        private readonly Mock<IProductRepository> _mockRepository;
-        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
+        private readonly Mock<ProductCatalogDbContext> _mockDbContext;
 
         public DeleteProductCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
-            _mockRepository = new Mock<IProductRepository>();
-            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
-            _mockUnitOfWork.SetupGet(u => u.ProductRepository).Returns(_mockRepository.Object);
-            _commandHandler = new DeleteProductCommandHandler(_mockUnitOfWork.Object);
+            _mockDbContext = MockProductCatalogDbContextFactory.Create().DbContext;
+            _commandHandler = new DeleteProductCommandHandler(_mockDbContext.Object);
         }
 
         [Fact]
@@ -31,27 +30,17 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
             var category = CategoryEntity.Create("test-category", null, null, 1);
             var product = ProductEntity.Create("test-product", null, null, category, Money.From(10), 2, 1);
 
-            _mockRepository.Setup(r => r.ExistsAsync(product.Id, CancellationToken.None))
-                .ReturnsAsync(true);
+            var products = new List<ProductEntity> { product }.AsQueryable();
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(products);
 
-            _mockRepository.Setup(r => r.DeleteAsync(product.Id, CancellationToken.None))
-                .Verifiable();
-
-            _mockUnitOfWork.Setup(x => x.CommitAsync(CancellationToken.None))
-                .Returns(Task.CompletedTask)
-                .Verifiable();
+            var categories = new List<CategoryEntity> { category }.AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             // Act
-            await _commandHandler.Handle(new DeleteProductCommand(product.Id), CancellationToken.None);
+            await _commandHandler.HandleAsync(new DeleteProductCommand(product.Id), CancellationToken.None);
 
             // Assert
-            _mockRepository.Verify(
-                r => r.DeleteAsync(It.Is<int>(c => c == product.Id), CancellationToken.None),
-                Times.Once);
-
-            _mockUnitOfWork.Verify(
-                u => u.CommitAsync(CancellationToken.None),
-                Times.Once);
+            _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -59,12 +48,16 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
         {
             // Arrange
             var productId = 2;
-            _mockRepository.Setup(repo => repo.ExistsAsync(productId, CancellationToken.None))
-                .ReturnsAsync(false);
+
+            var products = new List<ProductEntity>().AsQueryable();
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(products);
+
+            var categories = new List<CategoryEntity>().AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             // Act & Assert
             await Should.ThrowAsync<InvalidProductException>(() =>
-                _commandHandler.Handle(new DeleteProductCommand(productId), CancellationToken.None));
+                _commandHandler.HandleAsync(new DeleteProductCommand(productId), CancellationToken.None));
         }
     }
 }

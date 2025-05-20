@@ -108,6 +108,23 @@ namespace ECommerceNetApp.Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
+        public void UpdateItemProperties(int itemId, string newName, Money newPrice, ImageInfo? newImage = null)
+        {
+            var itemIndex = _items.FindIndex(i => i.Id == itemId);
+            if (itemIndex < 0)
+            {
+                return; // Item not in cart
+            }
+
+            var oldItem = _items[itemIndex];
+            var updatedItem = oldItem.WithUpdatedProperties(newName, newPrice, newImage);
+            _items[itemIndex] = updatedItem;
+
+            // Raise domain event for audit/tracking
+            AddDomainEvent(new CartItemPropertiesUpdatedEvent(Id, updatedItem));
+            UpdatedAt = DateTime.UtcNow;
+        }
+
         public void RemoveAllItems()
         {
             foreach (var item in _items.ToList())

@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Events.Category;
-using MediatR;
+using ECommerceNetApp.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Category
@@ -15,7 +15,13 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Category
 
         private readonly ILogger<CategoryDeletedNotificationHandler> _logger = logger;
 
-        public Task Handle(CategoryDeletedEvent notification, CancellationToken cancellationToken)
+        public void Register(IEventBus eventBus)
+        {
+            ArgumentNullException.ThrowIfNull(eventBus, nameof(eventBus));
+            eventBus.Register(this);
+        }
+
+        public Task HandleAsync(CategoryDeletedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);
             LogCategoryDeleted(_logger, notification.CategoryId, null);

@@ -1,40 +1,50 @@
-﻿using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.DTO;
-using ECommerceNetApp.Service.Interfaces.Mappers.Product;
 using ECommerceNetApp.Service.Queries.Product;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
 {
-    public class GetPaginatedProductsQueryHandler(
-        IProductCatalogUnitOfWork productCatalogUnitOfWork,
-        IProductMapper productMapper) :
-        IRequestHandler<GetPaginatedProductsQuery, PaginationResult<ProductDto>>
+    public class GetPaginatedProductsQueryHandler(ProductCatalogDbContext dbContext)
+        : IQueryHandler<GetPaginatedProductsQuery, PaginationResult<ProductDto>>
     {
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
-        private readonly IProductMapper _productMapper = productMapper;
+        private readonly ProductCatalogDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
 
-        public async Task<PaginationResult<ProductDto>> Handle(
-            GetPaginatedProductsQuery request,
+        public async Task<PaginationResult<ProductDto>> HandleAsync(
+            GetPaginatedProductsQuery query,
             CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(query);
 
-            var (products, totalCount) = await _productCatalogUnitOfWork.ProductRepository
-                .GetPaginatedProductsAsync(
-                    request.PageNumber,
-                    request.PageSize,
-                    request.CategoryId,
-                    cancellationToken)
+            var productsQuery = _dbContext.Products.Include(p => p.Category).AsNoTracking();
+
+            if (query.CategoryId.HasValue)
+            {
+                productsQuery = productsQuery.Where(p => p.CategoryId == query.CategoryId.Value);
+            }
+
+            var totalCount = await productsQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+
+            var products = await productsQuery
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = p.Price.Amount,
+                    Currency = p.Price.Currency,
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.Category != null ? p.Category.Name : null,
+                    Amount = p.Amount,
+                    Description = p.Description,
+                    ImageUrl = p.Image != null ? p.Image.Url : null,
+                })
+                .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            var productDtos = products.Select(_productMapper.MapToProductDto).ToList();
-
-            return new PaginationResult<ProductDto>(
-                productDtos,
-                totalCount,
-                request.PageNumber,
-                request.PageSize);
+            return new PaginationResult<ProductDto>(products, totalCount, query.PageNumber, query.PageSize);
         }
     }
 }

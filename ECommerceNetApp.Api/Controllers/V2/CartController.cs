@@ -3,8 +3,8 @@ using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Api.Services;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
+using ECommerceNetApp.Service.Interfaces;
 using ECommerceNetApp.Service.Queries.Cart;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceNetApp.Api.Controllers.V2
@@ -14,8 +14,8 @@ namespace ECommerceNetApp.Api.Controllers.V2
     /// </summary>
     [ApiVersion("2.0")]
     [Route("api/v{version:apiVersion}/carts")]
-    public class CartController(IMediator mediator, IHateoasLinkService linkService)
-        : BaseApiController(linkService, mediator)
+    public class CartController(IDispatcher dispatcher, IHateoasLinkService linkService)
+        : BaseApiController(linkService, dispatcher)
     {
         /// <summary>
         /// Retrieves all items in a specific cart.
@@ -31,7 +31,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
             string cartId,
             CancellationToken cancellationToken)
         {
-            var cartItems = await Mediator.Send(new GetCartItemsQuery(cartId), cancellationToken).ConfigureAwait(false);
+            var cartItems = await Dispatcher.SendQueryAsync<GetCartItemsQuery, List<CartItemDto>?>(new GetCartItemsQuery(cartId), cancellationToken).ConfigureAwait(false);
             if (cartItems == null)
             {
                 return NotFound();
@@ -68,7 +68,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
                 return BadRequest("Cart item is required.");
             }
 
-            await Mediator.Send(new AddCartItemCommand(cartId, cartItem), cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync(new AddCartItemCommand(cartId, cartItem), cancellationToken).ConfigureAwait(false);
 
             var links = new List<LinkDto>
             {
@@ -97,7 +97,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
             int itemId,
             CancellationToken cancellationToken)
         {
-            await Mediator.Send(new RemoveCartItemCommand(cartId, itemId), cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync(new RemoveCartItemCommand(cartId, itemId), cancellationToken).ConfigureAwait(false);
             return NoContent();
         }
 
@@ -119,7 +119,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
             [FromBody] int quantity,
             CancellationToken cancellationToken)
         {
-            await Mediator.Send(new UpdateCartItemQuantityCommand(cartId, itemId, quantity), cancellationToken).ConfigureAwait(false);
+            await Dispatcher.SendCommandAsync(new UpdateCartItemQuantityCommand(cartId, itemId, quantity), cancellationToken).ConfigureAwait(false);
             return NoContent();
         }
 
@@ -137,7 +137,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
             string cartId,
             CancellationToken cancellationToken)
         {
-            var total = await Mediator.Send(new GetCartTotalQuery(cartId), cancellationToken).ConfigureAwait(false);
+            var total = await Dispatcher.SendQueryAsync<GetCartTotalQuery, decimal?>(new GetCartTotalQuery(cartId), cancellationToken).ConfigureAwait(false);
             if (total == null)
             {
                 return NotFound();
@@ -169,7 +169,7 @@ namespace ECommerceNetApp.Api.Controllers.V2
             CancellationToken cancellationToken)
         {
             var query = new GetCartItemQuery(cartId, itemId);
-            var cartItem = await Mediator.Send(query, cancellationToken).ConfigureAwait(false);
+            var cartItem = await Dispatcher.SendQueryAsync<GetCartItemQuery, CartItemDto?>(query, cancellationToken).ConfigureAwait(false);
 
             if (cartItem == null)
             {

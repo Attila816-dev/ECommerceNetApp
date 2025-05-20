@@ -1,20 +1,21 @@
 using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Validators.Category
 {
     public class UpdateCategoryCommandValidator : AbstractValidator<UpdateCategoryCommand>
     {
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork;
+        private readonly ProductCatalogDbContext _dbContext;
 
-        public UpdateCategoryCommandValidator(IProductCatalogUnitOfWork productCatalogUnitOfWork)
+        public UpdateCategoryCommandValidator(ProductCatalogDbContext dbContext)
         {
-            _productCatalogUnitOfWork = productCatalogUnitOfWork ?? throw new ArgumentNullException(nameof(productCatalogUnitOfWork));
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
 
             RuleFor(x => x.Name)
-                .NotEmpty().WithMessage("Category name is required.")
+            .NotEmpty().WithMessage("Category name is required.")
                 .MaximumLength(CategoryEntity.MaxCategoryNameLength)
                 .WithMessage($"Category Name cannot exceed {CategoryEntity.MaxCategoryNameLength} characters.");
 
@@ -32,9 +33,7 @@ namespace ECommerceNetApp.Service.Validators.Category
 
         private async Task<bool> ExistingCategoryIdAsync(UpdateCategoryCommand command, int categoryId, CancellationToken cancellationToken)
         {
-            return await _productCatalogUnitOfWork.CategoryRepository
-                .ExistsAsync(categoryId, cancellationToken)
-                .ConfigureAwait(false);
+            return await _dbContext.Categories.AnyAsync(c => c.Id == categoryId, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<bool> ExistingParentCategoryIdOrNullAsync(UpdateCategoryCommand command, int? parentCategoryId, CancellationToken cancellationToken)
@@ -44,9 +43,7 @@ namespace ECommerceNetApp.Service.Validators.Category
                 return true;
             }
 
-            return await _productCatalogUnitOfWork.CategoryRepository
-                .ExistsAsync(parentCategoryId.Value, cancellationToken)
-                .ConfigureAwait(false);
+            return await _dbContext.Categories.AnyAsync(c => c.Id == parentCategoryId.Value, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 }

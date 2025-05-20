@@ -1,26 +1,25 @@
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
+using ECommerceNetApp.Service.UnitTest.Extensions;
 using ECommerceNetApp.Service.Validators.Category;
 using FluentValidation.TestHelper;
+using Microsoft.EntityFrameworkCore;
 using Moq;
+using Moq.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.UnitTest.Validators.Category
 {
     public class DeleteCategoryCommandValidatorTest
     {
         private readonly DeleteCategoryCommandValidator _validator;
-        private readonly Mock<ICategoryRepository> _mockCategoryRepository;
-        private readonly Mock<IProductRepository> _mockProductRepository;
-        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
+        private readonly Mock<ProductCatalogDbContext> _mockDbContext;
 
         public DeleteCategoryCommandValidatorTest()
         {
-            _mockCategoryRepository = new Mock<ICategoryRepository>();
-            _mockProductRepository = new Mock<IProductRepository>();
-            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
-            _mockUnitOfWork.Setup(u => u.CategoryRepository).Returns(_mockCategoryRepository.Object);
-            _mockUnitOfWork.Setup(u => u.ProductRepository).Returns(_mockProductRepository.Object);
-            _validator = new DeleteCategoryCommandValidator(_mockUnitOfWork.Object);
+            _mockDbContext = MockProductCatalogDbContextFactory.Create().DbContext;
+            _validator = new DeleteCategoryCommandValidator(_mockDbContext.Object);
         }
 
         [Fact]
@@ -28,8 +27,10 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
         {
             // Arrange
             var categoryId = 2;
-            _mockCategoryRepository.Setup(repo => repo.ExistsAsync(categoryId, CancellationToken.None))
-                .ReturnsAsync(false);
+            var category = CategoryEntity.Create("test-category", null, null, 1);
+
+            var categories = new List<CategoryEntity> { category }.AsQueryable();
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(categories);
 
             var command = new DeleteCategoryCommand(categoryId);
 

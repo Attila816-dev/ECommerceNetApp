@@ -1,34 +1,40 @@
-﻿using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+﻿using ECommerceNetApp.Domain.Exceptions.Category;
+using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
 {
-    public class DeleteCategoryCommandHandler(
-        IProductCatalogUnitOfWork productCatalogUnitOfWork)
-        : IRequestHandler<DeleteCategoryCommand>
+    public class DeleteCategoryCommandHandler(ProductCatalogDbContext dbContext)
+        : ICommandHandler<DeleteCategoryCommand>
     {
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
+        private readonly ProductCatalogDbContext _dbContext = dbContext;
 
-        public async Task Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(DeleteCategoryCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(command);
+
+            var category = (await _dbContext.Categories.FirstOrDefaultAsync(c => c.Id == command.Id, cancellationToken).ConfigureAwait(false))
+                ?? throw InvalidCategoryException.NotFound(command.Id);
 
             // Get all products related to this category
-            var products = await _productCatalogUnitOfWork.ProductRepository
-                .GetProductsByCategoryIdAsync(request.Id, cancellationToken)
+            var products = await _dbContext.Products
+                .Where(p => p.CategoryId == command.Id)
+                .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
 
             // Delete all related products first
             foreach (var product in products)
             {
-                await _productCatalogUnitOfWork.ProductRepository
-                    .DeleteAsync(product.Id, cancellationToken)
-                    .ConfigureAwait(false);
+                product.MarkAsDeleted();
             }
 
-            await _productCatalogUnitOfWork.CategoryRepository.DeleteAsync(request.Id, cancellationToken).ConfigureAwait(false);
-            await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
+            _dbContext.Products.RemoveRange(products);
+
+            category.MarkAsDeleted();
+            _dbContext.Categories.Remove(category);
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

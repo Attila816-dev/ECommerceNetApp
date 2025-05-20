@@ -1,26 +1,38 @@
-﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.DTO;
-using ECommerceNetApp.Service.Interfaces.Mappers.Product;
 using ECommerceNetApp.Service.Queries.Product;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Product
 {
-    public class GetProductsByCategoryQueryHandler(
-        IProductCatalogUnitOfWork productCatalogUnitOfWork,
-        IProductMapper productMapper)
-        : IRequestHandler<GetProductsByCategoryQuery, IEnumerable<ProductDto>>
+    public class GetProductsByCategoryQueryHandler(ProductCatalogDbContext dbContext)
+        : IQueryHandler<GetProductsByCategoryQuery, IEnumerable<ProductDto>>
     {
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
-        private readonly IProductMapper _productMapper = productMapper;
+        private readonly ProductCatalogDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
 
-        public async Task<IEnumerable<ProductDto>> Handle(GetProductsByCategoryQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ProductDto>> HandleAsync(GetProductsByCategoryQuery query, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
-            IEnumerable<ProductEntity> products = await _productCatalogUnitOfWork.ProductRepository
-                .GetProductsByCategoryIdAsync(request.CategoryId, cancellationToken).ConfigureAwait(false);
-            return products.Select(_productMapper.MapToProductDto).ToList();
+            ArgumentNullException.ThrowIfNull(query);
+            var products = await _dbContext.Products
+                .AsNoTracking()
+                .Include(p => p.Category)
+                .Where(p => p.CategoryId == query.CategoryId)
+                .Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    ImageUrl = p.Image != null ? p.Image.Url : null,
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.Category != null ? p.Category.Name : null,
+                    Price = p.Price.Amount,
+                    Currency = p.Price.Currency,
+                    Amount = p.Amount,
+                })
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+            return products;
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
 
 namespace ECommerceNetApp.Service.Commands.Product
 {
-    public record DeleteProductCommand(int Id) : IRequest;
+    public record DeleteProductCommand(int Id) : ICommand;
 }
