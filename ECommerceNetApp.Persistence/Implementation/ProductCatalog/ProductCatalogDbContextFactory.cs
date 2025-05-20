@@ -35,7 +35,7 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             var optionsBuilder = new DbContextOptionsBuilder<ProductCatalogDbContext>();
             optionsBuilder.UseSqlServer(connectionString);
 
-            return new ProductCatalogDbContext(optionsBuilder.Options, null);
+            return new ProductCatalogDbContext(optionsBuilder.Options, null, null);
         }
     }
 }

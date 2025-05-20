@@ -2,19 +2,29 @@
 using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog.EntityTypeConfiguration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 {
     public class ProductCatalogDbContext : DbContext
     {
+        private static readonly Action<ILogger, Exception?> LogEbentPublishingError =
+            LoggerMessage.Define(
+            LogLevel.Warning,
+            new EventId(0, nameof(ProductCatalogDbContext)),
+            "Error during publishing entity event");
+
         private readonly IEventBus? _eventBus;
+        private readonly ILogger<ProductCatalogDbContext>? _logger;
 
         public ProductCatalogDbContext(
             DbContextOptions<ProductCatalogDbContext> options,
-            IEventBus? eventBus)
+            IEventBus? eventBus,
+            ILogger<ProductCatalogDbContext>? logger)
             : base(options)
         {
             _eventBus = eventBus;
+            _logger = logger;
         }
 
         public virtual DbSet<CategoryEntity> Categories { get; set; } = null!;
@@ -57,7 +67,16 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 
                 foreach (var domainEvent in events)
                 {
-                    await _eventBus.PublishAsync(domainEvent, cancellationToken).ConfigureAwait(false);
+#pragma warning disable CA1031 // Do not catch general exception types
+                    try
+                    {
+                        await _eventBus.PublishAsync(domainEvent, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogEbentPublishingError(_logger!, ex);
+                    }
+#pragma warning restore CA1031 // Do not catch general exception types
                 }
             }
         }
