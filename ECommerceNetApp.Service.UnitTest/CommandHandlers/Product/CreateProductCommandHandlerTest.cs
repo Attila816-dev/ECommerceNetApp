@@ -1,12 +1,11 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Exceptions.Category;
-using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
-using Microsoft.EntityFrameworkCore;
+using ECommerceNetApp.Service.UnitTest.Extensions;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Shouldly;
@@ -17,13 +16,11 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
     {
         private readonly CreateProductCommandHandler _commandHandler;
         private readonly Mock<ProductCatalogDbContext> _mockDbContext;
-        private readonly Mock<IEventBus> _mockEventBus;
 
         public CreateProductCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
-            _mockEventBus = new Mock<IEventBus>();
-            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), _mockEventBus.Object);
+            _mockDbContext = MockProductCatalogDbContextFactory.Create().DbContext;
             _commandHandler = new CreateProductCommandHandler(_mockDbContext.Object);
         }
 

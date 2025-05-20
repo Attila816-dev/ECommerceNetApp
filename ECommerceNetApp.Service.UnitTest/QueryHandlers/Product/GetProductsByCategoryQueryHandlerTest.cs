@@ -1,10 +1,9 @@
 ﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Product;
 using ECommerceNetApp.Service.Queries.Product;
-using Microsoft.EntityFrameworkCore;
+using ECommerceNetApp.Service.UnitTest.Extensions;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Shouldly;
@@ -15,13 +14,11 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
     {
         private readonly GetProductsByCategoryQueryHandler _queryHandler;
         private readonly Mock<ProductCatalogDbContext> _mockDbContext;
-        private readonly Mock<IEventBus> _mockEventBus;
 
         public GetProductsByCategoryQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
-            _mockEventBus = new Mock<IEventBus>();
-            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), _mockEventBus.Object);
+            _mockDbContext = MockProductCatalogDbContextFactory.Create().DbContext;
             _queryHandler = new GetProductsByCategoryQueryHandler(_mockDbContext.Object);
         }
 

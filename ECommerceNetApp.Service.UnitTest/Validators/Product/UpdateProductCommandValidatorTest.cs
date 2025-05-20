@@ -1,11 +1,10 @@
 using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
+using ECommerceNetApp.Service.UnitTest.Extensions;
 using ECommerceNetApp.Service.Validators.Product;
 using FluentValidation.TestHelper;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 
@@ -15,12 +14,10 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
     {
         private readonly UpdateProductCommandValidator _validator;
         private readonly Mock<ProductCatalogDbContext> _mockDbContext;
-        private readonly Mock<IEventBus> _mockEventBus;
 
         public UpdateProductCommandValidatorTest()
         {
-            _mockEventBus = new Mock<IEventBus>();
-            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), _mockEventBus.Object);
+            _mockDbContext = MockProductCatalogDbContextFactory.Create().DbContext;
             _validator = new UpdateProductCommandValidator(_mockDbContext.Object);
         }
 

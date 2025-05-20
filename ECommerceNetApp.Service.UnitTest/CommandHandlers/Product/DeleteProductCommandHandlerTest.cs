@@ -1,11 +1,10 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Exceptions.Product;
-using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
-using Microsoft.EntityFrameworkCore;
+using ECommerceNetApp.Service.UnitTest.Extensions;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Shouldly;
@@ -16,13 +15,11 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
     {
         private readonly DeleteProductCommandHandler _commandHandler;
         private readonly Mock<ProductCatalogDbContext> _mockDbContext;
-        private readonly Mock<IEventBus> _mockEventBus;
 
         public DeleteProductCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
-            _mockEventBus = new Mock<IEventBus>();
-            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), _mockEventBus.Object);
+            _mockDbContext = MockProductCatalogDbContextFactory.Create().DbContext;
             _commandHandler = new DeleteProductCommandHandler(_mockDbContext.Object);
         }
 

@@ -1,10 +1,9 @@
 using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
+using ECommerceNetApp.Service.UnitTest.Extensions;
 using ECommerceNetApp.Service.Validators.Category;
 using FluentValidation.TestHelper;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 
@@ -14,12 +13,10 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Category
     {
         private readonly CreateCategoryCommandValidator _validator;
         private readonly Mock<ProductCatalogDbContext> _mockDbContext;
-        private readonly Mock<IEventBus> _mockEventBus;
 
         public CreateCategoryCommandValidatorTest()
         {
-            _mockEventBus = new Mock<IEventBus>();
-            _mockDbContext = new Mock<ProductCatalogDbContext>(new DbContextOptions<ProductCatalogDbContext>(), _mockEventBus.Object);
+            _mockDbContext = MockProductCatalogDbContextFactory.Create().DbContext;
             _validator = new CreateCategoryCommandValidator(_mockDbContext.Object);
         }
 
