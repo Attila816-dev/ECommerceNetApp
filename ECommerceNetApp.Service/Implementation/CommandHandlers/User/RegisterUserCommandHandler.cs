@@ -13,18 +13,18 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
         private readonly ProductCatalogDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         private readonly IPasswordService _passwordService = passwordService ?? throw new ArgumentNullException(nameof(passwordService));
 
-        public async Task<int> HandleAsync(RegisterUserCommand request, CancellationToken cancellationToken)
+        public async Task<int> HandleAsync(RegisterUserCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request, nameof(request));
-            string passwordHash = _passwordService.HashPassword(request.Password);
+            ArgumentNullException.ThrowIfNull(command, nameof(command));
+            string passwordHash = _passwordService.HashPassword(command.Password);
 
             // Create user entity
             var user = UserEntity.Create(
-                request.Email,
+                command.Email,
                 passwordHash,
-                request.FirstName,
-                request.LastName,
-                request.Role);
+                command.FirstName,
+                command.LastName,
+                command.Role);
 
             // Save user
             await _dbContext.Users.AddAsync(user, cancellationToken).ConfigureAwait(false);
