@@ -116,5 +116,157 @@ namespace ECommerceNetApp.IntegrationTests
             product.ShouldNotBeNull();
             product.Amount.ShouldBe(10);
         }
+
+        [Fact]
+        public async Task CreateProduct_WithoutAuthentication_ReturnsUnauthorized()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
+
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var category = CategoryEntity.Create("Sample Category", null, null);
+            await dbContext.Categories.AddAsync(category);
+            await dbContext.SaveChangesAsync();
+
+            var newProduct = new CreateProductDto
+            {
+                Name = "New Product",
+                Description = "Test product description",
+                Price = 19.99m,
+                Currency = "USD",
+                Amount = 10,
+                CategoryId = category.Id,
+                ImageUrl = "https://example.com/image.jpg",
+            };
+
+            using var content = JsonContent.Create(newProduct);
+
+            // Act - No authentication header
+            var response = await _client.PostAsync("/api/products", content);
+
+            // Assert
+            response.StatusCode.ShouldBe(System.Net.HttpStatusCode.Unauthorized);
+        }
+
+        [Fact]
+        public async Task CreateProduct_WithCustomerRole_ReturnsForbidden()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
+
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var category = CategoryEntity.Create("Sample Category", null, null);
+            await dbContext.Categories.AddAsync(category);
+            await dbContext.SaveChangesAsync();
+
+            var newProduct = new CreateProductDto
+            {
+                Name = "New Product",
+                Description = "Test product description",
+                Price = 19.99m,
+                Currency = "USD",
+                Amount = 10,
+                CategoryId = category.Id,
+                ImageUrl = "https://example.com/image.jpg",
+            };
+
+            using var content = JsonContent.Create(newProduct);
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.CustomerEmail);
+            var response = await _client.PostAsync("/api/products", content);
+
+            // Assert
+            response.StatusCode.ShouldBe(System.Net.HttpStatusCode.Forbidden);
+        }
+
+        [Fact]
+        public async Task UpdateProduct_WithProductManagerRole_UpdatesSuccessfully()
+        {
+            // Arrange
+            ProductEntity product;
+            CategoryEntity category;
+
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
+
+                await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+                category = CategoryEntity.Create("Sample Category", null, null);
+                await dbContext.Categories.AddAsync(category);
+                await dbContext.SaveChangesAsync();
+
+                product = ProductEntity.Create("Original Product", null, null, category, Money.From(10.99m), 5);
+                await dbContext.Products.AddAsync(product);
+                await dbContext.SaveChangesAsync();
+            }
+
+            var updateProduct = new UpdateProductDto
+            {
+                Id = product.Id,
+                Name = "Updated Product",
+                Description = "Updated description",
+                Price = 29.99m,
+                Currency = "USD",
+                Amount = 15,
+                CategoryId = category.Id,
+                ImageUrl = "https://example.com/updated-image.jpg",
+            };
+
+            using var content = JsonContent.Create(updateProduct);
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
+            var response = await _client.PutAsync($"/api/products/{product.Id}", content);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            response.StatusCode.ShouldBe(System.Net.HttpStatusCode.NoContent);
+
+            // Verify the product was updated
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
+
+                var updatedProduct = await dbContext.Products.FirstAsync(p => p.Id == product.Id);
+                updatedProduct.Name.ShouldBe("Updated Product");
+                updatedProduct.Amount.ShouldBe(15);
+            }
+        }
+
+        [Fact]
+        public async Task DeleteProduct_WithAdminRole_DeletesSuccessfully()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
+
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var category = CategoryEntity.Create("Sample Category", null, null);
+            await dbContext.Categories.AddAsync(category);
+            await dbContext.SaveChangesAsync();
+
+            var product = ProductEntity.Create("Product to Delete", null, null, category, Money.From(10.99m), 5);
+            await dbContext.Products.AddAsync(product);
+            await dbContext.SaveChangesAsync();
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.AdminEmail);
+            var response = await _client.DeleteAsync($"/api/products/{product.Id}");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            response.StatusCode.ShouldBe(System.Net.HttpStatusCode.NoContent);
+
+            // Verify the product was deleted (should not exist anymore)
+            var deletedProduct = await dbContext.Products.FirstOrDefaultAsync(p => p.Id == product.Id);
+            deletedProduct.ShouldBeNull();
+        }
     }
 }
