@@ -1,16 +1,14 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using System.Threading;
 using Asp.Versioning;
 using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Api.Services;
 using ECommerceNetApp.Domain.Enums;
 using ECommerceNetApp.Service.Commands.User;
 using ECommerceNetApp.Service.DTO;
+using ECommerceNetApp.Service.Interfaces;
 using ECommerceNetApp.Service.Queries.User;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ECommerceNetApp.Api.Controllers
 {
@@ -19,8 +17,8 @@ namespace ECommerceNetApp.Api.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     public class AuthController : BaseApiController
     {
-        public AuthController(IMediator mediator, IHateoasLinkService linkService)
-            : base(linkService, mediator)
+        public AuthController(IDispatcher dispatcher, IHateoasLinkService linkService)
+            : base(linkService, dispatcher)
         {
         }
 
@@ -31,7 +29,7 @@ namespace ECommerceNetApp.Api.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(command, nameof(command));
-            var userId = await Mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var userId = await Dispatcher.SendCommandAsync<RegisterUserCommand, int>(command, cancellationToken).ConfigureAwait(false);
 
             var getUserLink = LinkService.CreateLink(
                 this,
@@ -63,7 +61,7 @@ namespace ECommerceNetApp.Api.Controllers
                 request.FirstName,
                 request.LastName,
                 UserRole.Customer);
-            var userId = await Mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var userId = await Dispatcher.SendCommandAsync<RegisterUserCommand, int>(command, cancellationToken).ConfigureAwait(false);
 
             var getUserLink = LinkService.CreateLink(
                 this,
@@ -90,7 +88,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginUserCommand command, CancellationToken cancellationToken)
         {
-            var result = await Mediator.Send(command, cancellationToken).ConfigureAwait(false);
+            var result = await Dispatcher.SendCommandAsync<LoginUserCommand, LoginUserCommandResponse>(command, cancellationToken).ConfigureAwait(false);
 
             if (!result.Success)
             {
@@ -106,7 +104,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<LinkedResourceDto<UserDto>>> GetUserByEmail(string email, CancellationToken cancellationToken)
         {
-            var user = await Mediator.Send(new GetUserQuery(email), cancellationToken).ConfigureAwait(false);
+            var user = await Dispatcher.SendQueryAsync<GetUserQuery, UserDto?>(new GetUserQuery(email), cancellationToken).ConfigureAwait(false);
 
             if (user == null)
             {
@@ -127,7 +125,7 @@ namespace ECommerceNetApp.Api.Controllers
                 return Unauthorized();
             }
 
-            var user = await Mediator.Send(new GetUserQuery(email), cancellationToken).ConfigureAwait(false);
+            var user = await Dispatcher.SendQueryAsync<GetUserQuery, UserDto?>(new GetUserQuery(email), cancellationToken).ConfigureAwait(false);
 
             if (user == null)
             {

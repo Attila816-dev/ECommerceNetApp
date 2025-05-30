@@ -43,5 +43,8 @@ namespace ECommerceNetApp.Domain.Exceptions.Cart
 
         public static Exception InvalidCartItemPrice() =>
             new InvalidCartException("Cart item price cannot be null.");
+
+        public static Exception InvalidProduct() =>
+            new InvalidCartException("Cart product cannot be null.");
     }
 }

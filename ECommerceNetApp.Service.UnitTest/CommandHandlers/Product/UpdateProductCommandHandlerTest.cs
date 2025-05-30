@@ -1,10 +1,13 @@
 ﻿using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.Exceptions.Product;
 using ECommerceNetApp.Domain.ValueObjects;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Implementation.CommandHandlers.Product;
+using ECommerceNetApp.Service.UnitTest.Extensions;
 using Moq;
+using Moq.EntityFrameworkCore;
 using Shouldly;
 
 namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
@@ -12,20 +15,13 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
     public class UpdateProductCommandHandlerTest
     {
         private readonly UpdateProductCommandHandler _commandHandler;
-        private readonly Mock<ICategoryRepository> _mockCategoryRepository;
-        private readonly Mock<IProductRepository> _mockProductRepository;
-        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
+        private readonly Mock<ProductCatalogDbContext> _mockDbContext;
 
         public UpdateProductCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
-            _mockCategoryRepository = new Mock<ICategoryRepository>();
-            _mockProductRepository = new Mock<IProductRepository>();
-            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
-            _mockUnitOfWork.SetupGet(u => u.ProductRepository).Returns(_mockProductRepository.Object);
-            _mockUnitOfWork.SetupGet(u => u.CategoryRepository).Returns(_mockCategoryRepository.Object);
-
-            _commandHandler = new UpdateProductCommandHandler(_mockUnitOfWork.Object);
+            _mockDbContext = MockProductCatalogDbContextFactory.Create().DbContext;
+            _commandHandler = new UpdateProductCommandHandler(_mockDbContext.Object);
         }
 
         [Fact]
@@ -42,24 +38,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 CategoryId = 1,
             };
 
-            _mockProductRepository.Setup(repo => repo.GetByIdAsync(
-                It.Is<int>(id => id == productDto.Id),
-                It.IsAny<Func<IQueryable<ProductEntity>, IQueryable<ProductEntity>>?>(),
-                It.IsAny<CancellationToken>()))
-                .ReturnsAsync(ProductEntity.Create("Laptop", null, null, category, Money.From(10m), 2, productDto.Id));
+            var product = ProductEntity.Create("Laptop", null, null, category, Money.From(10m), 2, productDto.Id);
 
-            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(
-                It.Is<int>(id => id == category.Id),
-                It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
-                It.IsAny<CancellationToken>()))
-                .ReturnsAsync(category);
-
-            _mockProductRepository.Setup(c => c.Update(It.Is<ProductEntity>(c => c.Name == productDto.Name && c.Id == productDto.Id)))
-                .Verifiable();
-
-            _mockUnitOfWork.Setup(x => x.CommitAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask)
-                .Verifiable();
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(new List<ProductEntity> { product }.AsQueryable());
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(new List<CategoryEntity> { category }.AsQueryable());
 
             // Act
             var updateProductCommand = new UpdateProductCommand(
@@ -71,16 +53,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.Price,
                 null,
                 productDto.Amount);
-            await _commandHandler.Handle(updateProductCommand, CancellationToken.None);
+            await _commandHandler.HandleAsync(updateProductCommand, CancellationToken.None);
 
             // Assert
-            _mockProductRepository.Verify(
-                r => r.Update(It.Is<ProductEntity>(c => c.Name == productDto.Name)),
-                Times.Once);
-
-            _mockUnitOfWork.Verify(
-                r => r.CommitAsync(It.IsAny<CancellationToken>()),
-                Times.Once);
+            _mockDbContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -97,17 +73,8 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 CategoryId = 1,
             };
 
-            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(
-                1,
-                It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
-                CancellationToken.None))
-                .ReturnsAsync(CategoryEntity.Create("Electronics", null, null, 1));
-
-            _mockProductRepository.Setup(repo => repo.GetByIdAsync(
-                productDto.Id,
-                It.IsAny<Func<IQueryable<ProductEntity>, IQueryable<ProductEntity>>?>(),
-                CancellationToken.None))
-                .ReturnsAsync((ProductEntity?)null);
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(new List<ProductEntity>().AsQueryable());
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(new List<CategoryEntity> { category }.AsQueryable());
 
             // Act & Assert
             var command = new UpdateProductCommand(
@@ -119,8 +86,8 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.Price,
                 null,
                 productDto.Amount);
-            await Should.ThrowAsync<InvalidOperationException>(() =>
-                _commandHandler.Handle(command, CancellationToken.None));
+            await Should.ThrowAsync<InvalidProductException>(() =>
+                _commandHandler.HandleAsync(command, CancellationToken.None));
         }
 
         [Fact]
@@ -138,17 +105,10 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
 
             var category = CategoryEntity.Create("Electronics", null, null, 1);
 
-            _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(
-                1,
-                It.IsAny<Func<IQueryable<CategoryEntity>, IQueryable<CategoryEntity>>?>(),
-                CancellationToken.None))
-                .ReturnsAsync(category);
+            var product = ProductEntity.Create("Laptop", null, null, category, Money.From(10.0m), 10, 1);
 
-            _mockProductRepository.Setup(repo => repo.GetByIdAsync(
-                1,
-                It.IsAny<Func<IQueryable<ProductEntity>, IQueryable<ProductEntity>>?>(),
-                CancellationToken.None))
-                .ReturnsAsync(ProductEntity.Create("Laptop", null, null, category, Money.From(10.0m), 10, 1));
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(new List<ProductEntity> { product }.AsQueryable());
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(new List<CategoryEntity> { category }.AsQueryable());
 
             // Act & Assert
             var command = new UpdateProductCommand(
@@ -162,7 +122,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Product
                 productDto.Amount);
 
             var exception = await Should.ThrowAsync<ArgumentException>(() =>
-                _commandHandler.Handle(command, CancellationToken.None));
+                _commandHandler.HandleAsync(command, CancellationToken.None));
 
             exception.Message.ShouldContain("Price cannot be negative");
         }

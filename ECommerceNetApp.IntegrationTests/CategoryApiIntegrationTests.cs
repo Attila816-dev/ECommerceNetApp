@@ -28,11 +28,7 @@ namespace ECommerceNetApp.IntegrationTests
             {
                 builder.ConfigureServices(services =>
                 {
-                    services.Remove(services.Single(d => d.ServiceType == typeof(CartDbContext)));
-                    services.AddScoped(provider =>
-                    {
-                        return new CartDbContext("Filename=:memory:;Mode=Memory;Cache=Shared");
-                    });
+                    services.AddSingleton<ICartDbContextFactory>(new CartDbContextFactory("Filename=:memory:;Mode=Memory;Cache=Shared"));
 
                     var optionsConfig = services
                         .Where(r => r.ServiceType.IsGenericType && r.ServiceType.GetGenericTypeDefinition() == typeof(IDbContextOptionsConfiguration<>)).ToArray();
@@ -45,7 +41,12 @@ namespace ECommerceNetApp.IntegrationTests
                     services.AddDbContext<ProductCatalogDbContext>(options => options.UseInMemoryDatabase("TestProductCatalogDb"));
 
                     services.Configure<CartDbOptions>(o => o.SeedSampleData = false);
-                    services.Configure<ProductCatalogDbOptions>(o => o.SeedSampleData = false);
+                    services.Configure<ProductCatalogDbOptions>(o =>
+                    {
+                        o.EnableDatabaseMigration = false;
+                        o.SeedSampleData = false;
+                    });
+                    services.Configure<EventBusOptions>(o => o.Type = "InMemory");
                 });
             });
 
@@ -80,6 +81,9 @@ namespace ECommerceNetApp.IntegrationTests
         public async Task CreateCategory_AddsCategorySuccessfully()
         {
             // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
             var newCategory = new CategoryDto
             {
                 Name = "New Category",
@@ -88,11 +92,11 @@ namespace ECommerceNetApp.IntegrationTests
             using var content = JsonContent.Create(newCategory);
 
             // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
             var response = await _client.PostAsync("/api/categories", content);
 
             // Assert
             response.EnsureSuccessStatusCode();
-            using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
             var category = await dbContext.Categories.FirstAsync(c => c.Name == "New Category");
             category.ShouldNotBeNull();
@@ -110,6 +114,8 @@ namespace ECommerceNetApp.IntegrationTests
             await dbContext.SaveChangesAsync();
             dbContext.Entry(category).State = EntityState.Detached;
 
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
             var updatedCategory = new CategoryDto
             {
                 Id = category.Id,
@@ -119,6 +125,7 @@ namespace ECommerceNetApp.IntegrationTests
             using var content = JsonContent.Create(updatedCategory);
 
             // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
             var response = await _client.PutAsync($"/api/categories/{category.Id}", content);
 
             // Assert
@@ -138,7 +145,10 @@ namespace ECommerceNetApp.IntegrationTests
             await dbContext.Categories.AddAsync(category);
             await dbContext.SaveChangesAsync();
 
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
             // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
             var response = await _client.DeleteAsync($"/api/categories/{category.Id}");
 
             // Assert
@@ -151,6 +161,9 @@ namespace ECommerceNetApp.IntegrationTests
         public async Task CreateCategory_WithValidData_ReturnsCreated()
         {
             // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
             var newCategory = new CategoryDto
             {
                 Name = "Test Category " + Guid.NewGuid(),
@@ -159,6 +172,7 @@ namespace ECommerceNetApp.IntegrationTests
             };
 
             // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
             var response = await _client.PostAsJsonAsync("/api/categories", newCategory);
 
             // Assert
@@ -170,6 +184,9 @@ namespace ECommerceNetApp.IntegrationTests
         public async Task CreateCategory_WithInvalidData_ReturnsBadRequest()
         {
             // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
             var invalidCategory = new CategoryDto
             {
                 // Missing required Name
@@ -178,6 +195,7 @@ namespace ECommerceNetApp.IntegrationTests
             };
 
             // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
             var response = await _client.PostAsJsonAsync("/api/categories", invalidCategory);
 
             // Assert
@@ -187,7 +205,12 @@ namespace ECommerceNetApp.IntegrationTests
         [Fact]
         public async Task GetCategory_WithInvalidId_ReturnsNotFound()
         {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
             // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
             var response = await _client.GetAsync("/api/categories/999999");
 
             // Assert

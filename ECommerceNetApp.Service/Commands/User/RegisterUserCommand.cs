@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Enums;
-using MediatR;
+using ECommerceNetApp.Domain.Interfaces;
 
 namespace ECommerceNetApp.Service.Commands.User
 {
@@ -9,5 +9,5 @@ namespace ECommerceNetApp.Service.Commands.User
         string FirstName,
         string LastName,
         UserRole Role)
-        : IRequest<int>;
+        : ICommand<int>;
 }

@@ -1,10 +1,11 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.ValueObjects;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
-using ECommerceNetApp.Service.Implementation.Mappers.Product;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Implementation.QueryHandlers.Product;
 using ECommerceNetApp.Service.Queries.Product;
+using ECommerceNetApp.Service.UnitTest.Extensions;
 using Moq;
+using Moq.EntityFrameworkCore;
 using Shouldly;
 
 namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
@@ -12,19 +13,13 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
     public class GetProductsByCategoryQueryHandlerTest
     {
         private readonly GetProductsByCategoryQueryHandler _queryHandler;
-        private readonly Mock<IProductCatalogUnitOfWork> _mockUnitOfWork;
-        private readonly Mock<IProductRepository> _mockRepository;
-        private readonly ProductMapper _productMapper;
+        private readonly Mock<ProductCatalogDbContext> _mockDbContext;
 
         public GetProductsByCategoryQueryHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
-            _mockRepository = new Mock<IProductRepository>();
-            _mockUnitOfWork = new Mock<IProductCatalogUnitOfWork>();
-            _mockUnitOfWork.Setup(u => u.ProductRepository).Returns(_mockRepository.Object);
-
-            _productMapper = new ProductMapper();
-            _queryHandler = new GetProductsByCategoryQueryHandler(_mockUnitOfWork.Object, _productMapper);
+            _mockDbContext = MockProductCatalogDbContextFactory.Create().DbContext;
+            _queryHandler = new GetProductsByCategoryQueryHandler(_mockDbContext.Object);
         }
 
         [Fact]
@@ -36,13 +31,12 @@ namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
             {
                 ProductEntity.Create("Laptop", null, null, category, Money.From(999.99m), 10, 1),
                 ProductEntity.Create("Smartphone", null, null, category, Money.From(499.99m), 20, 2),
-            };
+            }.AsQueryable();
 
-            _mockRepository.Setup(repo => repo.GetProductsByCategoryIdAsync(category.Id, CancellationToken.None))
-                .ReturnsAsync(products);
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(products);
 
             // Act
-            var result = await _queryHandler.Handle(new GetProductsByCategoryQuery(category.Id), CancellationToken.None);
+            var result = await _queryHandler.HandleAsync(new GetProductsByCategoryQuery(category.Id), CancellationToken.None);
 
             // Assert
             result.Count().ShouldBe(2);

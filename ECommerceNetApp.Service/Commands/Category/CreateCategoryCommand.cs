@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
 
 namespace ECommerceNetApp.Service.Commands.Category
 {
@@ -8,5 +8,5 @@ namespace ECommerceNetApp.Service.Commands.Category
         string? ImageUrl,
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         int? ParentCategoryId)
-        : IRequest<int>;
+        : ICommand<int>;
 }

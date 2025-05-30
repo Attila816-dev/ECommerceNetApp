@@ -1,15 +1,16 @@
-﻿using FluentValidation;
-using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using FluentValidation;
 
 namespace ECommerceNetApp.Service.Implementation.Behaviors
 {
-    public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
-            : IPipelineBehavior<TRequest, TResponse>
-            where TRequest : IRequest<TResponse>
+    public class ValidationBehavior<TRequest, TResponse>(
+        IEnumerable<IValidator<TRequest>> validators)
+        : IPipelineBehavior<TRequest, TResponse>
+        where TRequest : notnull
     {
         private readonly IEnumerable<IValidator<TRequest>> _validators = validators;
 
-        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        public async Task<TResponse> HandleAsync(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(next);
 

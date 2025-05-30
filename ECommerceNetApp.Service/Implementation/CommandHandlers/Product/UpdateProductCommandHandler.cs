@@ -1,42 +1,34 @@
-﻿using ECommerceNetApp.Domain.ValueObjects;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+﻿using ECommerceNetApp.Domain.Exceptions.Category;
+using ECommerceNetApp.Domain.Exceptions.Product;
+using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Domain.ValueObjects;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Product
 {
-    public class UpdateProductCommandHandler(
-        IProductCatalogUnitOfWork productCatalogUnitOfWork)
-        : IRequestHandler<UpdateProductCommand>
+    public class UpdateProductCommandHandler(ProductCatalogDbContext dbContext)
+        : ICommandHandler<UpdateProductCommand>
     {
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
+        private readonly ProductCatalogDbContext _dbContext = dbContext;
 
-        public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
+        public async Task HandleAsync(UpdateProductCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(command);
 
-            var product = await _productCatalogUnitOfWork.ProductRepository.GetByIdAsync(
-                request.Id,
-                cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
-            if (product == null)
-            {
-                throw new InvalidOperationException($"Product with id {request.Id} not found");
-            }
+            var product = (await _dbContext.Products.FirstOrDefaultAsync(p => p.Id == command.Id, cancellationToken: cancellationToken).ConfigureAwait(false))
+                ?? throw InvalidProductException.NotFound(command.Id);
 
-            var category = await _productCatalogUnitOfWork.CategoryRepository
-                .GetByIdAsync(request.CategoryId, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (category == null)
-            {
-                throw new ArgumentException($"Category with id {request.CategoryId} not found");
-            }
+            var category = (await _dbContext.Categories.FirstOrDefaultAsync(c => c.Id == command.CategoryId, cancellationToken: cancellationToken).ConfigureAwait(false))
+                ?? throw InvalidCategoryException.NotFound(command.CategoryId);
 
-            var imageInfo = request.ImageUrl != null ? ImageInfo.Create(request.ImageUrl) : null;
-            var money = Money.Create(request.Price, request.Currency);
+            var imageInfo = command.ImageUrl != null ? ImageInfo.Create(command.ImageUrl) : null;
+            var money = Money.Create(command.Price, command.Currency);
 
-            product.Update(request.Name, request.Description, imageInfo, category, money, request.Amount);
-            _productCatalogUnitOfWork.ProductRepository.Update(product);
-            await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
+            product.Update(command.Name, command.Description, imageInfo, category, money, command.Amount);
+            _dbContext.Products.Update(product);
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

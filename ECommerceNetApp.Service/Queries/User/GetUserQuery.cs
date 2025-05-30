@@ -1,7 +1,7 @@
-﻿using ECommerceNetApp.Service.DTO;
-using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Service.DTO;
 
 namespace ECommerceNetApp.Service.Queries.User
 {
-    public record GetUserQuery(string Email) : IRequest<UserDto?>;
+    public record GetUserQuery(string Email) : IQuery<UserDto?>;
 }

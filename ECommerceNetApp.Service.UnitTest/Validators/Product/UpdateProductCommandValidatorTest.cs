@@ -1,40 +1,55 @@
 using ECommerceNetApp.Domain.Entities;
+using ECommerceNetApp.Domain.ValueObjects;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Product;
+using ECommerceNetApp.Service.UnitTest.Extensions;
 using ECommerceNetApp.Service.Validators.Product;
 using FluentValidation.TestHelper;
+using Moq;
+using Moq.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.UnitTest.Validators.Product
 {
     public class UpdateProductCommandValidatorTest
     {
         private readonly UpdateProductCommandValidator _validator;
+        private readonly Mock<ProductCatalogDbContext> _mockDbContext;
 
         public UpdateProductCommandValidatorTest()
         {
-            _validator = new UpdateProductCommandValidator();
+            _mockDbContext = MockProductCatalogDbContextFactory.Create().DbContext;
+            _validator = new UpdateProductCommandValidator(_mockDbContext.Object);
         }
 
         [Fact]
-        public void Validate_WithValidData_ShouldPassValidation()
+        public async Task Validate_WithValidData_ShouldPassValidation()
         {
             // Arrange
             var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 1, 100.0m, null, 10);
 
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
+            var product = ProductEntity.Create("Laptop", null, null, category, Money.From(10.0m), 10, 1);
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(new List<ProductEntity>() { product }.AsQueryable());
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Fact]
-        public void Validate_WithEmptyName_ShouldFailValidation()
+        public async Task Validate_WithEmptyName_ShouldFailValidation()
         {
             // Arrange
             var command = new UpdateProductCommand(1, string.Empty, null, null, 1, 100.0m, null, 10);
 
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
+            var product = ProductEntity.Create("Laptop", null, null, category, Money.From(10.0m), 10, 1);
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(new List<ProductEntity> { product }.AsQueryable());
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.Name)
@@ -42,14 +57,18 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
         }
 
         [Fact]
-        public void Validate_WithNameExceedingMaxLength_ShouldFailValidation()
+        public async Task Validate_WithNameExceedingMaxLength_ShouldFailValidation()
         {
             // Arrange
             var productName = new string('A', ProductEntity.MaxProductNameLength + 1);
             var command = new UpdateProductCommand(1, productName, null, null, 1, 100.0m, null, 10);
 
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
+            var product = ProductEntity.Create("Laptop", null, null, category, Money.From(10.0m), 10, 1);
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(new List<ProductEntity> { product }.AsQueryable());
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.Name)
@@ -57,13 +76,17 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
         }
 
         [Fact]
-        public void Validate_WithNegativePrice_ShouldFailValidation()
+        public async Task Validate_WithNegativePrice_ShouldFailValidation()
         {
             // Arrange
             var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 1, -10, null, 10);
 
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
+            var product = ProductEntity.Create("Laptop", null, null, category, Money.From(10.0m), 10, 1);
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(new List<ProductEntity> { product }.AsQueryable());
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.Price)
@@ -71,13 +94,17 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
         }
 
         [Fact]
-        public void Validate_WithNonPositiveAmount_ShouldFailValidation()
+        public async Task Validate_WithNonPositiveAmount_ShouldFailValidation()
         {
             // Arrange
             var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 1, 100.0m, null, 0);
 
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
+            var product = ProductEntity.Create("Laptop", null, null, category, Money.From(10.0m), 10, 1);
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(new List<ProductEntity> { product }.AsQueryable());
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.Amount)
@@ -85,17 +112,42 @@ namespace ECommerceNetApp.Service.UnitTest.Validators.Product
         }
 
         [Fact]
-        public void Validate_WithInvalidCategoryId_ShouldFailValidation()
+        public async Task Validate_WithInvalidCategoryId_ShouldFailValidation()
         {
             // Arrange
             var command = new UpdateProductCommand(1, "Valid Product Name", null, null, 0, 100.0m, null, 10);
 
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
+            var product = ProductEntity.Create("Laptop", null, null, category, Money.From(10.0m), 10, 1);
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(new List<ProductEntity> { product }.AsQueryable());
+
             // Act
-            var result = _validator.TestValidate(command);
+            var result = await _validator.TestValidateAsync(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(c => c.CategoryId)
-                .WithErrorMessage("Category ID must be a valid positive number.");
+                .WithErrorMessage("Product CategoryId must be a valid positive number.");
+        }
+
+        [Fact]
+        public async Task Validate_WithInvalidProductId_ShouldFailValidation()
+        {
+            // Arrange
+            var command = new UpdateProductCommand(2, "Valid Product Name", null, null, 1, 100.0m, null, 10);
+
+            var category = CategoryEntity.Create("Electronics", null, null, 1);
+
+            var product = ProductEntity.Create("Laptop", null, null, category, Money.From(10.0m), 10, 1);
+
+            _mockDbContext.SetupGet(c => c.Products).ReturnsDbSet(new List<ProductEntity> { product }.AsQueryable());
+            _mockDbContext.SetupGet(c => c.Categories).ReturnsDbSet(new List<CategoryEntity> { category }.AsQueryable());
+
+            // Act
+            var result = await _validator.TestValidateAsync(command);
+
+            // Assert
+            result.ShouldHaveValidationErrorFor(c => c.Id)
+                .WithErrorMessage("Product does not exist.");
         }
     }
 }

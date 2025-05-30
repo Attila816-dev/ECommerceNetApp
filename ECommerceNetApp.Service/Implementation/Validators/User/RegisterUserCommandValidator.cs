@@ -1,16 +1,17 @@
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.User;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Validators.User
 {
     public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
     {
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork;
+        private readonly ProductCatalogDbContext _dbContext;
 
-        public RegisterUserCommandValidator(IProductCatalogUnitOfWork productCatalogUnitOfWork)
+        public RegisterUserCommandValidator(ProductCatalogDbContext dbContext)
         {
-            _productCatalogUnitOfWork = productCatalogUnitOfWork ?? throw new ArgumentNullException(nameof(productCatalogUnitOfWork));
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
 
             RuleFor(x => x.Email)
                 .NotEmpty()
@@ -21,7 +22,7 @@ namespace ECommerceNetApp.Service.Validators.User
 
         private async Task<bool> UserDoesNotExistWithEmailAsync(RegisterUserCommand command, string email, CancellationToken cancellationToken)
         {
-            var userExistsWithEmail = await _productCatalogUnitOfWork.UserRepository.GetUserByEmailAsync(email, cancellationToken).ConfigureAwait(false);
+            var userExistsWithEmail = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email.ToUpper() == email.ToUpper(), cancellationToken).ConfigureAwait(false);
             return userExistsWithEmail == null;
         }
     }

@@ -6,6 +6,8 @@ namespace ECommerceNetApp.Domain.Entities
     {
         public const int MinPasswordLength = 8;
 
+        public const int MaxPasswordHashLength = 256;
+
         public const int MaxFirstNameLength = 100;
 
         public const int MaxLastNameLength = 100;

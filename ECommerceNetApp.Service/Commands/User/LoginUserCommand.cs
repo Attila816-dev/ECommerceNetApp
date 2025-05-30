@@ -1,8 +1,8 @@
-﻿using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
 
 namespace ECommerceNetApp.Service.Commands.User
 {
-    public record LoginUserCommand(string Email, string Password) : IRequest<LoginUserCommandResponse>;
+    public record LoginUserCommand(string Email, string Password) : ICommand<LoginUserCommandResponse>;
 
     public class LoginUserCommandResponse
     {

@@ -1,20 +1,19 @@
 ﻿using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Interfaces;
-using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.User;
-using MediatR;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
 {
     public class RegisterUserCommandHandler(
-        IProductCatalogUnitOfWork productCatalogUnitOfWork,
+        ProductCatalogDbContext dbContext,
         IPasswordService passwordService)
-        : IRequestHandler<RegisterUserCommand, int>
+        : ICommandHandler<RegisterUserCommand, int>
     {
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork ?? throw new ArgumentNullException(nameof(productCatalogUnitOfWork));
+        private readonly ProductCatalogDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         private readonly IPasswordService _passwordService = passwordService ?? throw new ArgumentNullException(nameof(passwordService));
 
-        public async Task<int> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+        public async Task<int> HandleAsync(RegisterUserCommand request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
             string passwordHash = _passwordService.HashPassword(request.Password);
@@ -28,8 +27,8 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
                 request.Role);
 
             // Save user
-            await _productCatalogUnitOfWork.UserRepository.AddAsync(user, cancellationToken).ConfigureAwait(false);
-            await _productCatalogUnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
+            await _dbContext.Users.AddAsync(user, cancellationToken).ConfigureAwait(false);
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return user.Id;
         }
     }

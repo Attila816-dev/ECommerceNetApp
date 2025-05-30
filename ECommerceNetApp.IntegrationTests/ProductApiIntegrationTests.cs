@@ -28,8 +28,7 @@ namespace ECommerceNetApp.IntegrationTests
             {
                 builder.ConfigureServices(services =>
                 {
-                    services.Remove(services.Single(d => d.ServiceType == typeof(CartDbContext)));
-                    services.AddSingleton(new CartDbContext("Filename=:memory:;Mode=Memory;Cache=Shared"));
+                    services.AddSingleton<ICartDbContextFactory>(new CartDbContextFactory("Filename=:memory:;Mode=Memory;Cache=Shared"));
 
                     var optionsConfig = services
                         .Where(r => r.ServiceType.IsGenericType && r.ServiceType.GetGenericTypeDefinition() == typeof(IDbContextOptionsConfiguration<>)).ToArray();
@@ -42,7 +41,12 @@ namespace ECommerceNetApp.IntegrationTests
                     services.AddDbContext<ProductCatalogDbContext>(options => options.UseInMemoryDatabase("TestProductCatalogDb"));
 
                     services.Configure<CartDbOptions>(o => o.SeedSampleData = false);
-                    services.Configure<ProductCatalogDbOptions>(o => o.SeedSampleData = false);
+                    services.Configure<ProductCatalogDbOptions>(o =>
+                    {
+                        o.EnableDatabaseMigration = false;
+                        o.SeedSampleData = false;
+                    });
+                    services.Configure<EventBusOptions>(o => o.Type = "InMemory");
                 });
             });
 
@@ -85,12 +89,13 @@ namespace ECommerceNetApp.IntegrationTests
             // Arrange
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
-
             var category = CategoryEntity.Create("Sample Category", null, null);
 
             await dbContext.Categories.AddAsync(category);
 
             await dbContext.SaveChangesAsync();
+
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
 
             var newProduct = new ProductDto
             {
@@ -100,9 +105,9 @@ namespace ECommerceNetApp.IntegrationTests
                 CategoryId = category.Id,
             };
 
-            using var content = JsonContent.Create(newProduct);
-
             // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
+            using var content = JsonContent.Create(newProduct);
             var response = await _client.PostAsync("/api/products", content);
 
             // Assert

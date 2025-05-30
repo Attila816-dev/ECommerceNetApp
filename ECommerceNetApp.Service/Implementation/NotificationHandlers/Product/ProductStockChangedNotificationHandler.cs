@@ -1,5 +1,5 @@
 ﻿using ECommerceNetApp.Domain.Events.Product;
-using MediatR;
+using ECommerceNetApp.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Product
@@ -19,7 +19,13 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Product
             _logger = logger;
         }
 
-        public Task Handle(ProductStockChangedEvent notification, CancellationToken cancellationToken)
+        public void Register(IEventBus eventBus)
+        {
+            ArgumentNullException.ThrowIfNull(eventBus, nameof(eventBus));
+            eventBus.Register(this);
+        }
+
+        public Task HandleAsync(ProductStockChangedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);
 

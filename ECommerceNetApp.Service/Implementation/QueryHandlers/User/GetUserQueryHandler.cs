@@ -1,20 +1,21 @@
-﻿using ECommerceNetApp.Persistence.Interfaces.ProductCatalog;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Queries.User;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Implementation.QueryHandlers.User
 {
-    public class GetUserQueryHandler(IProductCatalogUnitOfWork productCatalogUnitOfWork)
-        : IRequestHandler<GetUserQuery, UserDto?>
+    public class GetUserQueryHandler(ProductCatalogDbContext dbContext)
+        : IQueryHandler<GetUserQuery, UserDto?>
     {
-        private readonly IProductCatalogUnitOfWork _productCatalogUnitOfWork = productCatalogUnitOfWork;
+        private readonly ProductCatalogDbContext _dbContext = dbContext;
 
-        public async Task<UserDto?> Handle(GetUserQuery request, CancellationToken cancellationToken)
+        public async Task<UserDto?> HandleAsync(GetUserQuery request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            var user = await _productCatalogUnitOfWork.UserRepository.GetUserByEmailAsync(request.Email, cancellationToken).ConfigureAwait(false);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email.ToUpper() == request.Email.ToUpper(), cancellationToken).ConfigureAwait(false);
 
             if (user == null)
             {

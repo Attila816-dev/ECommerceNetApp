@@ -11,15 +11,12 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
     {
         private readonly UpdateCartItemQuantityCommandHandler _commandHandler;
         private readonly Mock<ICartRepository> _mockRepository;
-        private readonly Mock<ICartUnitOfWork> _mockUnitOfWork;
 
         public UpdateCartItemQuantityCommandHandlerTest()
         {
             // Initialize the command handler with necessary dependencies
             _mockRepository = new Mock<ICartRepository>();
-            _mockUnitOfWork = new Mock<ICartUnitOfWork>();
-            _mockUnitOfWork.Setup(u => u.CartRepository).Returns(_mockRepository.Object);
-            _commandHandler = new UpdateCartItemQuantityCommandHandler(_mockUnitOfWork.Object);
+            _commandHandler = new UpdateCartItemQuantityCommandHandler(_mockRepository.Object);
         }
 
         [Fact]
@@ -35,7 +32,7 @@ namespace ECommerceNetApp.Service.UnitTest.CommandHandlers.Cart
                 .ReturnsAsync(cart);
 
             // Act
-            await _commandHandler.Handle(new UpdateCartItemQuantityCommand(testCartId, 1, 5), CancellationToken.None);
+            await _commandHandler.HandleAsync(new UpdateCartItemQuantityCommand(testCartId, 1, 5), CancellationToken.None);
 
             // Assert
             _mockRepository.Verify(

@@ -1,7 +1,7 @@
-﻿using ECommerceNetApp.Service.DTO;
-using MediatR;
+﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Service.DTO;
 
 namespace ECommerceNetApp.Service.Queries.Category
 {
-    public record GetCategoryByIdQuery(int Id) : IRequest<CategoryDetailDto?>;
+    public record GetCategoryByIdQuery(int Id) : IQuery<CategoryDetailDto?>;
 }
