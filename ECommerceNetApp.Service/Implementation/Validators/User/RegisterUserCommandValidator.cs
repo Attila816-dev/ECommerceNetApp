@@ -16,6 +16,8 @@ namespace ECommerceNetApp.Service.Validators.User
             RuleFor(x => x.Email)
                 .NotEmpty()
                 .WithMessage("Email is required.")
+                .Must(e => e.Contains('@', StringComparison.OrdinalIgnoreCase))
+                .WithMessage("Email must be a valid email address.")
                 .MustAsync(UserDoesNotExistWithEmailAsync)
                 .WithMessage("Email already registered.");
         }

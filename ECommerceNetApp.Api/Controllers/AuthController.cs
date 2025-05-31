@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using System.Security.Claims;
 using Asp.Versioning;
 using ECommerceNetApp.Api.Authorization;
 using ECommerceNetApp.Api.Model;
@@ -145,14 +145,14 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetCurrentUser(CancellationToken cancellationToken)
         {
-            var email = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
 
-            if (string.IsNullOrEmpty(email))
+            if (string.IsNullOrEmpty(userEmail))
             {
                 return Unauthorized();
             }
 
-            var user = await Dispatcher.SendQueryAsync<GetUserQuery, UserDto?>(new GetUserQuery(email), cancellationToken).ConfigureAwait(false);
+            var user = await Dispatcher.SendQueryAsync<GetUserQuery, UserDto?>(new GetUserQuery(userEmail), cancellationToken).ConfigureAwait(false);
 
             if (user == null)
             {

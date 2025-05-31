@@ -1,5 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using ECommerceNetApp.Domain.Enums;
 using ECommerceNetApp.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -15,7 +14,7 @@ namespace ECommerceNetApp.Service.Implementation
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public string? Email => _httpContextAccessor.HttpContext?.User?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        public string? Email => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
 
         public UserRole? UserRole
         {

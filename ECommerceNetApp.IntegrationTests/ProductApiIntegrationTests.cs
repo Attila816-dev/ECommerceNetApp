@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using ECommerceNetApp.Api;
 using ECommerceNetApp.Api.Model;
@@ -267,6 +268,80 @@ namespace ECommerceNetApp.IntegrationTests
             // Verify the product was deleted (should not exist anymore)
             var deletedProduct = await dbContext.Products.FirstOrDefaultAsync(p => p.Id == product.Id);
             deletedProduct.ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task GetProduct_WithInvalidId_ReturnsNotFound()
+        {
+            // Act
+            var response = await _client.GetAsync("/api/products/999999");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetProductsByCategoryId_WithValidCategoryId_ReturnsFilteredProducts()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
+
+            var category1 = CategoryEntity.Create("Category 1", null, null);
+            var category2 = CategoryEntity.Create("Category 2", null, null);
+            await dbContext.Categories.AddRangeAsync(category1, category2);
+            await dbContext.SaveChangesAsync();
+
+            var product1 = ProductEntity.Create("Product 1", null, null, category1, Money.From(10.99m), 5);
+            var product2 = ProductEntity.Create("Product 2", null, null, category2, Money.From(15.99m), 3);
+            await dbContext.Products.AddRangeAsync(product1, product2);
+            await dbContext.SaveChangesAsync();
+
+            // Act
+            var response = await _client.GetAsync($"/api/products/by-category/{category1.Id}");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            var productsWithLinks = await response.Content.ReadFromJsonAsync<CollectionLinkedResourceDto<ProductDto>>();
+            productsWithLinks.ShouldNotBeNull();
+            productsWithLinks.Items.Count().ShouldBe(1);
+            productsWithLinks.Items.First().Name.ShouldBe("Product 1");
+        }
+
+        [Fact]
+        public async Task UpdateProduct_WithInvalidId_ReturnsBadRequest()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var updateProduct = new UpdateProductDto
+            {
+                Id = 1,
+                Name = "Updated Product",
+            };
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
+            var response = await _client.PutAsJsonAsync("/api/products/999", updateProduct); // Different ID
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task DeleteProduct_WithNonExistentId_ReturnsNotFound()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.AdminEmail);
+            var response = await _client.DeleteAsync("/api/products/999999");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }

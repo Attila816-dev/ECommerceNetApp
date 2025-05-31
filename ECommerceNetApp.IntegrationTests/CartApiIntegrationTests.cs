@@ -264,5 +264,83 @@ namespace ECommerceNetApp.IntegrationTests
             totalWithLinks.ShouldNotBeNull();
             totalWithLinks.Resource.ShouldBe(39.98m);
         }
+
+        [Fact]
+        public async Task GetCart_WithoutPermission_ReturnsForbidden()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            // Act
+            var response = await _client.GetAsync("/api/v1/carts/some-cart-id");
+
+            // Assert - Assuming Customer doesn't have Cart.Read permission
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task AddItemToCart_WithNullItem_ReturnsBadRequest()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var cartId = "test-cart-id";
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
+            var response = await _client.PostAsJsonAsync($"/api/v1/carts/{cartId}/items", (CartItemDto?)null);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task RemoveItemFromCart_WithNonExistentItem_ReturnsNoContent()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var cartId = "test-cart-id";
+            var nonExistentItemId = 999;
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
+            var response = await _client.DeleteAsync($"/api/v1/carts/{cartId}/items/{nonExistentItemId}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode); // Idempotent operation
+        }
+
+        [Fact]
+        public async Task GetCartTotal_WithEmptyCart_ReturnsZero()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var cartId = "empty-cart-id";
+            using (var cartScope = _factory.Services.CreateScope())
+            {
+                var cartDbContextFactory = cartScope.ServiceProvider.GetService<ICartDbContextFactory>();
+                using (var cartDbContext = cartDbContextFactory!.CreateDbContext())
+                {
+                    cartDbContext!.CreateCollection<CartEntity>();
+                    await cartDbContext.GetCollection<CartEntity>().InsertAsync(CartEntity.Create(cartId));
+                }
+            }
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
+            var response = await _client.GetAsync($"/api/v1/carts/{cartId}/total");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            var totalWithLinks = await response.Content.ReadFromJsonAsync<LinkedResourceDto<decimal>>();
+            totalWithLinks.ShouldNotBeNull();
+            totalWithLinks.Resource.ShouldBe(0m);
+        }
     }
 }

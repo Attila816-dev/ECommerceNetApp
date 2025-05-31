@@ -56,7 +56,7 @@ namespace ECommerceNetApp.Service.Implementation
                     return new TokenValidationResultDto { IsValid = false, Error = "Invalid token type" };
                 }
 
-                var email = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                var email = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? principal.FindFirst(ClaimTypes.Email)?.Value;
                 var role = principal.FindFirst(ClaimTypes.Role)?.Value;
                 var fullName = principal.FindFirst(ClaimTypes.Name)?.Value;
 

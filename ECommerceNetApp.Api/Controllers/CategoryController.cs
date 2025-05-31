@@ -82,7 +82,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <returns>The category with the specified ID.</returns>
         [HttpGet("{id}")]
         [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LinkedResourceDto<CategoryDetailDto>))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<LinkedResourceDto<CategoryDetailDto>>> GetCategoryById(
             int id,

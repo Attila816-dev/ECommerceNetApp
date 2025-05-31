@@ -46,11 +46,11 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="categoryId">The ID of the category.</param>
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>A list of products in the specified category.</returns>
-        [HttpGet("by-category")]
+        [HttpGet("by-category/{categoryId}")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<CollectionLinkedResourceDto<ProductDto>>> GetProductsByCategoryId(
-            [FromQuery] int categoryId,
+            int categoryId,
             CancellationToken cancellationToken)
         {
             var query = new GetProductsByCategoryQuery(categoryId);
@@ -252,6 +252,7 @@ namespace ECommerceNetApp.Api.Controllers
         [RequirePermission(Permissions.Delete, Resources.Product)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken)
         {
             await Dispatcher.SendCommandAsync<DeleteProductCommand>(new DeleteProductCommand(id), cancellationToken).ConfigureAwait(false);

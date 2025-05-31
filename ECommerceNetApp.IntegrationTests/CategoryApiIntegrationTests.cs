@@ -4,6 +4,7 @@ using ECommerceNetApp.Api;
 using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
+using ECommerceNetApp.Domain.ValueObjects;
 using ECommerceNetApp.Persistence.Implementation.Cart;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.DTO;
@@ -215,6 +216,116 @@ namespace ECommerceNetApp.IntegrationTests
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetCategoriesByParentId_WithValidParentId_ReturnsSubcategories()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
+
+            var parentCategory = CategoryEntity.Create("Parent Category", null, null);
+            await dbContext.Categories.AddAsync(parentCategory);
+            await dbContext.SaveChangesAsync();
+
+            var childCategory1 = CategoryEntity.Create("Child 1", null, parentCategory);
+            var childCategory2 = CategoryEntity.Create("Child 2", null, parentCategory);
+            await dbContext.Categories.AddRangeAsync(childCategory1, childCategory2);
+            await dbContext.SaveChangesAsync();
+
+            // Act
+            var response = await _client.GetAsync($"/api/categories/by-parent?parentCategoryId={parentCategory.Id}");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            var categoriesWithLinks = await response.Content.ReadFromJsonAsync<CollectionLinkedResourceDto<CategoryDto>>();
+            categoriesWithLinks.ShouldNotBeNull();
+            categoriesWithLinks.Items.Count().ShouldBe(2);
+            categoriesWithLinks.Items.ShouldContain(c => c.Name == "Child 1");
+            categoriesWithLinks.Items.ShouldContain(c => c.Name == "Child 2");
+        }
+
+        [Fact]
+        public async Task GetCategoriesByParentId_WithNullParentId_ReturnsRootCategories()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
+
+            var rootCategory1 = CategoryEntity.Create("Root 1", null, null);
+            var rootCategory2 = CategoryEntity.Create("Root 2", null, null);
+            await dbContext.Categories.AddRangeAsync(rootCategory1, rootCategory2);
+            await dbContext.SaveChangesAsync();
+
+            // Act
+            var response = await _client.GetAsync("/api/categories/by-parent?parentCategoryId=");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            var categoriesWithLinks = await response.Content.ReadFromJsonAsync<CollectionLinkedResourceDto<CategoryDto>>();
+            categoriesWithLinks.ShouldNotBeNull();
+            categoriesWithLinks.Items.ShouldContain(c => c.Name == "Root 1");
+            categoriesWithLinks.Items.ShouldContain(c => c.Name == "Root 2");
+        }
+
+        [Fact]
+        public async Task GetCategoryById_WithValidId_ReturnsCategoryWithLinks()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ProductCatalogDbContext>();
+
+            var category = CategoryEntity.Create("Test Category", ImageInfo.Create("http://example.com/image.jpg"), null);
+            await dbContext.Categories.AddAsync(category);
+            await dbContext.SaveChangesAsync();
+
+            // Act
+            var response = await _client.GetAsync($"/api/categories/{category.Id}");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            var categoryWithLinks = await response.Content.ReadFromJsonAsync<LinkedResourceDto<CategoryDetailDto>>();
+            categoryWithLinks.ShouldNotBeNull();
+            categoryWithLinks.Resource.Name.ShouldBe("Test Category");
+        }
+
+        [Fact]
+        public async Task UpdateCategory_WithInvalidId_ReturnsBadRequest()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var updatedCategory = new CategoryDto
+            {
+                Id = 1,
+                Name = "Updated Category",
+            };
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
+            var response = await _client.PutAsJsonAsync("/api/categories/999", updatedCategory); // Different ID
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateCategory_WithoutPermission_ReturnsForbidden()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var newCategory = new CategoryDto { Name = "Unauthorized Category" };
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.CustomerEmail);
+            var response = await _client.PostAsJsonAsync("/api/categories", newCategory);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
     }
 }

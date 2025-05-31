@@ -33,6 +33,7 @@ namespace ECommerceNetApp.Service.Implementation
                 new Permission(Permissions.Create, Resources.Cart),
                 new Permission(Permissions.Update, Resources.Cart),
                 new Permission(Permissions.Delete, Resources.Cart),
+                new Permission(Permissions.Read, Resources.User),
             },
             [UserRole.Admin] = new List<Permission>
             {
