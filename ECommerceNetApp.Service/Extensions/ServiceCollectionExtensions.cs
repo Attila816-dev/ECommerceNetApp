@@ -14,6 +14,8 @@ namespace ECommerceNetApp.Service.Extensions
         {
             services.AddScoped<IPasswordService, PasswordService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IRolePermissionService, RolePermissionService>();
             return services;
         }
 

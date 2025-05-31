@@ -29,13 +29,14 @@ namespace ECommerceNetApp.Service.Implementation
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
-            var token = new JwtSecurityToken(
+            var tokenDescriptor = new JwtSecurityToken(
                 issuer: _jwtOptions.Issuer,
                 audience: _jwtOptions.Audience,
                 claims: claims,
-                expires: DateTime.Now.AddHours(_jwtOptions.ExpirationHours),
+                expires: DateTime.UtcNow.AddHours(_jwtOptions.ExpirationHours),
                 signingCredentials: credentials);
-            return tokenHandler.WriteToken(token);
+
+            return tokenHandler.WriteToken(tokenDescriptor);
         }
     }
 }

@@ -1,10 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Security.Claims;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using ECommerceNetApp.Api.Authorization;
 using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Api.HealthCheck;
 using ECommerceNetApp.Api.Services;
+using ECommerceNetApp.Domain.Enums;
 using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
@@ -13,6 +16,7 @@ using ECommerceNetApp.Service.Implementation.Behaviors;
 using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -54,6 +58,7 @@ namespace ECommerceNetApp.Api
             });
 
             app.UseErrorHandlingMiddleware();
+            app.UseIdentityLoggingMiddleware();
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthentication();
@@ -84,6 +89,7 @@ namespace ECommerceNetApp.Api
 
             var eventBusOptions = builder.Configuration.GetSection(EventBusOptions.SectionName).Get<EventBusOptions>();
 
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddDispatcher();
             builder.Services.AddAuthenticationServices();
             builder.Services.AddEventBus(eventBusOptions!);
@@ -126,23 +132,43 @@ namespace ECommerceNetApp.Api
                     IssuerSigningKey = new SymmetricSecurityKey(jwtOptions.GetSecretKeyBytes()),
                     ClockSkew = TimeSpan.Zero,
                 };
+
+                // Add event to enrich JWT claims with permissions
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = context =>
+                    {
+                        var rolePermissionService = context.HttpContext.RequestServices.GetRequiredService<IRolePermissionService>();
+                        var claimsIdentity = context.Principal?.Identity as ClaimsIdentity;
+
+                        if (claimsIdentity != null)
+                        {
+                            // Get the user's role from the JWT token
+                            var roleClaim = claimsIdentity.FindFirst(ClaimTypes.Role);
+                            if (roleClaim != null && Enum.TryParse<UserRole>(roleClaim.Value, out var userRole))
+                            {
+                                // Get permissions for the user's role
+                                var permissions = rolePermissionService.GetPermissionsForRole(userRole);
+
+                                // Add permission claims
+                                foreach (var permission in permissions)
+                                {
+                                    claimsIdentity.AddClaim(new Claim("permission", $"{permission.Action}:{permission.Resource}"));
+                                }
+                            }
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                };
             });
 
-            // Authorization Policies
-            builder.Services.AddAuthorization(options =>
-            {
-                // Policy for Admin role
-                options.AddPolicy("RequireAdminRole", policy =>
-                    policy.RequireRole("Admin"));
+            // Register permission-based authorization services
+            builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+            builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
-                // Policy for ProductManager role (Admin has higher privileges and can also access)
-                options.AddPolicy("RequireProductManagerRole", policy =>
-                    policy.RequireRole("Admin", "ProductManager"));
-
-                // Policy for Customer role (all authenticated users can access)
-                options.AddPolicy("RequireCustomerRole", policy =>
-                    policy.RequireRole("Admin", "ProductManager", "Customer"));
-            });
+            // Configure authorization without role-based policies
+            builder.Services.AddAuthorization();
         }
 
         private static void ConfigureHealthCheck(WebApplicationBuilder builder)

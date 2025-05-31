@@ -1,7 +1,9 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using Asp.Versioning;
+using ECommerceNetApp.Api.Authorization;
 using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Api.Services;
+using ECommerceNetApp.Domain.Authorization;
 using ECommerceNetApp.Domain.Enums;
 using ECommerceNetApp.Service.Commands.User;
 using ECommerceNetApp.Service.DTO;
@@ -23,9 +25,10 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpPost("register")]
-        [Authorize(Roles = "Admin")]
+        [RequirePermission(Permissions.Create, Resources.User)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(command, nameof(command));
@@ -52,6 +55,8 @@ namespace ECommerceNetApp.Api.Controllers
 
         [HttpPost("register/customer")]
         [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RegisterCustomer([FromBody] RegisterCustomerRequest request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
@@ -99,9 +104,10 @@ namespace ECommerceNetApp.Api.Controllers
         }
 
         [HttpGet("{email}")]
-        [Authorize(Roles = "Admin")]
+        [RequirePermission(Permissions.Read, Resources.User)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<LinkedResourceDto<UserDto>>> GetUserByEmail(string email, CancellationToken cancellationToken)
         {
             var user = await Dispatcher.SendQueryAsync<GetUserQuery, UserDto?>(new GetUserQuery(email), cancellationToken).ConfigureAwait(false);
@@ -116,6 +122,9 @@ namespace ECommerceNetApp.Api.Controllers
 
         [HttpGet("me")]
         [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetCurrentUser(CancellationToken cancellationToken)
         {
             var email = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;

@@ -1,5 +1,7 @@
-﻿using ECommerceNetApp.Api.Model;
+﻿using ECommerceNetApp.Api.Authorization;
+using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Api.Services;
+using ECommerceNetApp.Domain.Authorization;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
@@ -135,7 +137,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>The ID of the created category.</returns>
         [HttpPost]
-        [Authorize(Policy = "RequireProductManagerRole")]
+        [RequirePermission(Permissions.Create, Resources.Category)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<LinkedResourceDto<int>>> CreateCategory(
@@ -181,7 +183,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>No content if the update is successful.</returns>
         [HttpPut("{id}")]
-        [Authorize(Policy = "RequireProductManagerRole")]
+        [RequirePermission(Permissions.Update, Resources.Category)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -218,7 +220,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>OK if the deletion is successful.</returns>
         [HttpDelete("{id}")]
-        [Authorize(Policy = "RequireProductManagerRole")]
+        [RequirePermission(Permissions.Delete, Resources.Category)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteCategory(int id, CancellationToken cancellationToken)
