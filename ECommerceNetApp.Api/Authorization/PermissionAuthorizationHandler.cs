@@ -12,8 +12,8 @@ namespace ECommerceNetApp.Api.Authorization
         private static readonly Action<ILogger, Exception?> LogUserRoleNotFound =
             LoggerMessage.Define(LogLevel.Warning, new EventId(0, nameof(PermissionAuthorizationHandler)), "User role not found in claims");
 
-        private static readonly Action<ILogger, UserRole, string, string, Exception?> LogPermissionGranted =
-            LoggerMessage.Define<UserRole, string, string>(
+        private static readonly Action<ILogger, UserRole?, string, string, Exception?> LogPermissionGranted =
+            LoggerMessage.Define<UserRole?, string, string>(
                 LogLevel.Information,
                 new EventId(1, nameof(PermissionAuthorizationHandler)),
                 "Permission granted: {Role} can {Action} {Resource}");
@@ -38,6 +38,7 @@ namespace ECommerceNetApp.Api.Authorization
             var permissionClaim = $"{requirement.Action}:{requirement.Resource}";
             if (context.User.HasClaim("permission", permissionClaim))
             {
+                LogPermissionGranted(_logger, GetUserRole(context.User), requirement.Action, requirement.Resource, null);
                 context.Succeed(requirement);
                 return Task.CompletedTask;
             }
