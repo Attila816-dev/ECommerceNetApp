@@ -1,6 +1,6 @@
 ﻿using ECommerceNetApp.Domain.Authorization;
 using ECommerceNetApp.Domain.Enums;
-using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Service.Interfaces;
 
 namespace ECommerceNetApp.Service.Implementation
 {

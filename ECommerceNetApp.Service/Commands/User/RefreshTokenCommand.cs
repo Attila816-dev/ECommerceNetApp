@@ -2,9 +2,9 @@
 
 namespace ECommerceNetApp.Service.Commands.User
 {
-    public record LoginUserCommand(string Email, string Password) : ICommand<LoginUserCommandResponse>;
+    public record RefreshTokenCommand(string RefreshToken) : ICommand<RefreshTokenCommandResponse>;
 
-    public class LoginUserCommandResponse
+    public class RefreshTokenCommandResponse
     {
         public required bool Success { get; init; }
 
@@ -14,17 +14,17 @@ namespace ECommerceNetApp.Service.Commands.User
 
         public string? RefreshToken { get; init; }
 
-        public static LoginUserCommandResponse Successful(string accessToken, string refreshToken)
-            => new LoginUserCommandResponse
+        public static RefreshTokenCommandResponse Successful(string accessToken, string refreshToken)
+            => new RefreshTokenCommandResponse
             {
                 Success = true,
-                Message = "Login successful",
+                Message = "Tokens refreshed successfully",
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
             };
 
-        public static LoginUserCommandResponse Failed(string message)
-            => new LoginUserCommandResponse
+        public static RefreshTokenCommandResponse Failed(string message)
+            => new RefreshTokenCommandResponse
             {
                 Success = false,
                 Message = message,

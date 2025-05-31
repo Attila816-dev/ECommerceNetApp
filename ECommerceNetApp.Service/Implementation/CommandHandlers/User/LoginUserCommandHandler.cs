@@ -1,6 +1,7 @@
 ﻿using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.User;
+using ECommerceNetApp.Service.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
@@ -37,8 +38,9 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
             _dbContext.Users.Update(user);
             await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-            var token = _tokenService.GenerateJwtToken(user);
-            return LoginUserCommandResponse.Successful(token);
+            var accessToken = _tokenService.GenerateJwtToken(user);
+            var refreshToken = _tokenService.GenerateRefreshToken(user);
+            return LoginUserCommandResponse.Successful(accessToken, refreshToken);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using ECommerceNetApp.Domain.Authorization;
 using ECommerceNetApp.Domain.Enums;
 
-namespace ECommerceNetApp.Domain.Interfaces
+namespace ECommerceNetApp.Service.Interfaces
 {
     public interface IRolePermissionService
     {

@@ -16,7 +16,13 @@ namespace ECommerceNetApp.Domain.Options
         public required string Audience { get; set; }
 
         [Range(1, 72)]
-        public int ExpirationHours { get; set; } = 24;
+        public int ExpirationHours { get; set; } = 4;
+
+        /// <summary>
+        /// Gets or sets refresh token expiration time in hours (default: 7 days = 168 hours).
+        /// </summary>
+        [Range(1, 1000)]
+        public int RefreshTokenExpirationHours { get; set; } = 24;
 
         public byte[] GetSecretKeyBytes()
         {

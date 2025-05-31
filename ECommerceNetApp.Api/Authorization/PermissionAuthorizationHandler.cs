@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 using ECommerceNetApp.Domain.Enums;
-using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ECommerceNetApp.Api.Authorization

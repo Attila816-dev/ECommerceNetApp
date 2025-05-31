@@ -13,6 +13,7 @@ using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
 using ECommerceNetApp.Service.Extensions;
 using ECommerceNetApp.Service.Implementation.Behaviors;
+using ECommerceNetApp.Service.Interfaces;
 using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

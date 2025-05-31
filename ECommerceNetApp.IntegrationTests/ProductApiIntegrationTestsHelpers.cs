@@ -1,6 +1,5 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Enums;
 using ECommerceNetApp.Domain.Interfaces;
@@ -77,12 +76,12 @@ namespace ECommerceNetApp.IntegrationTests
 
             loginResponse.EnsureSuccessStatusCode();
 
-            var loginResult = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-            var token = loginResult.GetProperty("token").GetString();
+            var loginCommandResponse = await loginResponse.Content.ReadFromJsonAsync<LoginUserCommandResponse>();
 
-            token.ShouldNotBeNull();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            return token;
+            loginCommandResponse.ShouldNotBeNull();
+            loginCommandResponse.AccessToken.ShouldNotBeNull();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginCommandResponse.AccessToken);
+            return loginCommandResponse.AccessToken;
         }
     }
 }

@@ -89,10 +89,11 @@ namespace ECommerceNetApp.Api.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginUserCommandResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginUserCommand command, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(command, nameof(command));
             var result = await Dispatcher.SendCommandAsync<LoginUserCommand, LoginUserCommandResponse>(command, cancellationToken).ConfigureAwait(false);
 
             if (!result.Success)
@@ -100,7 +101,24 @@ namespace ECommerceNetApp.Api.Controllers
                 return Unauthorized(new { result.Message });
             }
 
-            return Ok(new { result.Token, result.Message });
+            return Ok(result);
+        }
+
+        [HttpPost("refreshtoken")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RefreshTokenCommandResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(command, nameof(command));
+            var result = await Dispatcher.SendCommandAsync<RefreshTokenCommand, RefreshTokenCommandResponse>(command, cancellationToken).ConfigureAwait(false);
+
+            if (!result.Success)
+            {
+                return Unauthorized(new { result.Message });
+            }
+
+            return Ok(result);
         }
 
         [HttpGet("{email}")]
