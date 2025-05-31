@@ -88,7 +88,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             using (var cartDbContext = _cartDbContextFactory.CreateDbContext())
             {
                 var collection = cartDbContext.GetCollection<CartEntity>();
-                var cartItems = await collection.FindAsync(c => c.Items.Any(item => item.Id == productId)).ConfigureAwait(false);
+                var cartItems = await collection.FindAsync(c => c.Items.Select(i => i.Id).Contains(productId)).ConfigureAwait(false);
                 return cartItems.ToList();
             }
         }
