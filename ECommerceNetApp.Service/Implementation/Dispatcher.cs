@@ -11,7 +11,7 @@ namespace ECommerceNetApp.Service.Implementation
         public async Task<TResponse> SendQueryAsync<TQuery, TResponse>(TQuery query, CancellationToken cancellationToken = default)
             where TQuery : IQuery<TResponse>
         {
-            ArgumentNullException.ThrowIfNull(query, nameof(query));
+            ArgumentNullException.ThrowIfNull(query);
 
             RequestHandlerDelegate<TResponse> handlerDelegate = async (ct) =>
             {
@@ -34,7 +34,7 @@ namespace ECommerceNetApp.Service.Implementation
         public async Task SendCommandAsync<TCommand>(TCommand command, CancellationToken cancellationToken = default)
             where TCommand : ICommand
         {
-            ArgumentNullException.ThrowIfNull(command, nameof(command));
+            ArgumentNullException.ThrowIfNull(command);
 
             RequestHandlerDelegate<bool> handlerDelegate = async (ct) =>
             {
@@ -57,7 +57,7 @@ namespace ECommerceNetApp.Service.Implementation
         public async Task<TResponse> SendCommandAsync<TCommand, TResponse>(TCommand command, CancellationToken cancellationToken = default)
             where TCommand : ICommand<TResponse>
         {
-            ArgumentNullException.ThrowIfNull(command, nameof(command));
+            ArgumentNullException.ThrowIfNull(command);
 
             RequestHandlerDelegate<TResponse> handlerDelegate = async (ct) =>
             {

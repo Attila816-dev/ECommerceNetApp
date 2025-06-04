@@ -34,7 +34,7 @@ namespace ECommerceNetApp.Service.Extensions
 
         public static IServiceCollection AddEventBus(this IServiceCollection services, EventBusOptions eventBusOptions)
         {
-            ArgumentNullException.ThrowIfNull(eventBusOptions, nameof(eventBusOptions));
+            ArgumentNullException.ThrowIfNull(eventBusOptions);
 
             // Register the appropriate event bus implementation
             if (eventBusOptions.UseAzure)
@@ -63,7 +63,7 @@ namespace ECommerceNetApp.Service.Extensions
 
         private static IServiceCollection RegisterHandlers(this IServiceCollection services, Assembly assembly, Type interfaceType)
         {
-            ArgumentNullException.ThrowIfNull(assembly, nameof(assembly));
+            ArgumentNullException.ThrowIfNull(assembly);
             var handlerTypes = assembly.GetTypes()
                 .Where(t => t.IsClass && !t.IsAbstract && !t.IsGenericType)
                 .Select(t => new

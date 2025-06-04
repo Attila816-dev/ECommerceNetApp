@@ -12,13 +12,13 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
     {
         private readonly object _lock = new();
         private readonly AzureEventBusOptions _azureEventBusOptions;
+        private readonly ServiceBusProcessorOptions _serviceBusProcessorOptions;
         private ServiceBusClient? _client;
         private ServiceBusAdministrationClient? _adminClient;
-        private ServiceBusProcessorOptions _serviceBusProcessorOptions;
 
         public AzureServiceBusFactory(IOptions<EventBusOptions> options)
         {
-            ArgumentNullException.ThrowIfNull(options, nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
             _azureEventBusOptions = options.Value.AzureOptions ?? throw new InvalidOperationException("Azure Service Bus options are not configured");
             _serviceBusProcessorOptions = new ServiceBusProcessorOptions
             {

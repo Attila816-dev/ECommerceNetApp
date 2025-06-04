@@ -20,7 +20,7 @@ namespace ECommerceNetApp.IntegrationTests
 
         internal static string GetPassword(string email)
         {
-            ArgumentException.ThrowIfNullOrEmpty(email, nameof(email));
+            ArgumentException.ThrowIfNullOrEmpty(email);
             if (UsersWithPasswordDictionary.TryGetValue(email, out string? password))
             {
                 return password;

@@ -13,7 +13,7 @@ namespace ECommerceNetApp.Api.HealthCheck
             try
             {
                 // Perform a simple query to check if the database is accessible
-                var collection = await _cartRepository.CountAsync(cancellationToken).ConfigureAwait(false);
+                await _cartRepository.CountAsync(cancellationToken).ConfigureAwait(false);
                 return HealthCheckResult.Healthy("CartDb is operational");
             }
             catch (Exception ex)

@@ -24,9 +24,9 @@ namespace ECommerceNetApp.Service.Implementation.Behaviors
 
         private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger = logger;
 
-        public async Task<TResponse> HandleAsync(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        public async Task<TResponse> HandleAsync(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken = default)
         {
-            ArgumentNullException.ThrowIfNull(next, nameof(next));
+            ArgumentNullException.ThrowIfNull(next);
             var requestName = request.GetType().Name;
             var requestGuid = Guid.NewGuid().ToString();
             TResponse response;

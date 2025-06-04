@@ -14,7 +14,7 @@ namespace ECommerceNetApp.Service.Implementation.QueryHandlers.Cart
         public async Task<List<CartItemDto>?> HandleAsync(GetCartItemsQuery query, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(query);
-            ArgumentException.ThrowIfNullOrWhiteSpace(query.CartId, nameof(query.CartId));
+            ArgumentException.ThrowIfNullOrWhiteSpace(query.CartId);
 
             var cart = await _cartRepository.GetByIdAsync(query.CartId, cancellationToken).ConfigureAwait(false);
 

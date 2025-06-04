@@ -112,7 +112,7 @@ namespace ECommerceNetApp.Api
         {
             // Configure JWT authentication
             var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>();
-            ArgumentNullException.ThrowIfNull(jwtOptions, nameof(jwtOptions));
+            ArgumentNullException.ThrowIfNull(jwtOptions);
 
             builder.Services.AddAuthentication(options =>
             {
@@ -279,11 +279,11 @@ namespace ECommerceNetApp.Api
                 {
                     // Build a swagger endpoint for each discovered API version in reverse order
                     // This ensures newest versions appear first in the dropdown
-                    foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+                    foreach (var groupName in apiVersionDescriptionProvider.ApiVersionDescriptions.Select(d => d.GroupName))
                     {
                         options.SwaggerEndpoint(
-                            $"/swagger/{description.GroupName}/swagger.json",
-                            $"E-commerce API {description.GroupName.ToUpperInvariant()}");
+                            $"/swagger/{groupName}/swagger.json",
+                            $"E-commerce API {groupName.ToUpperInvariant()}");
                     }
 
                     // Set document expansion to list to show all operations by default

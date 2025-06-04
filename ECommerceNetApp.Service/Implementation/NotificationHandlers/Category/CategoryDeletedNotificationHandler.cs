@@ -17,7 +17,7 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Category
 
         public void Register(IEventBus eventBus)
         {
-            ArgumentNullException.ThrowIfNull(eventBus, nameof(eventBus));
+            ArgumentNullException.ThrowIfNull(eventBus);
             eventBus.Register(this);
         }
 

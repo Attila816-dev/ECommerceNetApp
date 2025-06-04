@@ -15,7 +15,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
         public async Task<CartEntity?> GetByIdAsync(string cartId, CancellationToken cancellationToken)
         {
-            ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
+            ArgumentException.ThrowIfNullOrEmpty(cartId);
 
             using (var cartDbContext = _cartDbContextFactory.CreateDbContext())
             {
@@ -27,8 +27,8 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
         public async Task SaveAsync(CartEntity cart, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(cart, nameof(cart));
-            ArgumentException.ThrowIfNullOrEmpty(cart.Id, nameof(cart.Id));
+            ArgumentNullException.ThrowIfNull(cart);
+            ArgumentException.ThrowIfNullOrEmpty(cart.Id);
 
             using (var cartDbContext = _cartDbContextFactory.CreateDbContext())
             {
@@ -41,7 +41,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
         public async Task DeleteAsync(string cartId, CancellationToken cancellationToken)
         {
-            ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
+            ArgumentException.ThrowIfNullOrEmpty(cartId);
             CartEntity cart;
 
             using (var cartDbContext = _cartDbContextFactory.CreateDbContext())
@@ -59,7 +59,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
 
         public virtual async Task<bool> ExistsAsync(string cartId, CancellationToken cancellationToken)
         {
-            ArgumentException.ThrowIfNullOrEmpty(cartId, nameof(cartId));
+            ArgumentException.ThrowIfNullOrEmpty(cartId);
 
             using (var cartDbContext = _cartDbContextFactory.CreateDbContext())
             {

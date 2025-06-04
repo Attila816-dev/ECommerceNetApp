@@ -10,7 +10,7 @@ namespace ECommerceNetApp.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            ArgumentNullException.ThrowIfNull(migrationBuilder, nameof(migrationBuilder));
+            ArgumentNullException.ThrowIfNull(migrationBuilder);
             migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
@@ -41,7 +41,7 @@ namespace ECommerceNetApp.Persistence.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            ArgumentNullException.ThrowIfNull(migrationBuilder, nameof(migrationBuilder));
+            ArgumentNullException.ThrowIfNull(migrationBuilder);
             migrationBuilder.DropTable(
                 name: "Users");
         }

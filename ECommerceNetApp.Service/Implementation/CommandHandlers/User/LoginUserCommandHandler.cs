@@ -18,7 +18,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
 
         public async Task<LoginUserCommandResponse> HandleAsync(LoginUserCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(command, nameof(command));
+            ArgumentNullException.ThrowIfNull(command);
 
             // Get user by email
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email.ToUpper() == command.Email.ToUpper(), cancellationToken).ConfigureAwait(false);

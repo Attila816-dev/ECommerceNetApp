@@ -69,28 +69,28 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
         {
             // Main departments
             var groceriesCategory = CategoryEntity.Create(
-                ProductCatalogConstants.CategoryNames.Root.Groceries,
+                ProductCatalogConstants.CategoryNames.Root.GroceriesCategoryName,
                 ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}groceries.jpg"),
                 null);
 
             await _dbContext.Categories.AddAsync(groceriesCategory, cancellationToken).ConfigureAwait(false);
 
             var householdCategory = CategoryEntity.Create(
-                ProductCatalogConstants.CategoryNames.Root.Household,
+                ProductCatalogConstants.CategoryNames.Root.HouseholdCategoryName,
                 ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}household.jpg"),
                 null);
 
             await _dbContext.Categories.AddAsync(householdCategory, cancellationToken).ConfigureAwait(false);
 
             var electronicsCategory = CategoryEntity.Create(
-                ProductCatalogConstants.CategoryNames.Root.Electronics,
+                ProductCatalogConstants.CategoryNames.Root.ElectronicsCategoryName,
                 ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}electronics.jpg"),
                 null);
 
             await _dbContext.Categories.AddAsync(electronicsCategory, cancellationToken).ConfigureAwait(false);
 
             var clothingCategory = CategoryEntity.Create(
-                ProductCatalogConstants.CategoryNames.Root.Clothing,
+                ProductCatalogConstants.CategoryNames.Root.ClothingCategoryName,
                 ImageInfo.Create($"{ProductCatalogConstants.ImagePrefix.Category}clothing.jpg"),
                 null);
 
