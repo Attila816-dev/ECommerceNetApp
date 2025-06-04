@@ -1,11 +1,9 @@
 using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.Category;
 using ECommerceNetApp.Service.UnitTest.Extensions;
 using ECommerceNetApp.Service.Validators.Category;
 using FluentValidation.TestHelper;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 

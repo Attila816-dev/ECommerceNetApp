@@ -10,6 +10,15 @@ namespace ECommerceNetApp.Service.Extensions
 {
     public static class ServiceCollectionExtensions
     {
+        public static IServiceCollection AddAuthenticationServices(this IServiceCollection services)
+        {
+            services.AddScoped<IPasswordService, PasswordService>();
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IRolePermissionService, RolePermissionService>();
+            return services;
+        }
+
         public static IServiceCollection AddDispatcher(this IServiceCollection services)
         {
             var assembly = Assembly.GetExecutingAssembly();

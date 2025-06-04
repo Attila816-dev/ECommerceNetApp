@@ -6,8 +6,11 @@ using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Implementation.Cart;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.DTO;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Shouldly;
@@ -35,15 +38,27 @@ namespace ECommerceNetApp.IntegrationTests
                 {
                     // Replace services with test doubles if needed
                     // For example, replace the real DB context with a test one:
+                    var optionsConfig = services
+                        .Where(r => r.ServiceType.IsGenericType && r.ServiceType.GetGenericTypeDefinition() == typeof(IDbContextOptionsConfiguration<>)).ToArray();
+
+                    foreach (var option in optionsConfig)
+                    {
+                        services.Remove(option);
+                    }
+
+                    services.AddDbContext<ProductCatalogDbContext>(options => options.UseInMemoryDatabase("TestProductCatalogDb"));
+
                     services.Configure<CartDbOptions>(o => o.SeedSampleData = false);
                     services.Configure<ProductCatalogDbOptions>(o =>
                     {
                         o.EnableDatabaseMigration = false;
                         o.SeedSampleData = false;
                     });
+
                     services.Configure<EventBusOptions>(o => o.Type = "InMemory");
 
                     // Register the test CartDbContext with the test connection string
+                    services.Configure<CartDbOptions>(o => o.SeedSampleData = false);
                     services.AddSingleton<ICartDbContextFactory>(new CartDbContextFactory($"Filename={testDbPath};Mode=Shared"));
                 });
             });
@@ -64,9 +79,12 @@ namespace ECommerceNetApp.IntegrationTests
                     cartDbContext!.CreateCollection<CartEntity>();
                     await cartDbContext.GetCollection<CartEntity>().InsertAsync(CartEntity.Create(cartId));
                 }
+
+                await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
             }
 
             // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
             var response = await _client.GetAsync($"/api/v1/carts/{cartId}");
 
             // Assert
@@ -80,7 +98,13 @@ namespace ECommerceNetApp.IntegrationTests
         [Fact]
         public async Task GetCartItems_WithInvalidId_ReturnsNotFound()
         {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
             // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
+
             var cartId = "invalid-cart-id-1";
             var response = await _client.GetAsync($"/api/v1/carts/{cartId}");
 
@@ -92,6 +116,9 @@ namespace ECommerceNetApp.IntegrationTests
         public async Task AfterAddingItemToCart_ItemCanBeSuccessfullyQueried()
         {
             // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
             var cartId = "test-cart-id-1";
             var newItem = new CartItemDto
             {
@@ -109,6 +136,7 @@ namespace ECommerceNetApp.IntegrationTests
                 "application/json");
 
             // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
             var response = await _client.PostAsync($"/api/v1/carts/{cartId}/items", content);
 
             // Assert
@@ -128,6 +156,9 @@ namespace ECommerceNetApp.IntegrationTests
         public async Task UpdateCartItem_UpdatesQuantitySuccessfully()
         {
             // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
             var cartId = "test-cart-id-1";
             var newItem = new CartItemDto
             {
@@ -143,6 +174,7 @@ namespace ECommerceNetApp.IntegrationTests
                 Encoding.UTF8,
                 "application/json");
 
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
             await _client.PostAsync($"/api/v2/carts/{cartId}/items", addContent);
 
             var updateQuantity = 5;
@@ -169,6 +201,9 @@ namespace ECommerceNetApp.IntegrationTests
         public async Task RemoveCartItem_RemovesItemSuccessfully()
         {
             // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
             var cartId = "test-cart-id-1";
             var newItem = new CartItemDto
             {
@@ -183,6 +218,7 @@ namespace ECommerceNetApp.IntegrationTests
                 Encoding.UTF8,
                 "application/json");
 
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
             await _client.PostAsync($"/api/v2/carts/{cartId}/items", addContent);
 
             // Act
@@ -198,6 +234,9 @@ namespace ECommerceNetApp.IntegrationTests
         public async Task GetCartTotal_ReturnsCorrectTotal()
         {
             // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
             var cartId = "test-cart-id-1";
             var newItem = new CartItemDto
             {
@@ -212,6 +251,7 @@ namespace ECommerceNetApp.IntegrationTests
                 Encoding.UTF8,
                 "application/json");
 
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
             await _client.PostAsync($"/api/v2/carts/{cartId}/items", addContent);
 
             // Act
@@ -223,6 +263,84 @@ namespace ECommerceNetApp.IntegrationTests
 
             totalWithLinks.ShouldNotBeNull();
             totalWithLinks.Resource.ShouldBe(39.98m);
+        }
+
+        [Fact]
+        public async Task GetCart_WithoutPermission_ReturnsForbidden()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            // Act
+            var response = await _client.GetAsync("/api/v1/carts/some-cart-id");
+
+            // Assert - Assuming Customer doesn't have Cart.Read permission
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task AddItemToCart_WithNullItem_ReturnsBadRequest()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var cartId = "test-cart-id";
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
+            var response = await _client.PostAsJsonAsync($"/api/v1/carts/{cartId}/items", (CartItemDto?)null);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task RemoveItemFromCart_WithNonExistentItem_ReturnsNoContent()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var cartId = "test-cart-id";
+            var nonExistentItemId = 999;
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
+            var response = await _client.DeleteAsync($"/api/v1/carts/{cartId}/items/{nonExistentItemId}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode); // Idempotent operation
+        }
+
+        [Fact]
+        public async Task GetCartTotal_WithEmptyCart_ReturnsZero()
+        {
+            // Arrange
+            using var scope = _factory.Services.CreateScope();
+            await ProductApiIntegrationTestsHelpers.AddUsersAsync(scope.ServiceProvider);
+
+            var cartId = "empty-cart-id";
+            using (var cartScope = _factory.Services.CreateScope())
+            {
+                var cartDbContextFactory = cartScope.ServiceProvider.GetService<ICartDbContextFactory>();
+                using (var cartDbContext = cartDbContextFactory!.CreateDbContext())
+                {
+                    cartDbContext!.CreateCollection<CartEntity>();
+                    await cartDbContext.GetCollection<CartEntity>().InsertAsync(CartEntity.Create(cartId));
+                }
+            }
+
+            // Act
+            await ProductApiIntegrationTestsHelpers.LoginAndSetTokenAsync(_client, ProductApiIntegrationTestsHelpers.ManagerEmail);
+            var response = await _client.GetAsync($"/api/v1/carts/{cartId}/total");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            var totalWithLinks = await response.Content.ReadFromJsonAsync<LinkedResourceDto<decimal>>();
+            totalWithLinks.ShouldNotBeNull();
+            totalWithLinks.Resource.ShouldBe(0m);
         }
     }
 }

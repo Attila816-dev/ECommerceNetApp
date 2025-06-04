@@ -1,6 +1,4 @@
-﻿using ECommerceNetApp.Domain.Entities;
-using ECommerceNetApp.Persistence.Implementation.Cart;
-using ECommerceNetApp.Persistence.Interfaces.Cart;
+﻿using ECommerceNetApp.Persistence.Interfaces.Cart;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace ECommerceNetApp.Api.HealthCheck

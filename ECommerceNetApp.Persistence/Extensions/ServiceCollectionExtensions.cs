@@ -26,6 +26,7 @@ namespace ECommerceNetApp.Persistence.Extensions
 
             services.AddScoped<ProductCatalogDataSeeder>();
             services.AddScoped<ProductCatalogDbMigrator>();
+            services.AddScoped<UserSeeder>();
             services.AddProductCatalogDataSeeders();
 
             return services;

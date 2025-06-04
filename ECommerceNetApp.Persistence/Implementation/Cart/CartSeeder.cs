@@ -14,7 +14,6 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
         private static readonly Action<ILogger, string, Exception?> LogCartCreated =
             LoggerMessage.Define<string>(LogLevel.Information, new EventId(1, nameof(LogCartCreated)), "Created cart with ID: {CartId}");
 
-        private readonly ICartDbContextFactory _dbContextFactory;
         private readonly ICartRepository _cartRepository;
         private readonly ProductCatalogDbContext _productCatalogDbContext;
         private readonly ILogger<CartSeeder> _logger;
@@ -27,7 +26,6 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             IOptions<CartDbOptions> cartDbOptions,
             ILogger<CartSeeder> logger)
         {
-            _dbContextFactory = dbContextFactory ?? throw new ArgumentNullException(nameof(dbContextFactory));
             _cartRepository = cartRepository ?? throw new ArgumentNullException(nameof(cartRepository));
             _productCatalogDbContext = productCatalogDbContext ?? throw new ArgumentNullException(nameof(productCatalogDbContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

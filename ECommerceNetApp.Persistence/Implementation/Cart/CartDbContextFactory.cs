@@ -1,6 +1,4 @@
-﻿using LiteDB.Async;
-
-namespace ECommerceNetApp.Persistence.Implementation.Cart
+﻿namespace ECommerceNetApp.Persistence.Implementation.Cart
 {
     public class CartDbContextFactory : ICartDbContextFactory
     {

@@ -1,17 +1,25 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Security.Claims;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using ECommerceNetApp.Api.Authorization;
 using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Api.HealthCheck;
 using ECommerceNetApp.Api.Services;
+using ECommerceNetApp.Domain.Enums;
 using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
 using ECommerceNetApp.Service.Extensions;
 using ECommerceNetApp.Service.Implementation.Behaviors;
+using ECommerceNetApp.Service.Interfaces;
 using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -51,8 +59,10 @@ namespace ECommerceNetApp.Api
             });
 
             app.UseErrorHandlingMiddleware();
+            app.UseIdentityLoggingMiddleware();
             app.UseHttpsRedirection();
             app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 
@@ -75,10 +85,14 @@ namespace ECommerceNetApp.Api
             builder.Services.Configure<CartDbOptions>(builder.Configuration.GetSection(nameof(CartDbOptions)));
             builder.Services.Configure<ProductCatalogDbOptions>(builder.Configuration.GetSection(nameof(ProductCatalogDbOptions)));
             builder.Services.Configure<EventBusOptions>(builder.Configuration.GetSection(EventBusOptions.SectionName));
+            builder.Services.AddOptions<JwtOptions>().Bind(builder.Configuration.GetSection("Jwt")).ValidateDataAnnotations().ValidateOnStart();
+            builder.Services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
 
             var eventBusOptions = builder.Configuration.GetSection(EventBusOptions.SectionName).Get<EventBusOptions>();
 
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddDispatcher();
+            builder.Services.AddAuthenticationServices();
             builder.Services.AddEventBus(eventBusOptions!);
             builder.Services.AddHostedService<EventBusBackgroundService>();
 
@@ -91,6 +105,71 @@ namespace ECommerceNetApp.Api
             builder.Services.AddValidatorsFromAssemblyContaining<AddCartItemCommandValidator>();
             builder.Services.AddHostedService<DatabaseInitializer>();
             ConfigureHealthCheck(builder);
+            ConfigureAuthentication(builder);
+        }
+
+        private static void ConfigureAuthentication(WebApplicationBuilder builder)
+        {
+            // Configure JWT authentication
+            var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>();
+            ArgumentNullException.ThrowIfNull(jwtOptions, nameof(jwtOptions));
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(jwtOptions.GetSecretKeyBytes()),
+                    ClockSkew = TimeSpan.Zero,
+                };
+
+                // Add event to enrich JWT claims with permissions
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = context =>
+                    {
+                        var rolePermissionService = context.HttpContext.RequestServices.GetRequiredService<IRolePermissionService>();
+                        var claimsIdentity = context.Principal?.Identity as ClaimsIdentity;
+
+                        if (claimsIdentity != null)
+                        {
+                            // Get the user's role from the JWT token
+                            var roleClaim = claimsIdentity.FindFirst(ClaimTypes.Role);
+                            if (roleClaim != null && Enum.TryParse<UserRole>(roleClaim.Value, out var userRole))
+                            {
+                                // Get permissions for the user's role
+                                var permissions = rolePermissionService.GetPermissionsForRole(userRole);
+
+                                // Add permission claims
+                                foreach (var permission in permissions)
+                                {
+                                    claimsIdentity.AddClaim(new Claim("permission", $"{permission.Action}:{permission.Resource}"));
+                                }
+                            }
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                };
+            });
+
+            // Register permission-based authorization services
+            builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+            builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+            // Configure authorization without role-based policies
+            builder.Services.AddAuthorization();
         }
 
         private static void ConfigureHealthCheck(WebApplicationBuilder builder)
@@ -157,6 +236,31 @@ namespace ECommerceNetApp.Api
                 {
                     options.IncludeXmlComments(xmlPath);
                 }
+
+                // Add JWT Authentication to Swagger
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer",
+                            },
+                        },
+                        Array.Empty<string>()
+                    },
+                });
             });
         }
 

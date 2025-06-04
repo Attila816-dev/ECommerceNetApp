@@ -8,5 +8,10 @@ namespace ECommerceNetApp.Api.Extensions
         {
             return app.UseMiddleware<ErrorHandlingMiddleware>();
         }
+
+        public static IApplicationBuilder UseIdentityLoggingMiddleware(this IApplicationBuilder builder)
+        {
+            return builder.UseMiddleware<IdentityLoggingMiddleware>();
+        }
     }
 }

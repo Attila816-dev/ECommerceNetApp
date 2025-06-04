@@ -38,6 +38,9 @@ namespace ECommerceNetApp.Api.Services
                 var productCatalogMigrator = scope.ServiceProvider.GetRequiredService<ProductCatalogDbMigrator>();
                 await productCatalogMigrator.MigrateDatabaseAsync(cancellationToken).ConfigureAwait(false);
 
+                var userSeeder = scope.ServiceProvider.GetRequiredService<UserSeeder>();
+                await userSeeder.SeedAsync(cancellationToken).ConfigureAwait(false);
+
                 var productCatalogSeeder = scope.ServiceProvider.GetRequiredService<ProductCatalogDataSeeder>();
                 await productCatalogSeeder.SeedAsync(cancellationToken).ConfigureAwait(false);
 

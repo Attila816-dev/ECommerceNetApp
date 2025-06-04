@@ -31,6 +31,8 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 
         public virtual DbSet<ProductEntity> Products { get; set; } = null!;
 
+        public virtual DbSet<UserEntity> Users { get; set; } = null!;
+
         public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
             var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken).ConfigureAwait(false);
@@ -45,6 +47,7 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 
             modelBuilder.ApplyConfiguration(new CategoryEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new ProductEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new UserEntityTypeConfiguration());
         }
 
         private async Task DispatchDomainEventsAsync(CancellationToken cancellationToken)

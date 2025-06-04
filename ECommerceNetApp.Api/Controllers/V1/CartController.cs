@@ -1,6 +1,8 @@
 using Asp.Versioning;
+using ECommerceNetApp.Api.Authorization;
 using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Api.Services;
+using ECommerceNetApp.Domain.Authorization;
 using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
@@ -24,6 +26,7 @@ namespace ECommerceNetApp.Api.Controllers.V1
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>A cart model with a list of items.</returns>
         [HttpGet("{cartId}")]
+        [RequirePermission(Permissions.Read, Resources.Cart)]
         [MapToApiVersion("1.0")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -57,6 +60,7 @@ namespace ECommerceNetApp.Api.Controllers.V1
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>The created resource with links.</returns>
         [HttpPost("{cartId}/items")]
+        [RequirePermission(Permissions.Update, Resources.Cart)]
         [MapToApiVersion("1.0")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -91,6 +95,7 @@ namespace ECommerceNetApp.Api.Controllers.V1
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>No content if the deletion is successful.</returns>
         [HttpDelete("{cartId}/items/{itemId}")]
+        [RequirePermission(Permissions.Delete, Resources.Cart)]
         [MapToApiVersion("1.0")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -110,6 +115,7 @@ namespace ECommerceNetApp.Api.Controllers.V1
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>The cart total with links.</returns>
         [HttpGet("{cartId}/total")]
+        [RequirePermission(Permissions.Read, Resources.Cart)]
         [MapToApiVersion("1.0")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -1,9 +1,12 @@
-﻿using ECommerceNetApp.Api.Model;
+﻿using ECommerceNetApp.Api.Authorization;
+using ECommerceNetApp.Api.Model;
 using ECommerceNetApp.Api.Services;
+using ECommerceNetApp.Domain.Authorization;
 using ECommerceNetApp.Service.Commands.Product;
 using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
 using ECommerceNetApp.Service.Queries.Product;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceNetApp.Api.Controllers
@@ -21,6 +24,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>A list of all products.</returns>
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<CollectionLinkedResourceDto<ProductDto>>> GetAllProducts(CancellationToken cancellationToken)
         {
@@ -42,10 +46,11 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="categoryId">The ID of the category.</param>
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>A list of products in the specified category.</returns>
-        [HttpGet("by-category")]
+        [HttpGet("by-category/{categoryId}")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<CollectionLinkedResourceDto<ProductDto>>> GetProductsByCategoryId(
-            [FromQuery] int categoryId,
+            int categoryId,
             CancellationToken cancellationToken)
         {
             var query = new GetProductsByCategoryQuery(categoryId);
@@ -69,6 +74,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>The product with the specified ID.</returns>
         [HttpGet("{id}")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<LinkedResourceDto<ProductDto>>> GetProductById(
@@ -106,6 +112,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>A paginated list of products.</returns>
         [HttpGet("paginated")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<PagedResourceDto<ProductDto>>> GetPaginatedProducts(
             [FromQuery] int pageNumber = 1,
@@ -152,6 +159,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>The ID of the created product.</returns>
         [HttpPost]
+        [RequirePermission(Permissions.Create, Resources.Product)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<LinkedResourceDto<int>>> CreateProduct(
@@ -201,6 +209,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>No content if the update is successful.</returns>
         [HttpPut("{id}")]
+        [RequirePermission(Permissions.Update, Resources.Product)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -240,8 +249,10 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="cancellationToken">Cancellation token for the request.</param>
         /// <returns>No content if the deletion is successful.</returns>
         [HttpDelete("{id}")]
+        [RequirePermission(Permissions.Delete, Resources.Product)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken)
         {
             await Dispatcher.SendCommandAsync<DeleteProductCommand>(new DeleteProductCommand(id), cancellationToken).ConfigureAwait(false);
