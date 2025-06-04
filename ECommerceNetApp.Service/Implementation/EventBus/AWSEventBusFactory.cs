@@ -20,7 +20,7 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
 
         public AWSEventBusFactory(IOptions<EventBusOptions> options)
         {
-            ArgumentNullException.ThrowIfNull(options, nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
             _awsEventBusOptions = options.Value.AWSOptions ?? throw new InvalidOperationException("AWS Service Bus options are not configured");
         }
 

@@ -10,7 +10,7 @@ namespace ECommerceNetApp.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            ArgumentNullException.ThrowIfNull(migrationBuilder, nameof(migrationBuilder));
+            ArgumentNullException.ThrowIfNull(migrationBuilder);
             migrationBuilder.AddColumn<string>(
                 name: "Currency",
                 table: "Products",
@@ -35,7 +35,7 @@ namespace ECommerceNetApp.Persistence.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            ArgumentNullException.ThrowIfNull(migrationBuilder, nameof(migrationBuilder));
+            ArgumentNullException.ThrowIfNull(migrationBuilder);
             migrationBuilder.DropColumn(
                 name: "Currency",
                 table: "Products");

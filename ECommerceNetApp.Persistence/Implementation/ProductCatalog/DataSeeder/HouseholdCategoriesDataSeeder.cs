@@ -9,7 +9,7 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog.DataSeeder
     {
         public async Task SeedCategoriesAsync(CancellationToken cancellationToken = default)
         {
-            var parentCategory = await GetCategoryAsync(ProductCatalogConstants.CategoryNames.Root.Household, cancellationToken).ConfigureAwait(false);
+            var parentCategory = await GetCategoryAsync(ProductCatalogConstants.CategoryNames.Root.HouseholdCategoryName, cancellationToken).ConfigureAwait(false);
 
             // Household subcategories
             var cleaning = CategoryEntity.Create(

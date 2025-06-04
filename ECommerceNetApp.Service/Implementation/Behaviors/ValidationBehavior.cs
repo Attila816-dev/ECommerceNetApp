@@ -10,7 +10,7 @@ namespace ECommerceNetApp.Service.Implementation.Behaviors
     {
         private readonly IEnumerable<IValidator<TRequest>> _validators = validators;
 
-        public async Task<TResponse> HandleAsync(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        public async Task<TResponse> HandleAsync(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(next);
 

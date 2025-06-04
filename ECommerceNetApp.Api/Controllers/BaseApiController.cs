@@ -30,7 +30,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="data">The resource data.</param>
         /// <param name="links">Links to add to the resource.</param>
         /// <returns>A resource with links.</returns>
-        protected LinkedResourceDto<T> CreateResource<T>(T data, IEnumerable<LinkDto>? links = null)
+        protected static LinkedResourceDto<T> CreateResource<T>(T data, IEnumerable<LinkDto>? links = null)
         {
             var resource = new LinkedResourceDto<T>(data);
 
@@ -49,7 +49,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="items">The collection items.</param>
         /// <param name="links">Links to add to the collection.</param>
         /// <returns>A collection resource with links.</returns>
-        protected CollectionLinkedResourceDto<T> CreateCollectionResource<T>(IEnumerable<T> items, IEnumerable<LinkDto>? links = null)
+        protected static CollectionLinkedResourceDto<T> CreateCollectionResource<T>(IEnumerable<T> items, IEnumerable<LinkDto>? links = null)
         {
             var resource = new CollectionLinkedResourceDto<T>(items);
 
@@ -71,7 +71,7 @@ namespace ECommerceNetApp.Api.Controllers
         /// <param name="totalCount">Total count of items.</param>
         /// <param name="links">Links to add to the page.</param>
         /// <returns>A paged resource with links.</returns>
-        protected PagedResourceDto<T> CreatePagedResource<T>(
+        protected static PagedResourceDto<T> CreatePagedResource<T>(
             IEnumerable<T> items,
             int pageNumber,
             int pageSize,

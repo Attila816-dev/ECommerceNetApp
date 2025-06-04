@@ -31,7 +31,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(command, nameof(command));
+            ArgumentNullException.ThrowIfNull(command);
             var userId = await Dispatcher.SendCommandAsync<RegisterUserCommand, int>(command, cancellationToken).ConfigureAwait(false);
 
             var getUserLink = LinkService.CreateLink(
@@ -59,7 +59,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RegisterCustomer([FromBody] RegisterCustomerRequest request, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(request, nameof(request));
+            ArgumentNullException.ThrowIfNull(request);
             var command = new RegisterUserCommand(
                 request.Email,
                 request.Password,
@@ -93,7 +93,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginUserCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(command, nameof(command));
+            ArgumentNullException.ThrowIfNull(command);
             var result = await Dispatcher.SendCommandAsync<LoginUserCommand, LoginUserCommandResponse>(command, cancellationToken).ConfigureAwait(false);
 
             if (!result.Success)
@@ -110,7 +110,7 @@ namespace ECommerceNetApp.Api.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(command, nameof(command));
+            ArgumentNullException.ThrowIfNull(command);
             var result = await Dispatcher.SendCommandAsync<RefreshTokenCommand, RefreshTokenCommandResponse>(command, cancellationToken).ConfigureAwait(false);
 
             if (!result.Success)

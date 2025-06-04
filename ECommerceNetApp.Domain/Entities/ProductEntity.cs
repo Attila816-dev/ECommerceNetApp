@@ -138,7 +138,7 @@ namespace ECommerceNetApp.Domain.Entities
 
         internal void UpdateCategory(CategoryEntity category)
         {
-            ArgumentNullException.ThrowIfNull(category, "Category");
+            ArgumentNullException.ThrowIfNull(category);
             if (CategoryId == category.Id)
             {
                 return;

@@ -24,7 +24,7 @@ namespace ECommerceNetApp.Service.Implementation.Behaviors
         public async Task<TResponse> HandleAsync(
             TRequest request,
             RequestHandlerDelegate<TResponse> next,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             var policy = Policy
                 .Handle<IOException>()

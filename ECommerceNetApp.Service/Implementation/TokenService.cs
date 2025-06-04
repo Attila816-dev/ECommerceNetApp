@@ -19,13 +19,13 @@ namespace ECommerceNetApp.Service.Implementation
 
         public string GenerateJwtToken(UserEntity user)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
             return GenerateToken(user, TokenType.Access);
         }
 
         public string GenerateRefreshToken(UserEntity user)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
             return GenerateToken(user, TokenType.Refresh);
         }
 

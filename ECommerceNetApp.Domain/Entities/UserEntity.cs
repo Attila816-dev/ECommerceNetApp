@@ -67,8 +67,8 @@ namespace ECommerceNetApp.Domain.Entities
             UserRole role,
             int? id = null)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(email, nameof(email));
-            ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash, nameof(passwordHash));
+            ArgumentException.ThrowIfNullOrWhiteSpace(email);
+            ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
 
             return new UserEntity(id, email, passwordHash, firstName, lastName, role);
         }
@@ -82,7 +82,7 @@ namespace ECommerceNetApp.Domain.Entities
 
         public void UpdatePassword(string newPasswordHash)
         {
-            ArgumentNullException.ThrowIfNullOrWhiteSpace(newPasswordHash, nameof(newPasswordHash));
+            ArgumentException.ThrowIfNullOrWhiteSpace(newPasswordHash);
             PasswordHash = newPasswordHash;
             UpdatedAt = DateTime.UtcNow;
         }

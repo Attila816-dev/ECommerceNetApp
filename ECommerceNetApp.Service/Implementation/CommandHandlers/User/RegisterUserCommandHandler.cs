@@ -15,7 +15,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
 
         public async Task<int> HandleAsync(RegisterUserCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(command, nameof(command));
+            ArgumentNullException.ThrowIfNull(command);
             string passwordHash = _passwordService.HashPassword(command.Password);
 
             // Create user entity
