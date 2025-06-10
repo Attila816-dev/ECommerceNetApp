@@ -14,13 +14,21 @@ namespace ECommerceNetApp.Service.Commands.User
 
         public string? RefreshToken { get; init; }
 
-        public static RefreshTokenCommandResponse Successful(string accessToken, string refreshToken)
+        public string? IdToken { get; set; }
+
+        public DateTime? RefreshTokenExpiration { get; set; }
+
+        public string? TokenType { get; set; } = "Bearer";
+
+        public static RefreshTokenCommandResponse Successful(string accessToken, string refreshToken, string idToken, int refreshTokenExpirationHours = 1)
             => new RefreshTokenCommandResponse
             {
                 Success = true,
                 Message = "Tokens refreshed successfully",
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
+                IdToken = idToken,
+                RefreshTokenExpiration = DateTime.UtcNow.AddHours(refreshTokenExpirationHours),
             };
 
         public static RefreshTokenCommandResponse Failed(string message)

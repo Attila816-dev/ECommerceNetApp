@@ -161,5 +161,64 @@ namespace ECommerceNetApp.Api.Controllers
 
             return Ok(CreateResource(user));
         }
+
+        [HttpPost("validate-token")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult ValidateToken([FromBody] ValidateTokenRequest request)
+        {
+            ArgumentNullException.ThrowIfNull(request, nameof(request));
+
+            if (string.IsNullOrWhiteSpace(request.Token))
+            {
+                return BadRequest(new { message = "Token is required" });
+            }
+
+            var tokenService = HttpContext.RequestServices.GetRequiredService<ITokenService>();
+
+            // Determine token type based on request or try to validate as different types
+            TokenValidationResultDto validationResult;
+
+            if (!string.IsNullOrEmpty(request.TokenType))
+            {
+                // Validate specific token type
+                validationResult = request.TokenType.ToUpperInvariant() switch
+                {
+                    "ACCESS" => tokenService.ValidateToken(request.Token, TokenType.Access),
+                    "REFRESH" => tokenService.ValidateRefreshToken(request.Token),
+                    "ID" => tokenService.ValidateIdToken(request.Token),
+                    _ => new TokenValidationResultDto { IsValid = false, Error = "Invalid token type specified. Possible options: ACCESS, REFRESH or ID." },
+                };
+            }
+            else
+            {
+                // Try to validate as ID token first, then access token
+                validationResult = tokenService.ValidateIdToken(request.Token);
+                if (!validationResult.IsValid)
+                {
+                    validationResult = tokenService.ValidateToken(request.Token, TokenType.Access);
+                }
+            }
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid token",
+                    error = validationResult.Error,
+                });
+            }
+
+            return Ok(new
+            {
+                isValid = true,
+                email = validationResult.Email,
+                role = validationResult.Role,
+                fullName = validationResult.FullName,
+                tokenType = validationResult.TokenType.ToString(),
+                tokenId = validationResult.TokenId,
+            });
+        }
     }
 }
