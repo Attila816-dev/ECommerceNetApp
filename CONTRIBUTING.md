@@ -36,7 +36,22 @@ To help maintain high code quality, please analyze your changes with SonarQube b
 
 5. **Review Results**: After the analysis completes, you can view the results in the SonarQube dashboard.
 
+## Add pre-push hook
+
+To ensure that code style violations are caught before pushing changes, you can add a pre-push hook to your Git repository. This will run `dotnet format` to verify code style compliance.
+
+```
+#!/bin/sh
+dotnet format --verify-no-changes
+if [ $? -ne 0 ]; then
+  echo "Code style violations found. Please run 'dotnet format' and fix them before pushing."
+  exit 1
+fi
+```
+  
+
 ## Additional Notes
+
 - Ensure that your code adheres to the quality gates defined in SonarQube.
 - Address any issues reported by SonarQube before submitting your pull request.
 - Focus on fixing issues with **Major** severity or higher to maintain code quality standards.
