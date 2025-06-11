@@ -13,7 +13,9 @@ root = true
 # Additional checks (not enabled by default)
 dotnet_diagnostic.IDE0055.severity = error   # Formatting
 dotnet_diagnostic.IDE0060.severity = warning # Remove unused parameters
-dotnet_diagnostic.IDE0049.severity = warning # Use explicit type
+dotnet_diagnostic.IDE0049.severity = warning # Use explicit type 
+dotnet_diagnostic.IDE0039.severity = warning # Use local function
+dotnet_diagnostic.IDE0079.severity = error   # Remove unnecessary suppression
 
 [*.cs]
 # Sort 'System' using directives first
