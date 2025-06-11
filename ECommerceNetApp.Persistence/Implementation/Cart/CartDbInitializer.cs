@@ -11,7 +11,7 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
             _cartDbContextFactory = cartDbContextFactory;
         }
 
-        public async Task InitializeDatabaseAsync(CancellationToken cancellationToken)
+        public async Task InitializeDatabaseAsync()
         {
             // Create Cart collection if it doesn't exist
             using (var dbContext = _cartDbContextFactory.CreateDbContext())

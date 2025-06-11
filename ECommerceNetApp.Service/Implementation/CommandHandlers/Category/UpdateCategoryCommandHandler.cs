@@ -21,14 +21,14 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Category
                 ?? throw InvalidCategoryException.NotFound(command.Id);
 
             var imageInfo = command.ImageUrl != null ? ImageInfo.Create(command.ImageUrl) : null;
-            var parentCategory = await GetParentCategoryAsync(command, existingCategory, cancellationToken).ConfigureAwait(false);
+            var parentCategory = await GetParentCategoryAsync(command, cancellationToken).ConfigureAwait(false);
             existingCategory.Update(command.Name, imageInfo, parentCategory);
 
             _dbContext.Categories.Update(existingCategory);
             await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<CategoryEntity?> GetParentCategoryAsync(UpdateCategoryCommand command, CategoryEntity category, CancellationToken cancellationToken)
+        private async Task<CategoryEntity?> GetParentCategoryAsync(UpdateCategoryCommand command, CancellationToken cancellationToken)
         {
             CategoryEntity? parentCategory = null;
             if (command.ParentCategoryId.HasValue)
