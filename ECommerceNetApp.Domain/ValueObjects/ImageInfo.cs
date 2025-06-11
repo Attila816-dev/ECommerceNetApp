@@ -28,7 +28,7 @@
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(imageUrl);
-            return new ImageInfo(imageUrl, null);
+            return new ImageInfo(imageUrl, imageAltText);
         }
     }
 }
