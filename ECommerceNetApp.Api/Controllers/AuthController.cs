@@ -166,7 +166,7 @@ namespace ECommerceNetApp.Api.Controllers
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult ValidateToken([FromBody] ValidateTokenRequest request)
+        public async Task<IActionResult> ValidateToken([FromBody] ValidateTokenRequest request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
@@ -175,50 +175,51 @@ namespace ECommerceNetApp.Api.Controllers
                 return BadRequest(new { message = "Token is required" });
             }
 
-            var tokenService = HttpContext.RequestServices.GetRequiredService<ITokenService>();
+            var result = await Dispatcher.SendCommandAsync<ValidateTokenCommand, ValidateTokenCommandResponse>(new ValidateTokenCommand(request.Token, request.TokenType), cancellationToken).ConfigureAwait(false);
 
-            // Determine token type based on request or try to validate as different types
-            TokenValidationResultDto validationResult;
-
-            if (!string.IsNullOrEmpty(request.TokenType))
+            if (result.Success)
             {
-                // Validate specific token type
-                validationResult = request.TokenType.ToUpperInvariant() switch
-                {
-                    "ACCESS" => tokenService.ValidateToken(request.Token, TokenType.Access),
-                    "REFRESH" => tokenService.ValidateRefreshToken(request.Token),
-                    "ID" => tokenService.ValidateIdToken(request.Token),
-                    _ => new TokenValidationResultDto { IsValid = false, Error = "Invalid token type specified. Possible options: ACCESS, REFRESH or ID." },
-                };
+                return Ok(result);
             }
             else
             {
-                // Try to validate as ID token first, then access token
-                validationResult = tokenService.ValidateIdToken(request.Token);
-                if (!validationResult.IsValid)
-                {
-                    validationResult = tokenService.ValidateToken(request.Token, TokenType.Access);
-                }
+                return BadRequest(result);
+            }
+        }
+
+        [HttpGet("user")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> QueryUserData([FromHeader(Name = "X-Id-Token")] string? idToken, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(idToken))
+            {
+                return BadRequest(new { message = "ID token is required" });
             }
 
-            if (!validationResult.IsValid)
+            var tokenValidationResult = await Dispatcher.SendCommandAsync<ValidateTokenCommand, ValidateTokenCommandResponse>(new ValidateTokenCommand(idToken, TokenType.Id.ToString()), cancellationToken).ConfigureAwait(false);
+            if (!tokenValidationResult.Success)
             {
-                return BadRequest(new
-                {
-                    message = "Invalid token",
-                    error = validationResult.Error,
-                });
+                return Unauthorized(tokenValidationResult);
             }
 
-            return Ok(new
+            var user = await Dispatcher.SendQueryAsync<GetUserQuery, UserDto?>(new GetUserQuery(tokenValidationResult.Email!), cancellationToken).ConfigureAwait(false);
+
+            if (user == null)
             {
-                isValid = true,
-                email = validationResult.Email,
-                role = validationResult.Role,
-                fullName = validationResult.FullName,
-                tokenType = validationResult.TokenType.ToString(),
-                tokenId = validationResult.TokenId,
-            });
+                return Unauthorized(new { message = "User not found" });
+            }
+
+            var authResponse = new
+            {
+                IsAuthenticated = true,
+                User = user,
+                TokenInfo = tokenValidationResult,
+            };
+
+            return Ok(authResponse);
         }
     }
 }

@@ -3,7 +3,7 @@
     // Request model for token validation
     public class ValidateTokenRequest
     {
-        public string Token { get; set; } = string.Empty;
+        public required string Token { get; set; }
 
         public string? TokenType { get; set; } // "access", "refresh", "id"
     }
