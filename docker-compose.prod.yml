@@ -1,0 +1,17 @@
+services:
+  ecommerce-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__ProductCatalogDb=Server=sqlserver;Database=ECommerceProductCatalogDb;User Id=sa;Password=YourStrongPassword123!;TrustServerCertificate=true;MultipleActiveResultSets=true;ConnectRetryCount=3;ConnectRetryInterval=10;
+      - ConnectionStrings__CartDb=Filename=/app/data/litedb/Cart.db;Mode=Shared
+      - Jwt__SecretKey=SecureKeyWithAtLeast256BitLength123456789!
+      - Jwt__Issuer=ECommerceNetApp
+      - Jwt__Audience=ECommerceNetAppClients
+      - Jwt__ExpireHours=1
+      - Jwt__RefreshTokenExpirationHours=24
+      - ProductCatalogDbOptions__SeedSampleData=true
+      - ProductCatalogDbOptions__EnableDatabaseMigration=true
+      - CartDbOptions__SeedSampleData=true
+    volumes:
+      - litedb_data:/app/data/litedb
+      - api_logs:/logs
