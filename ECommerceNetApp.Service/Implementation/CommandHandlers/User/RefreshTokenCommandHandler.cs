@@ -1,18 +1,22 @@
 ﻿using ECommerceNetApp.Domain.Interfaces;
+using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using ECommerceNetApp.Service.Commands.User;
 using ECommerceNetApp.Service.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
 {
     public class RefreshTokenCommandHandler(
-        ProductCatalogDbContext dbContext,
-        ITokenService tokenService)
-        : ICommandHandler<RefreshTokenCommand, RefreshTokenCommandResponse>
+       ProductCatalogDbContext dbContext,
+       ITokenService tokenService,
+       IOptions<JwtOptions> jwtOptions)
+       : ICommandHandler<RefreshTokenCommand, RefreshTokenCommandResponse>
     {
         private readonly ProductCatalogDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         private readonly ITokenService _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
+        private readonly JwtOptions _jwtOptions = jwtOptions?.Value ?? throw new ArgumentNullException(nameof(jwtOptions));
 
         public async Task<RefreshTokenCommandResponse> HandleAsync(RefreshTokenCommand command, CancellationToken cancellationToken)
         {
@@ -31,9 +35,10 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
                 return RefreshTokenCommandResponse.Failed("Invalid email or password");
             }
 
-            var newAccessToken = _tokenService.GenerateJwtToken(user);
+            var newAccessToken = _tokenService.GenerateAccessToken(user);
             var newRefreshToken = _tokenService.GenerateRefreshToken(user);
-            return RefreshTokenCommandResponse.Successful(newAccessToken, newRefreshToken);
+            var newIdToken = _tokenService.GenerateIdToken(user);
+            return RefreshTokenCommandResponse.Successful(newAccessToken, newRefreshToken, newIdToken, _jwtOptions.RefreshTokenExpirationHours);
         }
     }
 }

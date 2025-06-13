@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using System.Text.Json;
-using System.Threading;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;

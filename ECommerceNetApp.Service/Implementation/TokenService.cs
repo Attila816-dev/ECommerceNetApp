@@ -17,7 +17,7 @@ namespace ECommerceNetApp.Service.Implementation
 
         private readonly JwtOptions _jwtOptions = jwtOptions?.Value ?? throw new ArgumentNullException(nameof(jwtOptions));
 
-        public string GenerateJwtToken(UserEntity user)
+        public string GenerateAccessToken(UserEntity user)
         {
             ArgumentNullException.ThrowIfNull(user);
             return GenerateToken(user, TokenType.Access);
@@ -29,11 +29,22 @@ namespace ECommerceNetApp.Service.Implementation
             return GenerateToken(user, TokenType.Refresh);
         }
 
+        public string GenerateIdToken(UserEntity user)
+        {
+            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            return GenerateToken(user, TokenType.Id);
+        }
+
 #pragma warning disable CA1031 // Do not catch general exception types
-        public TokenValidationResultDto ValidateRefreshToken(string refreshToken)
+        public TokenValidationResultDto ValidateToken(string token, TokenType expectedTokenType)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    return new TokenValidationResultDto { IsValid = false, Error = "Token is null or empty" };
+                }
+
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var validationParameters = new TokenValidationParameters
                 {
@@ -47,18 +58,19 @@ namespace ECommerceNetApp.Service.Implementation
                     ClockSkew = TimeSpan.Zero,
                 };
 
-                var principal = tokenHandler.ValidateToken(refreshToken, validationParameters, out var validatedToken);
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
 
-                // Verify it's a refresh token
+                // Verify it's the expected token type
                 var tokenTypeClaim = principal.FindFirst(TokenTypeClaim)?.Value;
-                if (tokenTypeClaim != TokenType.Refresh.ToString())
+                if (tokenTypeClaim != expectedTokenType.ToString())
                 {
-                    return new TokenValidationResultDto { IsValid = false, Error = "Invalid token type" };
+                    return new TokenValidationResultDto { IsValid = false, Error = $"Invalid token type. Expected: {expectedTokenType}, Actual: {tokenTypeClaim}" };
                 }
 
                 var email = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? principal.FindFirst(ClaimTypes.Email)?.Value;
                 var role = principal.FindFirst(ClaimTypes.Role)?.Value;
                 var fullName = principal.FindFirst(ClaimTypes.Name)?.Value;
+                var jti = principal.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
 
                 return new TokenValidationResultDto
                 {
@@ -66,14 +78,42 @@ namespace ECommerceNetApp.Service.Implementation
                     Email = email,
                     Role = role,
                     FullName = fullName,
+                    TokenId = jti,
+                    TokenType = expectedTokenType,
                 };
+            }
+            catch (SecurityTokenExpiredException)
+            {
+                return new TokenValidationResultDto { IsValid = false, Error = "Token has expired" };
+            }
+            catch (SecurityTokenInvalidSignatureException)
+            {
+                return new TokenValidationResultDto { IsValid = false, Error = "Invalid token signature" };
+            }
+            catch (SecurityTokenInvalidIssuerException)
+            {
+                return new TokenValidationResultDto { IsValid = false, Error = "Invalid token issuer" };
+            }
+            catch (SecurityTokenInvalidAudienceException)
+            {
+                return new TokenValidationResultDto { IsValid = false, Error = "Invalid token audience" };
             }
             catch (Exception ex)
             {
-                return new TokenValidationResultDto { IsValid = false, Error = ex.Message };
+                return new TokenValidationResultDto { IsValid = false, Error = $"Token validation failed: {ex.Message}" };
             }
         }
 #pragma warning restore CA1031 // Do not catch general exception types
+
+        public TokenValidationResultDto ValidateRefreshToken(string refreshToken)
+        {
+            return ValidateToken(refreshToken, TokenType.Refresh);
+        }
+
+        public TokenValidationResultDto ValidateIdToken(string idToken)
+        {
+            return ValidateToken(idToken, TokenType.Id);
+        }
 
         private string GenerateToken(UserEntity user, TokenType tokenType)
         {
@@ -87,14 +127,38 @@ namespace ECommerceNetApp.Service.Implementation
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email.ToString(CultureInfo.InvariantCulture)),
                 new Claim(ClaimTypes.Name, user.FullName),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(TokenTypeClaim, tokenType.ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
             };
 
-            var expirationHours = tokenType == TokenType.Access
-                ? _jwtOptions.ExpirationHours
-                : _jwtOptions.RefreshTokenExpirationHours;
+            // Add specific claims based on token type
+            switch (tokenType)
+            {
+                case TokenType.Id:
+                    // ID tokens should contain user profile information (OpenID Connect standard)
+                    claims.Add(new Claim("given_name", user.FirstName));
+                    claims.Add(new Claim("family_name", user.LastName));
+                    claims.Add(new Claim("email_verified", "true"));
+                    claims.Add(new Claim(JwtRegisteredClaimNames.Aud, _jwtOptions.Audience)); // Audience is important for ID tokens
+                    break;
+                case TokenType.Access:
+                    // Access tokens can contain permissions/scopes
+                    // These could be added based on user role
+                    claims.Add(new Claim(ClaimTypes.Role, user.Role.ToString()));
+                    break;
+                case TokenType.Refresh:
+                    // Refresh tokens should be minimal - only essential claims
+                    break;
+            }
+
+            var expirationHours = tokenType switch
+            {
+                TokenType.Access => _jwtOptions.ExpirationHours,
+                TokenType.Refresh => _jwtOptions.RefreshTokenExpirationHours,
+                TokenType.Id => _jwtOptions.ExpirationHours, // ID tokens typically have same expiration as access tokens
+                _ => _jwtOptions.ExpirationHours,
+            };
 
             var tokenDescriptor = new JwtSecurityToken(
                 issuer: _jwtOptions.Issuer,

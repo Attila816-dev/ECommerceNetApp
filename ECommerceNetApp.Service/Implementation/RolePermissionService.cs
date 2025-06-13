@@ -46,7 +46,7 @@ namespace ECommerceNetApp.Service.Implementation
                 // Store customer: Read only + Cart access
                 new Permission(Permissions.Read, Resources.Product),
                 new Permission(Permissions.Read, Resources.Category),
-                .. FullCartPermissions
+                .. FullCartPermissions,
             ],
             [UserRole.ProductManager] =
             [

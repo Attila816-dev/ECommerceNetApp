@@ -14,22 +14,30 @@ namespace ECommerceNetApp.Service.Commands.User
 
         public string? RefreshToken { get; init; }
 
-        public static LoginUserCommandResponse Successful(string accessToken, string refreshToken)
-            => new LoginUserCommandResponse
+        public string? IdToken { get; init; }
+
+        public DateTime? TokenExpiration { get; init; }
+
+        public static LoginUserCommandResponse Successful(string accessToken, string refreshToken, string idToken, int expirationHours)
+        {
+            return new LoginUserCommandResponse
             {
                 Success = true,
                 Message = "Login successful",
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
+                IdToken = idToken,
+                TokenExpiration = DateTime.UtcNow.AddHours(expirationHours),
             };
+        }
 
         public static LoginUserCommandResponse Failed(string message)
-            => new LoginUserCommandResponse
+        {
+            return new LoginUserCommandResponse
             {
                 Success = false,
                 Message = message,
-                AccessToken = null,
-                RefreshToken = null,
             };
+        }
     }
 }
