@@ -493,8 +493,51 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
                 eventTypeName = eventTypeAttribute.StringValue;
             }
 
+            LogMessageReceived(_logger, message.Body, eventTypeName ?? "Unknown", null);
+
+            // Create a retry policy for processing
+            var retryPolicy = Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+            try
+            {
+                await retryPolicy.ExecuteAsync(
+                    async (ct) =>
+                    {
+                        try
+                        {
+                            await TryProcessMessageAsync(sqsClient, queueUrl, message, eventType, eventTypeName, ct).ConfigureAwait(false);
+                        }
+                        catch (JsonException ex)
+                        {
+                            LogMessageDeserializationError(_logger, message.MessageId, eventTypeName ?? eventType.Name, ex);
+                            await sqsClient.DeleteMessageAsync(queueUrl, message.ReceiptHandle, ct).ConfigureAwait(false);
+                        }
+                    },
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                LogMessageProcessingError(_logger, message.MessageId, eventTypeName ?? eventType.Name, ex);
+
+                // Don't delete the message - it will become visible again after the visibility timeout expires
+                // After multiple failures, the redrive policy will move it to the DLQ
+            }
+        }
+
+        private async Task TryProcessMessageAsync(AmazonSQSClient sqsClient, string queueUrl, Message message, Type eventType, string? eventTypeName, CancellationToken cancellationToken)
+        {
             var messageId = message.MessageId;
             var messageBody = message.Body;
+
+            if (!_handlers.TryGetValue(eventType, out var handlers))
+            {
+                // No handlers for this type - delete the message anyway
+                LogMissingMessageProcessingHandler(_logger, eventTypeName ?? eventType.Name, message.MessageId, null);
+                await sqsClient.DeleteMessageAsync(queueUrl, message.ReceiptHandle, cancellationToken).ConfigureAwait(false);
+                return;
+            }
 
             // Check if this is an SNS notification wrapped in SQS message
             try
@@ -511,75 +554,36 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
                 // If it's not an SNS wrapper, just use the message as is
             }
 
-            LogMessageReceived(_logger, messageBody, eventTypeName ?? "Unknown", null);
-
-            // Create a retry policy for processing
-            var retryPolicy = Policy
-                .Handle<Exception>()
-                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
-
-            if (_handlers.TryGetValue(eventType, out var handlers))
+            var notification = JsonSerializer.Deserialize(messageBody, eventType) as INotification;
+            if (notification != null)
             {
-                try
+                foreach (var handler in handlers)
                 {
-                    await retryPolicy.ExecuteAsync(
-                        async (ct) =>
-                        {
-                            try
-                            {
-                                var notification = JsonSerializer.Deserialize(messageBody, eventType) as INotification;
-                                if (notification != null)
-                                {
-                                    foreach (var handler in handlers)
-                                    {
-                                        try
-                                        {
-                                            await handler(notification, ct).ConfigureAwait(false);
-                                        }
-                                        catch (Exception handlerEx)
-                                        {
-                                            LogMessageProcessingErrorInHandler(
-                                                _logger,
-                                                handler.Method.DeclaringType?.Name ?? "Unknown",
-                                                messageId,
-                                                eventTypeName ?? eventType.Name,
-                                                handlerEx);
+                    try
+                    {
+                        await handler(notification, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception handlerEx)
+                    {
+                        LogMessageProcessingErrorInHandler(
+                            _logger,
+                            handler.Method.DeclaringType?.Name ?? "Unknown",
+                            messageId,
+                            eventTypeName ?? eventType.Name,
+                            handlerEx);
 
-                                            throw; // Rethrow to trigger retry policy
-                                        }
-                                    }
-
-                                    // Successfully processed - delete the message from the queue
-                                    await sqsClient.DeleteMessageAsync(queueUrl, message.ReceiptHandle, ct).ConfigureAwait(false);
-                                    LogCompletionOfProcessingMessages(_logger, messageId, null);
-                                }
-                                else
-                                {
-                                    // Couldn't deserialize to the expected type
-                                    LogMessageDeserializationMismatchError(_logger, messageId, eventType.Name, null);
-                                    await sqsClient.DeleteMessageAsync(queueUrl, message.ReceiptHandle, ct).ConfigureAwait(false);
-                                }
-                            }
-                            catch (JsonException ex)
-                            {
-                                LogMessageDeserializationError(_logger, messageId, eventTypeName ?? eventType.Name, ex);
-                                await sqsClient.DeleteMessageAsync(queueUrl, message.ReceiptHandle, ct).ConfigureAwait(false);
-                            }
-                        },
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                        throw; // Rethrow to trigger retry policy
+                    }
                 }
-                catch (Exception ex)
-                {
-                    LogMessageProcessingError(_logger, messageId, eventTypeName ?? eventType.Name, ex);
 
-                    // Don't delete the message - it will become visible again after the visibility timeout expires
-                    // After multiple failures, the redrive policy will move it to the DLQ
-                }
+                // Successfully processed - delete the message from the queue
+                await sqsClient.DeleteMessageAsync(queueUrl, message.ReceiptHandle, cancellationToken).ConfigureAwait(false);
+                LogCompletionOfProcessingMessages(_logger, messageId, null);
             }
             else
             {
-                // No handlers for this type - delete the message anyway
-                LogMissingMessageProcessingHandler(_logger, eventTypeName ?? eventType.Name, messageId, null);
+                // Couldn't deserialize to the expected type
+                LogMessageDeserializationMismatchError(_logger, messageId, eventType.Name, null);
                 await sqsClient.DeleteMessageAsync(queueUrl, message.ReceiptHandle, cancellationToken).ConfigureAwait(false);
             }
         }

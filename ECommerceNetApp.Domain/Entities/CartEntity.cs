@@ -13,8 +13,6 @@ namespace ECommerceNetApp.Domain.Entities
         {
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = CreatedAt;
-
-            // AddDomainEvent(new CartCreatedEvent(id));
         }
 
         /// <summary>

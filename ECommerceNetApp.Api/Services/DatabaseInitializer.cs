@@ -46,7 +46,7 @@ namespace ECommerceNetApp.Api.Services
 
                 // Initialize cart database
                 var cartInitializer = scope.ServiceProvider.GetRequiredService<CartDbInitializer>();
-                await cartInitializer.InitializeDatabaseAsync(cancellationToken).ConfigureAwait(false);
+                await cartInitializer.InitializeDatabaseAsync().ConfigureAwait(false);
 
                 var cartSeeder = scope.ServiceProvider.GetRequiredService<CartSeeder>();
                 await cartSeeder.SeedAsync(cancellationToken).ConfigureAwait(false);

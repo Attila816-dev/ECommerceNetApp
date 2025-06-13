@@ -13,7 +13,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.Cart
         public async Task HandleAsync(RemoveCartItemCommand command, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(command);
-            ArgumentException.ThrowIfNullOrEmpty(command.CartId, nameof(command.CartId));
+            ArgumentException.ThrowIfNullOrEmpty(command.CartId);
 
             var cart = await _cartRepository.GetByIdAsync(command.CartId, cancellationToken).ConfigureAwait(false);
 

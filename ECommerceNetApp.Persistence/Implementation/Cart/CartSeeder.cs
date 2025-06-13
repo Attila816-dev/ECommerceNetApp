@@ -20,7 +20,6 @@ namespace ECommerceNetApp.Persistence.Implementation.Cart
         private readonly CartDbOptions _cartDbOptions;
 
         public CartSeeder(
-            ICartDbContextFactory dbContextFactory,
             ICartRepository cartRepository,
             ProductCatalogDbContext productCatalogDbContext,
             IOptions<CartDbOptions> cartDbOptions,

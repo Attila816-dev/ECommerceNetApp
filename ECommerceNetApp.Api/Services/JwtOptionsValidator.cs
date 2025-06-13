@@ -10,7 +10,7 @@ namespace ECommerceNetApp.Api.Services
         {
             var errors = new List<string>();
 
-            ArgumentNullException.ThrowIfNull(options, nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
 
             // Check if the secret key has sufficient entropy
             if (!string.IsNullOrEmpty(options.SecretKey))

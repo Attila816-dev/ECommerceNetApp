@@ -31,8 +31,8 @@ namespace ECommerceNetApp.Api.Authorization
             AuthorizationHandlerContext context,
             PermissionRequirement requirement)
         {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
-            ArgumentNullException.ThrowIfNull(requirement, nameof(requirement));
+            ArgumentNullException.ThrowIfNull(context);
+            ArgumentNullException.ThrowIfNull(requirement);
 
             // Check if user has the specific permission claim (added during JWT validation)
             var permissionClaim = $"{requirement.Action}:{requirement.Resource}";

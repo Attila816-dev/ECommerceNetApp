@@ -51,7 +51,7 @@ namespace ECommerceNetApp.Domain.ValueObjects
                 throw InvalidCartException.InvalidCartItemQuantity();
             }
 
-            ArgumentNullException.ThrowIfNull(price, nameof(price));
+            ArgumentNullException.ThrowIfNull(price);
 
             return new CartItem(id, name, price, quantity, image);
         }

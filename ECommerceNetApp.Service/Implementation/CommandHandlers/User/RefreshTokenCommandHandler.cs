@@ -20,7 +20,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
 
         public async Task<RefreshTokenCommandResponse> HandleAsync(RefreshTokenCommand command, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(command, nameof(command));
+            ArgumentNullException.ThrowIfNull(command);
             var validationResult = _tokenService.ValidateRefreshToken(command.RefreshToken);
 
             if (!validationResult.IsValid)
