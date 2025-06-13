@@ -18,8 +18,6 @@ namespace ECommerceNetApp.Service.Commands.User
 
         public DateTime? RefreshTokenExpiration { get; set; }
 
-        public string? TokenType { get; set; } = "Bearer";
-
         public static RefreshTokenCommandResponse Successful(string accessToken, string refreshToken, string idToken, int refreshTokenExpirationHours = 1)
             => new RefreshTokenCommandResponse
             {

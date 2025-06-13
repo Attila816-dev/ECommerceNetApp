@@ -16,15 +16,12 @@ namespace ECommerceNetApp.Service.Commands.User
 
         public string? FullName { get; init; }
 
-        public string? TokenType { get; set; } = "Bearer";
-
-        public static ValidateTokenCommandResponse Successful(string? tokenId, string? tokenType, string? email, string? fullName)
+        public static ValidateTokenCommandResponse Successful(string? tokenId, string? email, string? fullName)
             => new ValidateTokenCommandResponse
             {
                 Success = true,
                 Message = "Tokens validated successfully",
                 TokenId = tokenId,
-                TokenType = tokenType,
                 Email = email,
                 FullName = fullName,
             };

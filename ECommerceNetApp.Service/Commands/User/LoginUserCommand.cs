@@ -18,8 +18,6 @@ namespace ECommerceNetApp.Service.Commands.User
 
         public DateTime? TokenExpiration { get; init; }
 
-        public string? TokenType { get; set; } = "Bearer";
-
         public static LoginUserCommandResponse Successful(string accessToken, string refreshToken, string idToken, int expirationHours)
         {
             return new LoginUserCommandResponse

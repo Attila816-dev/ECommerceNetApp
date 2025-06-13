@@ -42,7 +42,7 @@ namespace ECommerceNetApp.Service.Implementation.CommandHandlers.User
 
             if (validationResult.IsValid)
             {
-                return Task.FromResult(ValidateTokenCommandResponse.Successful(validationResult.TokenId, validationResult.TokenType?.ToString(), validationResult.Email, validationResult.FullName));
+                return Task.FromResult(ValidateTokenCommandResponse.Successful(validationResult.TokenId, validationResult.Email, validationResult.FullName));
             }
             else
             {
