@@ -28,12 +28,8 @@ EXPOSE 8081
 # Create directories and set permissions
 RUN mkdir -p /app/data/litedb /logs /https
 
-# Build the project for development
-WORKDIR /src
-RUN dotnet build "ECommerceNetApp.Api/ECommerceNetApp.Api.csproj" -c Debug -o /app/dev
-
-# Set working directory to the output directory
-WORKDIR /app/dev
+# Copy the built application
+WORKDIR /app/build
 
 # Copy appsettings files
 COPY ECommerceNetApp.Api/appsettings*.json ./
@@ -43,13 +39,13 @@ RUN if [ ! -f /https/aspnetapp.pfx ]; then \
     dotnet dev-certs https -ep /https/aspnetapp.pfx -p password; \
     fi
 
-# Use the built DLL instead of dotnet run
+# Use the built DLL
 CMD ["dotnet", "ECommerceNetApp.Api.dll"]
 
 # Publish stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "ECommerceNetApp.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "ECommerceNetApp.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --no-build
 
 # Production runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
