@@ -1,0 +1,32 @@
+services:
+  ecommerce-api:
+    build:
+      target: development  # Use development stage
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ConnectionStrings__ProductCatalogDb=Server=sqlserver;Database=ECommerceProductCatalogDb;User Id=sa;Password=YourStrongPassword123!;TrustServerCertificate=true;MultipleActiveResultSets=true;
+      - ConnectionStrings__CartDb=Filename=/app/data/litedb/Cart.db;Mode=Shared
+      - ProductCatalogDbOptions__SeedSampleData=true
+      - ProductCatalogDbOptions__EnableDatabaseMigration=true
+      - CartDbOptions__SeedSampleData=true
+      # Development debugging
+      - DOTNET_USE_POLLING_FILE_WATCHER=true
+      - DOTNET_RUNNING_IN_CONTAINER=true
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - .:/src  # Mount source code for hot reload
+      - litedb_data:/app/data/litedb
+      - api_logs:/logs
+    ports:
+      - "5000:8080"  # HTTP
+      - "5001:8081"  # HTTPS
+    depends_on:
+      - sqlserver
+    networks:
+      - ecommerce-network
