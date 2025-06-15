@@ -24,8 +24,27 @@ RUN dotnet build "ECommerceNetApp.Api.csproj" -c $BUILD_CONFIGURATION -o /app/bu
 FROM build AS development
 EXPOSE 8080
 EXPOSE 8081
-WORKDIR /src/ECommerceNetApp.Api
-ENTRYPOINT ["dotnet", "run", "--no-build", "--no-restore", "--urls", "http://+:8080;https://+:8081"]
+
+# Create directories and set permissions
+RUN mkdir -p /app/data/litedb /logs /https
+
+# Build the project for development
+WORKDIR /src
+RUN dotnet build "ECommerceNetApp.Api/ECommerceNetApp.Api.csproj" -c Debug -o /app/dev
+
+# Set working directory to the output directory
+WORKDIR /app/dev
+
+# Copy appsettings files
+COPY ECommerceNetApp.Api/appsettings*.json ./
+
+# Generate development certificate if not exists
+RUN if [ ! -f /https/aspnetapp.pfx ]; then \
+    dotnet dev-certs https -ep /https/aspnetapp.pfx -p password; \
+    fi
+
+# Use the built DLL instead of dotnet run
+CMD ["dotnet", "ECommerceNetApp.Api.dll"]
 
 # Publish stage
 FROM build AS publish
