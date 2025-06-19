@@ -5,7 +5,6 @@ using Polly.Retry;
 
 namespace ECommerceNetApp.Service.Implementation.EventBus
 {
-#pragma warning disable CA1031 // Do not catch general exception types
     internal sealed class InMemoryEventBus(InMemoryMessageQueue queue, ILogger<InMemoryEventBus> logger)
         : IEventBus, IAsyncDisposable
     {
@@ -173,5 +172,4 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
             }
         }
     }
-#pragma warning restore CA1031 // Do not catch general exception types
 }

@@ -35,7 +35,6 @@ namespace ECommerceNetApp.Service.Implementation
             return GenerateToken(user, TokenType.Id);
         }
 
-#pragma warning disable CA1031 // Do not catch general exception types
         public TokenValidationResultDto ValidateToken(string token, TokenType expectedTokenType)
         {
             try
@@ -103,7 +102,6 @@ namespace ECommerceNetApp.Service.Implementation
                 return new TokenValidationResultDto { IsValid = false, Error = $"Token validation failed: {ex.Message}" };
             }
         }
-#pragma warning restore CA1031 // Do not catch general exception types
 
         public TokenValidationResultDto ValidateRefreshToken(string refreshToken)
         {

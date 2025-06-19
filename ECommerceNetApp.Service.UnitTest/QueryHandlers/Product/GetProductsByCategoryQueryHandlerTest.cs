@@ -8,7 +8,7 @@ using Moq;
 using Moq.EntityFrameworkCore;
 using Shouldly;
 
-namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Category
+namespace ECommerceNetApp.Service.UnitTest.QueryHandlers.Product
 {
     public class GetProductsByCategoryQueryHandlerTest
     {

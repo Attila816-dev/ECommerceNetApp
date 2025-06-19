@@ -3,7 +3,7 @@ using ECommerceNetApp.Service.Commands.Category;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerceNetApp.Service.Validators.Category
+namespace ECommerceNetApp.Service.Implementation.Validators.Category
 {
     public class DeleteCategoryCommandValidator : AbstractValidator<DeleteCategoryCommand>
     {

@@ -10,7 +10,6 @@ namespace ECommerceNetApp.Api.HealthCheck
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 // Perform a simple query to check if the database is accessible
@@ -21,7 +20,6 @@ namespace ECommerceNetApp.Api.HealthCheck
             {
                 return HealthCheckResult.Unhealthy("ProductCatalogDb health check failed", exception: ex);
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
     }
 }

@@ -2,6 +2,7 @@
 # Add or extend the .editorconfig file to ignore SA1600 (Elements must be documented)
 [*.cs]
 dotnet_diagnostic.CA1002.severity = none
+dotnet_diagnostic.CA1052.severity = none
 dotnet_diagnostic.CA1056.severity = none
 dotnet_diagnostic.CS1591.severity = none
 dotnet_diagnostic.CS1716.severity = none
@@ -13,9 +14,12 @@ root = true
 # Additional checks (not enabled by default)
 dotnet_diagnostic.IDE0055.severity = error   # Formatting
 dotnet_diagnostic.IDE0060.severity = warning # Remove unused parameters
-dotnet_diagnostic.IDE0049.severity = warning # Use explicit type 
+dotnet_diagnostic.IDE0049.severity = warning # Use explicit type
 dotnet_diagnostic.IDE0039.severity = warning # Use local function
 dotnet_diagnostic.IDE0079.severity = error   # Remove unnecessary suppression
+
+# Suppress rule CA1031 for the entire project
+dotnet_diagnostic.CA1031.severity = silent
 
 [*.cs]
 # Sort 'System' using directives first

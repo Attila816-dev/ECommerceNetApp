@@ -30,7 +30,6 @@ namespace ECommerceNetApp.Api.Middleware
         {
             ArgumentNullException.ThrowIfNull(context);
 
-#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 await _next(context).ConfigureAwait(false);
@@ -39,7 +38,6 @@ namespace ECommerceNetApp.Api.Middleware
             {
                 await HandleExceptionAsync(context, ex).ConfigureAwait(false);
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         private Task HandleExceptionAsync(HttpContext context, Exception exception)

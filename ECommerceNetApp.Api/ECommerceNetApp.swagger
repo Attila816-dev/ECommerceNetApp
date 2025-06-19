@@ -1,0 +1,1698 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "E-commerce API 1.0",
+    "description": "E-commerce API",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/v1/Auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "consumes": [
+          "application/json; v=1.0",
+          "text/json; v=1.0",
+          "application/*+json; v=1.0"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/RegisterUserCommand"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Auth/register/customer": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "consumes": [
+          "application/json; v=1.0",
+          "text/json; v=1.0",
+          "application/*+json; v=1.0"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/RegisterCustomerRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "consumes": [
+          "application/json; v=1.0",
+          "text/json; v=1.0",
+          "application/*+json; v=1.0"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/LoginUserCommand"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/LoginUserCommandResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Auth/refreshtoken": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "consumes": [
+          "application/json; v=1.0",
+          "text/json; v=1.0",
+          "application/*+json; v=1.0"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/RefreshTokenCommand"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/RefreshTokenCommandResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Auth/{email}": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/UserDtoLinkedResourceDto"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Auth/validate-token": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "consumes": [
+          "application/json; v=1.0",
+          "text/json; v=1.0",
+          "application/*+json; v=1.0"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ValidateTokenRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Auth/user": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Id-Token",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/carts/{cartId}": {
+      "get": {
+        "tags": [
+          "Cart"
+        ],
+        "summary": "Retrieves cart information.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cartId",
+            "description": "The ID of the cart.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CartDtoLinkedResourceDto"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/carts/{cartId}/items": {
+      "post": {
+        "tags": [
+          "Cart"
+        ],
+        "summary": "Adds an item to a cart.",
+        "consumes": [
+          "application/json; v=1.0",
+          "text/json; v=1.0",
+          "application/*+json; v=1.0"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cartId",
+            "description": "The ID of the cart.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The cart item to add.",
+            "schema": {
+              "$ref": "#/definitions/CartItemDto"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/StringLinkedResourceDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/carts/{cartId}/items/{itemId}": {
+      "delete": {
+        "tags": [
+          "Cart"
+        ],
+        "summary": "Removes an item from a cart.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cartId",
+            "description": "The ID of the cart.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "itemId",
+            "description": "The ID of the item to remove.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/carts/{cartId}/total": {
+      "get": {
+        "tags": [
+          "Cart"
+        ],
+        "summary": "Gets the total value of a cart.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cartId",
+            "description": "The ID of the cart.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/DecimalLinkedResourceDto"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/categories": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Retrieves all categories.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CategoryDtoCollectionLinkedResourceDto"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Creates a new category.",
+        "consumes": [
+          "application/json; v=1.0",
+          "text/json; v=1.0",
+          "application/*+json; v=1.0"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The category data to create.",
+            "schema": {
+              "$ref": "#/definitions/CreateCategoryDto"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/Int32LinkedResourceDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/categories/by-parent": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Retrieves categories by parent category ID.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "parentCategoryId",
+            "description": "The ID of the parent category.",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CategoryDtoCollectionLinkedResourceDto"
+            }
+          }
+        }
+      }
+    },
+    "/api/categories/{id}": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Retrieves a category by its ID.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The ID of the category.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CategoryDetailDtoLinkedResourceDto"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Updates an existing category.",
+        "consumes": [
+          "application/json; v=1.0",
+          "text/json; v=1.0",
+          "application/*+json; v=1.0"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The ID of the category to update.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The updated category data.",
+            "schema": {
+              "$ref": "#/definitions/UpdateCategoryDto"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Deletes a category by its ID.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The ID of the category to delete.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/products": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Retrieves all products.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ProductDtoCollectionLinkedResourceDto"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Creates a new product.",
+        "consumes": [
+          "application/json; v=1.0",
+          "text/json; v=1.0",
+          "application/*+json; v=1.0"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The product data to create.",
+            "schema": {
+              "$ref": "#/definitions/CreateProductDto"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/Int32LinkedResourceDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/products/by-category/{categoryId}": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Retrieves products by category ID.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "categoryId",
+            "description": "The ID of the category.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ProductDtoCollectionLinkedResourceDto"
+            }
+          }
+        }
+      }
+    },
+    "/api/products/{id}": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Retrieves a product by its ID.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The ID of the product.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ProductDtoLinkedResourceDto"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Updates an existing product.",
+        "consumes": [
+          "application/json; v=1.0",
+          "text/json; v=1.0",
+          "application/*+json; v=1.0"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The ID of the product to update.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The updated product data.",
+            "schema": {
+              "$ref": "#/definitions/UpdateProductDto"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Deletes a product by its ID.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "The ID of the product to delete.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
+    },
+    "/api/products/paginated": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Retrieves paginated products with optional filtering by category.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageNumber",
+            "description": "The page number to retrieve.",
+            "type": "integer",
+            "format": "int32",
+            "default": 1
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "description": "The number of items per page.",
+            "type": "integer",
+            "format": "int32",
+            "default": 10
+          },
+          {
+            "in": "query",
+            "name": "categoryId",
+            "description": "Optional category ID to filter products.",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "X-API-Version",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ProductDtoPagedResourceDto"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "CartDto": {
+      "type": "object",
+      "properties": {
+        "cartId": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CartItemDto"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "CartDtoLinkedResourceDto": {
+      "description": "Represents a resource with embedded data and hypermedia links.",
+      "type": "object",
+      "properties": {
+        "links": {
+          "description": "Gets the links related to this resource.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LinkDto"
+          },
+          "readOnly": true
+        },
+        "resource": {
+          "$ref": "#/definitions/CartDto"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CartItemDto": {
+      "required": [
+        "name"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "imageAltText": {
+          "type": "string"
+        },
+        "price": {
+          "format": "double",
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "quantity": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CategoryDetailDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "parentCategoryId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "parentCategoryName": {
+          "type": "string"
+        },
+        "subcategories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CategoryDto"
+          }
+        },
+        "products": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProductDto"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "CategoryDetailDtoLinkedResourceDto": {
+      "description": "Represents a resource with embedded data and hypermedia links.",
+      "type": "object",
+      "properties": {
+        "links": {
+          "description": "Gets the links related to this resource.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LinkDto"
+          },
+          "readOnly": true
+        },
+        "resource": {
+          "$ref": "#/definitions/CategoryDetailDto"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CategoryDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "parentCategoryId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "parentCategoryName": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CategoryDtoCollectionLinkedResourceDto": {
+      "description": "Represents a collection of resources with hypermedia links.",
+      "type": "object",
+      "properties": {
+        "links": {
+          "description": "Gets the links related to this resource.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LinkDto"
+          },
+          "readOnly": true
+        },
+        "items": {
+          "description": "Gets the items in this collection.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CategoryDto"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateCategoryDto": {
+      "required": [
+        "name"
+      ],
+      "type": "object",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "parentCategoryId": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateProductDto": {
+      "required": [
+        "amount",
+        "categoryId",
+        "name",
+        "price"
+      ],
+      "type": "object",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "categoryId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "price": {
+          "format": "double",
+          "maximum": 1000000,
+          "minimum": 0.01,
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "amount": {
+          "format": "int32",
+          "maximum": 1000000,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DecimalLinkedResourceDto": {
+      "description": "Represents a resource with embedded data and hypermedia links.",
+      "type": "object",
+      "properties": {
+        "links": {
+          "description": "Gets the links related to this resource.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LinkDto"
+          },
+          "readOnly": true
+        },
+        "resource": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Int32LinkedResourceDto": {
+      "description": "Represents a resource with embedded data and hypermedia links.",
+      "type": "object",
+      "properties": {
+        "links": {
+          "description": "Gets the links related to this resource.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LinkDto"
+          },
+          "readOnly": true
+        },
+        "resource": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LinkDto": {
+      "description": "Represents a hypermedia link for HATEOAS.",
+      "type": "object",
+      "properties": {
+        "href": {
+          "description": "Gets the URL of the link.",
+          "type": "string"
+        },
+        "rel": {
+          "description": "Gets the relationship of the link to the current resource.",
+          "type": "string"
+        },
+        "method": {
+          "description": "Gets the HTTP method to use with this link.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LoginUserCommand": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LoginUserCommandResponse": {
+      "required": [
+        "message",
+        "success"
+      ],
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        },
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "idToken": {
+          "type": "string"
+        },
+        "tokenExpiration": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PaginationMetadata": {
+      "description": "Metadata for pagination.",
+      "type": "object",
+      "properties": {
+        "currentPage": {
+          "format": "int32",
+          "description": "Gets the current page number.",
+          "type": "integer"
+        },
+        "pageSize": {
+          "format": "int32",
+          "description": "Gets the number of items per page.",
+          "type": "integer"
+        },
+        "totalCount": {
+          "format": "int32",
+          "description": "Gets the total number of items.",
+          "type": "integer"
+        },
+        "totalPages": {
+          "format": "int32",
+          "description": "Gets the total number of pages.",
+          "type": "integer",
+          "readOnly": true
+        },
+        "hasPrevious": {
+          "description": "Gets a value indicating whether there is a previous page.",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "hasNext": {
+          "description": "Gets a value indicating whether there is a next page.",
+          "type": "boolean",
+          "readOnly": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProblemDetails": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "instance": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": { }
+    },
+    "ProductDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "categoryId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "categoryName": {
+          "type": "string"
+        },
+        "price": {
+          "format": "double",
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "amount": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProductDtoCollectionLinkedResourceDto": {
+      "description": "Represents a collection of resources with hypermedia links.",
+      "type": "object",
+      "properties": {
+        "links": {
+          "description": "Gets the links related to this resource.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LinkDto"
+          },
+          "readOnly": true
+        },
+        "items": {
+          "description": "Gets the items in this collection.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProductDto"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProductDtoLinkedResourceDto": {
+      "description": "Represents a resource with embedded data and hypermedia links.",
+      "type": "object",
+      "properties": {
+        "links": {
+          "description": "Gets the links related to this resource.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LinkDto"
+          },
+          "readOnly": true
+        },
+        "resource": {
+          "$ref": "#/definitions/ProductDto"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProductDtoPagedResourceDto": {
+      "description": "Represents a paginated collection of resources with hypermedia links.",
+      "type": "object",
+      "properties": {
+        "links": {
+          "description": "Gets the links related to this resource.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LinkDto"
+          },
+          "readOnly": true
+        },
+        "items": {
+          "description": "Gets the items in this page.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProductDto"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/PaginationMetadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RefreshTokenCommand": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RefreshTokenCommandResponse": {
+      "required": [
+        "message",
+        "success"
+      ],
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        },
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "idToken": {
+          "type": "string"
+        },
+        "refreshTokenExpiration": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RegisterCustomerRequest": {
+      "required": [
+        "email",
+        "firstName",
+        "lastName",
+        "password"
+      ],
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RegisterUserCommand": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/definitions/UserRole"
+        }
+      },
+      "additionalProperties": false
+    },
+    "StringLinkedResourceDto": {
+      "description": "Represents a resource with embedded data and hypermedia links.",
+      "type": "object",
+      "properties": {
+        "links": {
+          "description": "Gets the links related to this resource.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LinkDto"
+          },
+          "readOnly": true
+        },
+        "resource": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UpdateCategoryDto": {
+      "required": [
+        "id",
+        "name"
+      ],
+      "type": "object",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "parentCategoryId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UpdateProductDto": {
+      "required": [
+        "amount",
+        "categoryId",
+        "id",
+        "name",
+        "price"
+      ],
+      "type": "object",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "categoryId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "price": {
+          "format": "double",
+          "maximum": 1000000,
+          "minimum": 0.01,
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "amount": {
+          "format": "int32",
+          "maximum": 1000000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UserDto": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UserDtoLinkedResourceDto": {
+      "description": "Represents a resource with embedded data and hypermedia links.",
+      "type": "object",
+      "properties": {
+        "links": {
+          "description": "Gets the links related to this resource.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LinkDto"
+          },
+          "readOnly": true
+        },
+        "resource": {
+          "$ref": "#/definitions/UserDto"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UserRole": {
+      "format": "int32",
+      "enum": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "type": "integer"
+    },
+    "ValidateTokenRequest": {
+      "required": [
+        "token"
+      ],
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "tokenType": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below."
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
+}

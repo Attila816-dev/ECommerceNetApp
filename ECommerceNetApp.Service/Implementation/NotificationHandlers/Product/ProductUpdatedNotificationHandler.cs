@@ -52,7 +52,7 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Product
         public async Task HandleAsync(ProductUpdatedEvent notification, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(notification);
-#pragma warning disable CA1031 // Do not catch general exception types
+
             try
             {
                 LogProductCreated(
@@ -89,7 +89,6 @@ namespace ECommerceNetApp.Service.Implementation.NotificationHandlers.Product
             {
                 LogProductUpdatedEventError(_logger, notification.ProductId, ex);
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
     }
 }

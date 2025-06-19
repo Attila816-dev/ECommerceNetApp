@@ -2,7 +2,7 @@ using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Service.Commands.Product;
 using FluentValidation;
 
-namespace ECommerceNetApp.Service.Validators.Product
+namespace ECommerceNetApp.Service.Implementation.Validators.Product
 {
     public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
     {
