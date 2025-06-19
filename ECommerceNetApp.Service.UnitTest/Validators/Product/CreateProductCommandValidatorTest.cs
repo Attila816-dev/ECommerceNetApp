@@ -1,6 +1,6 @@
 using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Service.Commands.Product;
-using ECommerceNetApp.Service.Validators.Product;
+using ECommerceNetApp.Service.Implementation.Validators.Product;
 using FluentValidation.TestHelper;
 
 namespace ECommerceNetApp.Service.UnitTest.Validators.Product

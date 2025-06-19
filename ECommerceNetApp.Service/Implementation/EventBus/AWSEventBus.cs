@@ -12,8 +12,6 @@ using SNSMessageAttributeValue = Amazon.SimpleNotificationService.Model.MessageA
 
 namespace ECommerceNetApp.Service.Implementation.EventBus
 {
-#pragma warning disable CA1031 // Do not catch general exception types
-
     /// <summary>
     /// Implementation of IEventBus using AWS SNS (Simple Notification Service) for publishing
     /// and SQS (Simple Queue Service) for consuming messages.
@@ -588,5 +586,4 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
             }
         }
     }
-#pragma warning restore CA1031 // Do not catch general exception types
 }

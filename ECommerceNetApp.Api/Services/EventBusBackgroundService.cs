@@ -29,7 +29,6 @@ namespace ECommerceNetApp.Api.Services
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 if (_eventBus is IAsyncDisposable disposable)
@@ -46,7 +45,6 @@ namespace ECommerceNetApp.Api.Services
             {
                 await base.StopAsync(cancellationToken).ConfigureAwait(false);
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

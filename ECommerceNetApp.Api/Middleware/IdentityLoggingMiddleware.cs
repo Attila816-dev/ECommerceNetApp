@@ -37,7 +37,6 @@ namespace ECommerceNetApp.Api.Middleware
             await _next(context).ConfigureAwait(false);
         }
 
-#pragma warning disable CA1031 // Do not catch general exception types
         private void LogIdentityDetails(HttpContext context)
         {
             try
@@ -58,6 +57,5 @@ namespace ECommerceNetApp.Api.Middleware
                 LogIdentityErrorMessage(_logger, ex);
             }
         }
-#pragma warning restore CA1031 // Do not catch general exception types
     }
 }

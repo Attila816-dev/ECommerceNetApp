@@ -1,0 +1,22 @@
+{
+  "SwaggerEndPoints": [
+    {
+      "Key": "v1",
+      "Config": [
+        {
+          "Name": "E-Commerce API v1",
+          "Url": "https://localhost:7137/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "v2",
+      "Config": [
+        {
+          "Name": "E-Commerce API v2",
+          "Url": "https://localhost:7137/swagger/v2/swagger.json"
+        }
+      ]
+    }
+  ]
+}

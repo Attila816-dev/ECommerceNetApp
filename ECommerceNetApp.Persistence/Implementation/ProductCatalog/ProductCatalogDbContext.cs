@@ -70,7 +70,6 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
 
                 foreach (var domainEvent in events)
                 {
-#pragma warning disable CA1031 // Do not catch general exception types
                     try
                     {
                         await _eventBus.PublishAsync(domainEvent, cancellationToken).ConfigureAwait(false);
@@ -79,7 +78,6 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
                     {
                         LogEbentPublishingError(_logger!, ex);
                     }
-#pragma warning restore CA1031 // Do not catch general exception types
                 }
             }
         }

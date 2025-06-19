@@ -13,8 +13,8 @@ using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
 using ECommerceNetApp.Service.Extensions;
 using ECommerceNetApp.Service.Implementation.Behaviors;
+using ECommerceNetApp.Service.Implementation.Validators.Cart;
 using ECommerceNetApp.Service.Interfaces;
-using ECommerceNetApp.Service.Validators.Cart;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -28,7 +28,6 @@ namespace ECommerceNetApp.Api
     /// <summary>
     /// This is used in integration test.
     /// </summary>
-    [SuppressMessage("Design", "CA1052:Type 'Program' is a static holder type but is neither static nor NotInheritable", Justification = "Required for partial class usage in integration tests.")]
     public partial class Program
     {
         public static async Task Main(string[] args)
@@ -309,12 +308,10 @@ namespace ECommerceNetApp.Api
                 Log.Information("Starting web host");
                 await app.RunAsync().ConfigureAwait(false);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
             {
                 Log.Fatal(ex, "Host terminated unexpectedly");
             }
-#pragma warning restore CA1031 // Do not catch general exception types
             finally
             {
                 await Log.CloseAndFlushAsync().ConfigureAwait(false);
