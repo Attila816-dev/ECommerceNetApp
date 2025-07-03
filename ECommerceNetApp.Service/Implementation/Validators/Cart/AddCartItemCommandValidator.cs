@@ -1,7 +1,7 @@
 using ECommerceNetApp.Service.Commands.Cart;
 using FluentValidation;
 
-namespace ECommerceNetApp.Service.Validators.Cart
+namespace ECommerceNetApp.Service.Implementation.Validators.Cart
 {
     public class AddCartItemCommandValidator : AbstractValidator<AddCartItemCommand>
     {

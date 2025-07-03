@@ -4,7 +4,7 @@ using ECommerceNetApp.Service.Commands.Product;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerceNetApp.Service.Validators.Product
+namespace ECommerceNetApp.Service.Implementation.Validators.Product
 {
     public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
     {

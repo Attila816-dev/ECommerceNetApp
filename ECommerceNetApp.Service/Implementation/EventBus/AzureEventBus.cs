@@ -10,8 +10,6 @@ using Polly;
 
 namespace ECommerceNetApp.Service.Implementation.EventBus
 {
-#pragma warning disable CA1031 // Do not catch general exception types
-
     internal sealed class AzureEventBus : IEventBus, IAsyncDisposable
     {
         private static readonly Action<ILogger, string, string, Exception?> LogNotificationHandlerRegistration =
@@ -366,5 +364,4 @@ namespace ECommerceNetApp.Service.Implementation.EventBus
                 DefaultMessageTimeToLive = _defaultMessageTimeToLive,
             };
     }
-#pragma warning restore CA1031 // Do not catch general exception types
 }

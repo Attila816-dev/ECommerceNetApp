@@ -1,8 +1,8 @@
 using ECommerceNetApp.Service.Commands.Cart;
-using ECommerceNetApp.Service.Validators.Cart;
+using ECommerceNetApp.Service.Implementation.Validators.Cart;
 using FluentValidation.TestHelper;
 
-namespace ECommerceNetApp.Service.UnitTest.Validators.Category
+namespace ECommerceNetApp.Service.UnitTest.Validators.Cart
 {
     public class UpdateCartItemQuantityCommandValidatorTest
     {

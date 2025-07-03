@@ -3,7 +3,7 @@ using ECommerceNetApp.Service.Commands.User;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerceNetApp.Service.Validators.User
+namespace ECommerceNetApp.Service.Implementation.Validators.User
 {
     public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
     {
