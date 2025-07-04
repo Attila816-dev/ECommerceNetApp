@@ -11,6 +11,7 @@ using ECommerceNetApp.Domain.Enums;
 using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Domain.Options;
 using ECommerceNetApp.Persistence.Extensions;
+using ECommerceNetApp.Service.Commands.Cart;
 using ECommerceNetApp.Service.Extensions;
 using ECommerceNetApp.Service.Implementation.Behaviors;
 using ECommerceNetApp.Service.Implementation.Validators.Cart;
@@ -21,6 +22,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Serilog;
 
 namespace ECommerceNetApp.Api
@@ -59,6 +64,7 @@ namespace ECommerceNetApp.Api
 
             app.UseErrorHandlingMiddleware();
             app.UseIdentityLoggingMiddleware();
+            app.UseCorrelationIdMiddleware();
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthentication();
@@ -81,6 +87,58 @@ namespace ECommerceNetApp.Api
                 };
             });
 
+            var resourceBuilder = ResourceBuilder.CreateDefault()
+                .AddService("ECommerceNetApp.Api", serviceVersion: Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0", serviceInstanceId: Environment.MachineName)
+                .AddService("ECommerceNetApp.Service", serviceVersion: typeof(AddCartItemCommand).Assembly.GetName().Version?.ToString() ?? "1.0.0", serviceInstanceId: Environment.MachineName);
+
+            builder.Services.AddOpenTelemetry()
+                .WithTracing(tracingBuilder =>
+                {
+                    tracingBuilder
+                        .SetResourceBuilder(resourceBuilder)
+                        .AddAspNetCoreInstrumentation(options =>
+                        {
+                            options.RecordException = true;
+                            options.EnrichWithHttpRequest = (activity, request) =>
+                            {
+                                activity.SetTag("http.request.host", request.Host.Value);
+                                activity.SetTag("http.request.user_agent", request.Headers["User-Agent"].ToString());
+                                activity.SetTag("http.request.method", request.Method);
+                                activity.SetTag("http.request.scheme", request.Scheme);
+                                activity.SetTag("http.request.path", request.Path.Value);
+                                activity.SetTag("http.request.query_string", request.QueryString.Value);
+                                activity.SetTag("http.request.body.size", request.ContentLength ?? 0);
+                            };
+
+                            options.EnrichWithHttpResponse = (activity, response) =>
+                            {
+                                activity.SetTag("http.response.status_code", response.StatusCode);
+                                activity.SetTag("http.response.body.size", response.ContentLength ?? 0);
+                            };
+                        })
+                        .AddEntityFrameworkCoreInstrumentation(efCoreOptions =>
+                        {
+                            efCoreOptions.SetDbStatementForText = true; // Capture SQL statements
+                        })
+                        .AddSource("ECommerceNetApp.Api", "ECommerceNetApp.Service")
+                        .AddConsoleExporter(); // For development - you'll replace this with Application Insights later
+                })
+                .WithMetrics(metricsBuilder =>
+                {
+                    metricsBuilder
+                        .SetResourceBuilder(resourceBuilder)
+                        .AddAspNetCoreInstrumentation()
+                        .AddConsoleExporter();
+                });
+
+            // Add OpenTelemetry Logging
+            builder.Logging.AddOpenTelemetry(loggingBuilder =>
+            {
+                loggingBuilder
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddConsoleExporter();
+            });
+
             builder.Services.Configure<CartDbOptions>(builder.Configuration.GetSection(nameof(CartDbOptions)));
             builder.Services.Configure<ProductCatalogDbOptions>(builder.Configuration.GetSection(nameof(ProductCatalogDbOptions)));
             builder.Services.Configure<EventBusOptions>(builder.Configuration.GetSection(EventBusOptions.SectionName));
@@ -97,6 +155,7 @@ namespace ECommerceNetApp.Api
 
             builder.Services.AddScoped<IHateoasLinkService, HateoasLinkService>();
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+            builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(TracingBehavior<,>));
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
             builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(RetryBehavior<,>));
             builder.Services.AddCartDb(builder.Configuration);

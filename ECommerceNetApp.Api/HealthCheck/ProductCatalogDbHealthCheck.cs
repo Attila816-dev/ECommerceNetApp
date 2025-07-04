@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
+﻿using System.Diagnostics;
+using ECommerceNetApp.Persistence.Implementation.ProductCatalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -14,10 +15,15 @@ namespace ECommerceNetApp.Api.HealthCheck
             {
                 // Perform a simple query to check if the database is accessible
                 await _dbContext.Categories.AnyAsync(cancellationToken).ConfigureAwait(false);
+
+                using var activity = Activity.Current;
+                activity?.SetTag("health.status", "healthy");
                 return HealthCheckResult.Healthy("ProductCatalogDb is operational");
             }
             catch (Exception ex)
             {
+                using var activity = Activity.Current;
+                activity?.SetTag("health.status", "unhealthy");
                 return HealthCheckResult.Unhealthy("ProductCatalogDb health check failed", exception: ex);
             }
         }
