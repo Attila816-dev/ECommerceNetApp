@@ -9,6 +9,11 @@ namespace ECommerceNetApp.Api.Extensions
             return app.UseMiddleware<ErrorHandlingMiddleware>();
         }
 
+        public static IApplicationBuilder UseCorrelationIdMiddleware(this IApplicationBuilder app)
+        {
+            return app.UseMiddleware<CorrelationIdMiddleware>();
+        }
+
         public static IApplicationBuilder UseIdentityLoggingMiddleware(this IApplicationBuilder builder)
         {
             return builder.UseMiddleware<IdentityLoggingMiddleware>();

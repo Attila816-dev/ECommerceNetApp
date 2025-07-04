@@ -1,4 +1,5 @@
-﻿using ECommerceNetApp.Domain.Entities;
+﻿using System.Reflection.Emit;
+using ECommerceNetApp.Domain.Entities;
 using ECommerceNetApp.Domain.Interfaces;
 using ECommerceNetApp.Persistence.Implementation.ProductCatalog.EntityTypeConfiguration;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +39,13 @@ namespace ECommerceNetApp.Persistence.Implementation.ProductCatalog
             var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken).ConfigureAwait(false);
             await DispatchDomainEventsAsync(cancellationToken).ConfigureAwait(false);
             return result;
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            ArgumentNullException.ThrowIfNull(optionsBuilder);
+            base.OnConfiguring(optionsBuilder);
+            optionsBuilder.EnableSensitiveDataLogging();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
