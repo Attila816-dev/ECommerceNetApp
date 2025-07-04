@@ -6,7 +6,6 @@ using Asp.Versioning.ApiExplorer;
 using ECommerceNetApp.Api.Authorization;
 using ECommerceNetApp.Api.Extensions;
 using ECommerceNetApp.Api.HealthCheck;
-using ECommerceNetApp.Api.Middleware;
 using ECommerceNetApp.Api.Services;
 using ECommerceNetApp.Domain.Enums;
 using ECommerceNetApp.Domain.Interfaces;
@@ -37,7 +36,6 @@ namespace ECommerceNetApp.Api
 
             // Configure services
             ConfigureLogging(builder);
-            builder.Services.ConfigureOpenTelemetry(builder.Configuration);
             ConfigureServices(builder);
             builder.Services.AddControllers();
             ConfigureSwagger(builder);
@@ -63,7 +61,6 @@ namespace ECommerceNetApp.Api
             app.UseIdentityLoggingMiddleware();
             app.UseHttpsRedirection();
             app.UseRouting();
-            app.UseMiddleware<CorrelationContextMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
