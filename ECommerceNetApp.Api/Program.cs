@@ -63,6 +63,8 @@ namespace ECommerceNetApp.Api
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseGraphQL();
             app.MapControllers();
 
             // Run the application
@@ -105,6 +107,7 @@ namespace ECommerceNetApp.Api
             builder.Services.AddHostedService<DatabaseInitializer>();
             ConfigureHealthCheck(builder);
             ConfigureAuthentication(builder);
+            builder.Services.AddGraphQLServices();
         }
 
         private static void ConfigureAuthentication(WebApplicationBuilder builder)
@@ -230,7 +233,7 @@ namespace ECommerceNetApp.Api
 
                 // Include XML comments if available
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
                 if (File.Exists(xmlPath))
                 {
                     options.IncludeXmlComments(xmlPath);
