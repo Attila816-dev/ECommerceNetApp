@@ -1,0 +1,6 @@
+@ECommerceNetApp.Grpc_HostAddress = http://localhost:5001
+
+GET {{ECommerceNetApp.Grpc_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
