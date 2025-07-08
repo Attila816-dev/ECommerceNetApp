@@ -1,7 +1,6 @@
 ﻿using ECommerceNetApp.Service.DTO;
 using ECommerceNetApp.Service.Interfaces;
 using ECommerceNetApp.Service.Queries.Category;
-using HotChocolate.Types;
 
 namespace ECommerceNetApp.Api.GraphQL.Types
 {
@@ -38,6 +37,7 @@ namespace ECommerceNetApp.Api.GraphQL.Types
 
             descriptor.Field("category")
                 .Description("The category this product belongs to")
+                .Type<CategoryDetailType>()
                 .Resolve(async context =>
                 {
                     var dispatcher = context.Service<IDispatcher>();

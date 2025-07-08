@@ -2,8 +2,6 @@
 using ECommerceNetApp.Service.Interfaces;
 using ECommerceNetApp.Service.Queries.Category;
 using ECommerceNetApp.Service.Queries.Product;
-using HotChocolate.Types;
-using Polly;
 
 namespace ECommerceNetApp.Api.GraphQL.Types
 {
@@ -29,6 +27,7 @@ namespace ECommerceNetApp.Api.GraphQL.Types
 
             descriptor.Field("products")
                 .Description("Products in this category")
+                .Type<ListType<ProductType>>()
                 .Resolve(async context =>
                 {
                     var dispatcher = context.Service<IDispatcher>();
@@ -39,6 +38,7 @@ namespace ECommerceNetApp.Api.GraphQL.Types
 
             descriptor.Field("subCategories")
                 .Description("Sub-categories of this category")
+                .Type<ListType<CategoryType>>()
                 .Resolve(async context =>
                 {
                     var dispatcher = context.Service<IDispatcher>();
