@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option csharp_namespace = "ECommerceNetApp.Grpc.Protos";
+
+package cart;
+
+// Cart service definition
+service CartService {
+  // 1. Get list of items of the cart object – unary rpc call
+  rpc GetCartItems(GetCartItemsRequest) returns (GetCartItemsResponse);
+  
+  // 2. Get list of items of the cart object – server stream rpc call
+  rpc GetCartItemsStream(GetCartItemsRequest) returns (stream CartItemResponse);
+  
+  // 3. Add item to the cart and return updated cart object – client stream rpc call
+  rpc AddItemsToCart(stream AddCartItemRequest) returns (GetCartItemsResponse);
+  
+  // 4. Add item to the cart and return updated cart object – bi-directional rpc call
+  rpc AddItemsToCartBidirectional(stream AddCartItemRequest) returns (stream GetCartItemsResponse);
+}
+
+// Request message for getting cart items
+message GetCartItemsRequest {
+  string cart_id = 1;
+}
+
+// Response message for getting cart items
+message GetCartItemsResponse {
+  string cart_id = 1;
+  repeated CartItem items = 2;
+  double total_amount = 3;
+}
+
+// Individual cart item response for streaming
+message CartItemResponse {
+  CartItem item = 1;
+  bool is_last = 2;
+}
+
+// Request message for adding cart item
+message AddCartItemRequest {
+  string cart_id = 1;
+  CartItem item = 2;
+}
+
+// Cart item message
+message CartItem {
+  int32 id = 1;
+  string name = 2;
+  double price = 3;
+  string currency = 4;
+  int32 quantity = 5;
+  string image_url = 6;
+  string image_alt_text = 7;
+  double total_price = 8;
+}

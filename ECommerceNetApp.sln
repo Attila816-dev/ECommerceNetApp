@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.Persistence
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.ApiGateway", "ECommerceNetApp.ApiGateway\ECommerceNetApp.ApiGateway.csproj", "{4D414FCB-CD28-4BF3-8C7E-F8ED38FBF833}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerceNetApp.Grpc", "ECommerceNetApp.Grpc\ECommerceNetApp.Grpc.csproj", "{28A25328-84F9-4834-ADE8-F5F006696F3A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,10 @@ Global
 		{4D414FCB-CD28-4BF3-8C7E-F8ED38FBF833}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D414FCB-CD28-4BF3-8C7E-F8ED38FBF833}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D414FCB-CD28-4BF3-8C7E-F8ED38FBF833}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28A25328-84F9-4834-ADE8-F5F006696F3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28A25328-84F9-4834-ADE8-F5F006696F3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28A25328-84F9-4834-ADE8-F5F006696F3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28A25328-84F9-4834-ADE8-F5F006696F3A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
